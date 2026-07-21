@@ -1,2 +1,65 @@
 scrShell As screen:
+    Fill: =gblTheme.ColorWorkspace
+    LoadingSpinnerColor: =gblTheme.ColorPrimary
+    OnVisible: |-
+        =If(
+            !gblInitialized,
+            Set(gblBusy, true);
+            Set(gblBusyMessage, "Initialisierung wird abgeschlossen …")
+        )
 
+    conRoot As groupContainer:
+        Height: =Parent.Height
+        Width: =Parent.Width
+        X: =0
+        Y: =0
+
+        conHeader As groupContainer:
+            Fill: =gblTheme.ColorPrimary
+            Height: =gblTheme.HeaderHeight
+            Width: =Parent.Width
+            X: =0
+            Y: =0
+
+        conBody As groupContainer:
+            Fill: =gblTheme.ColorWorkspace
+            Height: =Parent.Height - gblTheme.HeaderHeight - gblTheme.FooterHeight
+            Width: =Parent.Width
+            X: =0
+            Y: =gblTheme.HeaderHeight
+
+            conNavigation As groupContainer:
+                Fill: =gblTheme.ColorNavigation
+                Height: =Parent.Height
+                Width: =If(App.Width < gblTheme.BreakpointCompact, gblTheme.NavigationWidthCompact, gblTheme.NavigationWidth)
+                X: =0
+                Y: =0
+
+            conWorkspace As groupContainer:
+                Fill: =gblTheme.ColorWorkspace
+                Height: =Parent.Height
+                Width: =Parent.Width - conNavigation.Width
+                X: =conNavigation.Width
+                Y: =0
+
+                conWorkspaceContent As groupContainer:
+                    Fill: =gblTheme.ColorWorkspace
+                    Height: =Parent.Height - (2 * gblTheme.ContentPadding)
+                    Width: =Parent.Width - (2 * gblTheme.ContentPadding)
+                    X: =gblTheme.ContentPadding
+                    Y: =gblTheme.ContentPadding
+
+        conFooter As groupContainer:
+            Fill: =gblTheme.ColorFooter
+            Height: =gblTheme.FooterHeight
+            Width: =Parent.Width
+            X: =0
+            Y: =Parent.Height - Self.Height
+
+        conBusyOverlay As groupContainer:
+            Fill: =RGBA(255, 255, 255, 0.72)
+            Height: =Parent.Height
+            Visible: =gblBusy
+            Width: =Parent.Width
+            X: =0
+            Y: =0

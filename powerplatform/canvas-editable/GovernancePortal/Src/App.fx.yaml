@@ -1,6 +1,53 @@
 App As appinfo:
     BackEnabled: =true
-    OnStart: =
+    OnStart: |-
+        =Set(gblAppVersion, "1.0.0-alpha.2");
+        Set(gblInitialized, false);
+        Set(gblBusy, true);
+        Set(gblBusyMessage, "Governance Portal wird initialisiert …");
+        Set(gblCurrentPage, "home");
+        Set(gblEnvironment, "DEV");
+        Set(gblUser, User());
+        Set(
+            gblTheme,
+            {
+                ColorPrimary: RGBA(32, 68, 105, 1),
+                ColorPrimaryDark: RGBA(22, 47, 74, 1),
+                ColorNavigation: RGBA(245, 247, 250, 1),
+                ColorWorkspace: RGBA(255, 255, 255, 1),
+                ColorFooter: RGBA(236, 239, 243, 1),
+                ColorBorder: RGBA(210, 216, 224, 1),
+                ColorText: RGBA(33, 37, 41, 1),
+                ColorTextInverse: RGBA(255, 255, 255, 1),
+                HeaderHeight: 64,
+                FooterHeight: 32,
+                NavigationWidth: 248,
+                NavigationWidthCompact: 72,
+                BreakpointCompact: 900,
+                ContentPadding: 24
+            }
+        );
+        ClearCollect(
+            colNavigation,
+            {Key: "home", Label: "Start", SortOrder: 10},
+            {Key: "assets", Label: "Assets", SortOrder: 20},
+            {Key: "systems", Label: "Systeme", SortOrder: 30},
+            {Key: "contacts", Label: "Kontakte", SortOrder: 40},
+            {Key: "incidents", Label: "Incidents", SortOrder: 50},
+            {Key: "problems", Label: "Problems", SortOrder: 60},
+            {Key: "changes", Label: "Changes", SortOrder: 70},
+            {Key: "risks", Label: "Risiken", SortOrder: 80},
+            {Key: "controls", Label: "Controls", SortOrder: 90},
+            {Key: "measures", Label: "Maßnahmen", SortOrder: 100},
+            {Key: "architecture", Label: "Architektur", SortOrder: 110},
+            {Key: "reports", Label: "Berichte", SortOrder: 120}
+        );
+        Clear(colNotifications);
+        Clear(colRecent);
+        Clear(colFavorites);
+        Set(gblBusyMessage, Blank());
+        Set(gblBusy, false);
+        Set(gblInitialized, true)
     Theme: =PowerAppsTheme
 
     Host As hostControl.DefaultHostControlVariant:
@@ -9,4 +56,3 @@ App As appinfo:
         OnNew: =false
         OnSave: =false
         OnView: =false
-

@@ -30,3 +30,11 @@ powerplatform/deployment/settings.prod.json
 
 # PowerShell
 *.user.ps1
+
+# Local iteration packages
+*.zip
+*.zip.sha256
+README-APPLY.md
+
+# Local refactoring/cache directories
+.refact/
