@@ -16,3 +16,19 @@ auth.json
 .idea/
 .DS_Store
 Thumbs.db
+
+# Build and import/export artifacts
+artifacts/*
+!artifacts/.gitkeep
+
+# Generated Power Platform binaries
+powerplatform/solution/CanvasApps/*_DocumentUri.msapp
+
+# Power Platform temporary files
+powerplatform/**/*.tmp
+powerplatform/**/*.bak
+
+# Local deployment settings
+powerplatform/deployment/settings.dev.json
+powerplatform/deployment/settings.test.json
+powerplatform/deployment/settings.prod.json
