@@ -1,7 +1,7 @@
 App As appinfo:
     BackEnabled: =true
     OnStart: |-
-        =Set(gblAppVersion, "1.0.0-alpha.2.1");
+        =Set(gblAppVersion, "1.0.0-alpha.2.2");
         Set(gblInitialized, false);
         Set(gblBusy, true);
         Set(gblBusyMessage, "Governance Portal wird initialisiert …");

@@ -169,7 +169,7 @@ scrShell As screen:
                         Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
                         Color: =gblTheme.ColorText
                         Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
-                        FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                        FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
                         Height: =Parent.TemplateHeight
                         OnSelect: =Select(Parent)
                         PaddingBottom: =0
@@ -177,7 +177,7 @@ scrShell As screen:
                         PaddingRight: =0
                         PaddingTop: =0
                         Text: =If(App.Width < gblTheme.BreakpointCompact, ThisItem.ShortLabel, ThisItem.Label)
-                        VerticalAlign: =VerticalAlign.Top
+                        VerticalAlign: =VerticalAlign.Middle
                         Width: =Parent.TemplateWidth
                         ZIndex: =2
 
@@ -206,12 +206,22 @@ scrShell As screen:
                 X: =24
                 ZIndex: =1
 
+            lblUser As label:
+                Align: =Align.Right
+                Color: =gblTheme.ColorTextInverse
+                Height: =Parent.Height
+                Text: =Coalesce(gblUser.FullName, gblUser.Email, "Benutzer")
+                Visible: =App.Width >= gblTheme.BreakpointCompact
+                Width: =260
+                X: =Parent.Width - Self.Width - 24
+                ZIndex: =2
+
             lblEnvironment As label:
                 Align: =Align.Right
                 Color: =gblTheme.ColorTextInverse
                 Height: =Parent.Height
                 Text: =gblEnvironment & " · " & gblAppVersion
                 Width: =220
-                X: =Parent.Width - Self.Width - 24
-                ZIndex: =2
+                X: =If(lblUser.Visible, lblUser.X - Self.Width - 16, Parent.Width - Self.Width - 24)
+                ZIndex: =3
 
