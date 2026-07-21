@@ -1,0 +1,226 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrShell:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: |-
+        =If(
+            !gblInitialized,
+            Set(gblBusy, true);
+            Set(gblBusyMessage, "Initialisierung wird abgeschlossen …")
+        )
+    Children:
+      - conRoot:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - conBusyOverlay:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(255, 255, 255, 0.72)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =gblBusy
+                  Width: =Parent.Width
+                Children:
+                  - lblBusyMessage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorText
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =48
+                        Text: =Coalesce(gblBusyMessage, "Bitte warten …")
+                        Width: =320
+                        X: =(Parent.Width - Self.Width) / 2
+                        Y: =(Parent.Height - Self.Height) / 2
+            - conFooter:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorFooter
+                  Height: =gblTheme.FooterHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                  Y: =Parent.Height - Self.Height
+                Children:
+                  - lblFooterStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextMuted
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Size: =10
+                        Text: =If(gblInitialized, "Bereit", "Initialisierung") & " · " & gblEnvironment & " · " & gblAppVersion
+                        Width: =Parent.Width - 32
+                        X: =16
+            - conBody:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorWorkspace
+                  Height: =Parent.Height - gblTheme.HeaderHeight - gblTheme.FooterHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                  Y: =gblTheme.HeaderHeight
+                Children:
+                  - conWorkspace:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =gblTheme.ColorWorkspace
+                        Height: =Parent.Height
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width - conNavigation.Width
+                        X: =conNavigation.Width
+                      Children:
+                        - conWorkspaceContent:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =gblTheme.ColorWorkspace
+                              Height: =Parent.Height - (2 * gblTheme.ContentPadding)
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width - (2 * gblTheme.ContentPadding)
+                              X: =gblTheme.ContentPadding
+                              Y: =gblTheme.ContentPadding
+                            Children:
+                              - lblPageTitle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    Size: =24
+                                    Text: =Coalesce(LookUp(colNavigation, Key = gblCurrentPage, Label), "Governance Portal")
+                                    Width: =Parent.Width
+                              - lblPagePlaceholder:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =gblTheme.ColorTextMuted
+                                    Font: =Font.'Open Sans'
+                                    Text: ="Modul '" & lblPageTitle.Text & "' wird in einer folgenden Iteration implementiert."
+                                    Width: =Parent.Width
+                                    Y: =56
+                  - conNavigation:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =gblTheme.ColorNavigation
+                        Height: =Parent.Height
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =If(App.Width < gblTheme.BreakpointCompact, gblTheme.NavigationWidthCompact, gblTheme.NavigationWidth)
+                      Children:
+                        - galNavigation:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              Items: =SortByColumns(colNavigation, "SortOrder", SortOrder.Ascending)
+                              OnSelect: =Set(gblCurrentPage, ThisItem.Key)
+                              TemplateSize: =48
+                              Width: =Parent.Width
+                            Children:
+                              - lblNavigationItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblTheme.ColorText
+                                    Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =If(ThisItem.IsSelected, FontWeight.Semibold, FontWeight.Normal)
+                                    Height: =Parent.TemplateHeight
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =If(App.Width < gblTheme.BreakpointCompact, 0, 20)
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: =If(App.Width < gblTheme.BreakpointCompact, ThisItem.ShortLabel, ThisItem.Label)
+                                    VerticalAlign: =VerticalAlign.Top
+                                    Width: =Parent.TemplateWidth
+            - conHeader:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorPrimary
+                  Height: =gblTheme.HeaderHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - lblAppTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height
+                        Size: =20
+                        Text: ="Governance Portal"
+                        Width: =320
+                        X: =24
+                  - lblEnvironment:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Text: =gblEnvironment & " · " & gblAppVersion
+                        Width: =220
+                        X: =Parent.Width - Self.Width - 24

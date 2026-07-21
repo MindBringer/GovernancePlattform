@@ -1,28 +1,23 @@
-Logs/*
-!Logs/.gitkeep
-generated/*
-!generated/.gitkeep
-*.log
-*.zip
-*.tmp
-*.bak
-*.old
-.env
-.env.*
-!.env.example
-secrets.json
-auth.json
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Editors
 .vscode/
 .idea/
-.DS_Store
-Thumbs.db
+*.swp
 
-# Build and import/export artifacts
+# Logs and generated output
+Logs/
+logs/
+generated/
+temp/
+tmp/
+
+# Local export/import artifacts
 artifacts/*
 !artifacts/.gitkeep
-
-# Generated Power Platform binaries
-powerplatform/solution/CanvasApps/*_DocumentUri.msapp
 
 # Power Platform temporary files
 powerplatform/**/*.tmp
@@ -32,3 +27,14 @@ powerplatform/**/*.bak
 powerplatform/deployment/settings.dev.json
 powerplatform/deployment/settings.test.json
 powerplatform/deployment/settings.prod.json
+
+# PowerShell
+*.user.ps1
+
+# Local iteration packages
+*.zip
+*.zip.sha256
+README-APPLY.md
+
+# Local refactoring/cache directories
+.refact/

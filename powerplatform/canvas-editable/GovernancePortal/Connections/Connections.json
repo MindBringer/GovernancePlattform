@@ -1,0 +1,132 @@
+{
+  "48df7986-47c0-4f14-a5fc-e634437250b6": {
+    "appActions": [],
+    "connectionRef": {
+      "apiTier": "Standard",
+      "displayName": "SharePoint",
+      "iconUri": "https://static.powerapps.com/resource/ppcr/releases/v1.0.1813/1.0.1813.4769/sharepointonline/icon.png",
+      "id": "/providers/microsoft.powerapps/apis/shared_sharepointonline",
+      "parameterHints": {},
+      "parameterHintsV2": {}
+    },
+    "datasets": {
+      "https://groupsteinicke.sharepoint.com/sites/GovernancePortal_gp_GovernancePortalSharePointSite": {
+        "datasetOverride": {
+          "environmentVariableName": "gp_GovernancePortalSharePointSite",
+          "name": "https://groupsteinicke.sharepoint.com/sites/GovernancePortal"
+        },
+        "dataSources": {
+          "AppSettings": {
+            "tableName": "307669ab-b3e0-4c45-8bdb-de7ad67eafe1",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_6d322b4cc4484dfda0abd63bdebb142d",
+              "name": "307669ab-b3e0-4c45-8bdb-de7ad67eafe1"
+            }
+          },
+          "Assets": {
+            "tableName": "2940c112-6b36-44ea-8fb2-fed7c011cfaa",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_907043efa28a429fa7d6953d4a6ca769",
+              "name": "2940c112-6b36-44ea-8fb2-fed7c011cfaa"
+            }
+          },
+          "BusinessRuleDefinitions": {
+            "tableName": "72c0aa50-9b50-4257-b1ab-c0ab266bb79a",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_d418951eafd44b6f9b313e516088d8b3",
+              "name": "72c0aa50-9b50-4257-b1ab-c0ab266bb79a"
+            }
+          },
+          "ChoiceValues": {
+            "tableName": "b0ea25e3-1519-4e28-b37e-d0d218e6564f",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_2e6afa8049e9485082eef6e92f404486",
+              "name": "b0ea25e3-1519-4e28-b37e-d0d218e6564f"
+            }
+          },
+          "FieldDefinitions": {
+            "tableName": "449ba592-db34-40dc-a178-5136893f9d82",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_d3d4add1eab4414c8d99bb89ae238dca",
+              "name": "449ba592-db34-40dc-a178-5136893f9d82"
+            }
+          },
+          "FormDefinitions": {
+            "tableName": "c9d5932d-0bea-41d4-bc8c-50bc99da20cf",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_140076081cae474dbff54c9e98c3b65f",
+              "name": "c9d5932d-0bea-41d4-bc8c-50bc99da20cf"
+            }
+          },
+          "FormFieldDefinitions": {
+            "tableName": "6a97dfbe-221e-448d-886a-458153231345",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_9010dc897d4c4281a42fb28e31f7f27d",
+              "name": "6a97dfbe-221e-448d-886a-458153231345"
+            }
+          },
+          "NavigationDefinitions": {
+            "tableName": "eeda4004-ccf3-44ad-a790-5800dec66072",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_89976951c383461391ffef8057489d7a",
+              "name": "eeda4004-ccf3-44ad-a790-5800dec66072"
+            }
+          },
+          "ObjectTypes": {
+            "tableName": "a9fa60e8-01ff-40b0-bb83-d5f4f8b92ac2",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_b3142404a24d493b9ae90db4d89b279d",
+              "name": "a9fa60e8-01ff-40b0-bb83-d5f4f8b92ac2"
+            }
+          },
+          "PageDefinitions": {
+            "tableName": "df6488f8-5914-4672-b70c-d47404c5f1fb",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_f991b95495014a90bb159d4368aaeb8f",
+              "name": "df6488f8-5914-4672-b70c-d47404c5f1fb"
+            }
+          },
+          "StatusPresentation": {
+            "tableName": "41a389da-ab0d-494d-82b8-cc0a7ed18f14",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_d57fabe9edcd4bbd8e5b30fc07109167",
+              "name": "41a389da-ab0d-494d-82b8-cc0a7ed18f14"
+            }
+          },
+          "TextResources": {
+            "tableName": "797ed2e3-cb8e-4b7d-9bf6-71201e4f21a9",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_38df2a6fba3c4ba3a84fa9496b91f0c9",
+              "name": "797ed2e3-cb8e-4b7d-9bf6-71201e4f21a9"
+            }
+          },
+          "ValidationDefinitions": {
+            "tableName": "757e777b-7a17-44d6-8f2b-f8b193ade264",
+            "tableNameOverride": {
+              "environmentVariableName": "gp_shared_sharepointonline_18d5a77a9c6d4b3b9fa5be1b53ea6841",
+              "name": "757e777b-7a17-44d6-8f2b-f8b193ade264"
+            }
+          }
+        }
+      }
+    },
+    "dataSources": [
+      "Assets",
+      "BusinessRuleDefinitions",
+      "ChoiceValues",
+      "FieldDefinitions",
+      "FormDefinitions",
+      "FormFieldDefinitions",
+      "AppSettings",
+      "NavigationDefinitions",
+      "ObjectTypes",
+      "PageDefinitions",
+      "StatusPresentation",
+      "TextResources",
+      "ValidationDefinitions"
+    ],
+    "dependencies": {},
+    "dependents": [],
+    "id": "48df7986-47c0-4f14-a5fc-e634437250b6"
+  }
+}

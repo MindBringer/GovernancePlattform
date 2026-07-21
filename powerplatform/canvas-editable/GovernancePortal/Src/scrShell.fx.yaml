@@ -1,0 +1,227 @@
+scrShell As screen:
+    Fill: =gblTheme.ColorWorkspace
+    LoadingSpinnerColor: =gblTheme.ColorPrimary
+    OnVisible: |-
+        =If(
+            !gblInitialized,
+            Set(gblBusy, true);
+            Set(gblBusyMessage, "Initialisierung wird abgeschlossen …")
+        )
+
+    conRoot As groupContainer:
+        DropShadow: =DropShadow.None
+        Height: =Parent.Height
+        LayoutGridColumnMinWidth: =0
+        LayoutGridColumns: =6
+        LayoutGridRowMinHeight: =0
+        LayoutGridRows: =6
+        RadiusBottomLeft: =0
+        RadiusBottomRight: =0
+        RadiusTopLeft: =0
+        RadiusTopRight: =0
+        Width: =Parent.Width
+
+        conBusyOverlay As groupContainer:
+            DropShadow: =DropShadow.None
+            Fill: =RGBA(255, 255, 255, 0.72)
+            Height: =Parent.Height
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Visible: =gblBusy
+            Width: =Parent.Width
+            ZIndex: =5
+
+            lblBusyMessage As label:
+                Align: =Align.Center
+                Color: =gblTheme.ColorText
+                FontWeight: =FontWeight.Semibold
+                Height: =48
+                Text: =Coalesce(gblBusyMessage, "Bitte warten …")
+                Width: =320
+                X: =(Parent.Width - Self.Width) / 2
+                Y: =(Parent.Height - Self.Height) / 2
+                ZIndex: =1
+
+        conFooter As groupContainer:
+            DropShadow: =DropShadow.None
+            Fill: =gblTheme.ColorFooter
+            Height: =gblTheme.FooterHeight
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =Parent.Height - Self.Height
+            ZIndex: =6
+
+            lblFooterStatus As label:
+                Color: =gblTheme.ColorTextMuted
+                Height: =Parent.Height
+                Size: =10
+                Text: =If(gblInitialized, "Bereit", "Initialisierung") & " · " & gblEnvironment & " · " & gblAppVersion
+                Width: =Parent.Width - 32
+                X: =16
+                ZIndex: =2
+
+        conBody As groupContainer:
+            DropShadow: =DropShadow.None
+            Fill: =gblTheme.ColorWorkspace
+            Height: =Parent.Height - gblTheme.HeaderHeight - gblTheme.FooterHeight
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            Y: =gblTheme.HeaderHeight
+            ZIndex: =7
+
+            conWorkspace As groupContainer:
+                DropShadow: =DropShadow.None
+                Fill: =gblTheme.ColorWorkspace
+                Height: =Parent.Height
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Width: =Parent.Width - conNavigation.Width
+                X: =conNavigation.Width
+                ZIndex: =3
+
+                conWorkspaceContent As groupContainer:
+                    DropShadow: =DropShadow.None
+                    Fill: =gblTheme.ColorWorkspace
+                    Height: =Parent.Height - (2 * gblTheme.ContentPadding)
+                    LayoutGridColumnMinWidth: =0
+                    LayoutGridColumns: =6
+                    LayoutGridRowMinHeight: =0
+                    LayoutGridRows: =6
+                    RadiusBottomLeft: =0
+                    RadiusBottomRight: =0
+                    RadiusTopLeft: =0
+                    RadiusTopRight: =0
+                    Width: =Parent.Width - (2 * gblTheme.ContentPadding)
+                    X: =gblTheme.ContentPadding
+                    Y: =gblTheme.ContentPadding
+                    ZIndex: =2
+
+                    lblPageTitle As label:
+                        FontWeight: =FontWeight.Semibold
+                        Height: =44
+                        Size: =24
+                        Text: =Coalesce(LookUp(colNavigation, Key = gblCurrentPage, Label), "Governance Portal")
+                        Width: =Parent.Width
+                        ZIndex: =1
+
+                    lblPagePlaceholder As label:
+                        Color: =gblTheme.ColorTextMuted
+                        Text: ="Modul '" & lblPageTitle.Text & "' wird in einer folgenden Iteration implementiert."
+                        Width: =Parent.Width
+                        Y: =56
+                        ZIndex: =2
+
+            conNavigation As groupContainer:
+                DropShadow: =DropShadow.None
+                Fill: =gblTheme.ColorNavigation
+                Height: =Parent.Height
+                LayoutGridColumnMinWidth: =0
+                LayoutGridColumns: =6
+                LayoutGridRowMinHeight: =0
+                LayoutGridRows: =6
+                RadiusBottomLeft: =0
+                RadiusBottomRight: =0
+                RadiusTopLeft: =0
+                RadiusTopRight: =0
+                Width: =If(App.Width < gblTheme.BreakpointCompact, gblTheme.NavigationWidthCompact, gblTheme.NavigationWidth)
+                ZIndex: =4
+
+                "galNavigation As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                    DelayItemLoading: =true
+                    Fill: =Color.Transparent
+                    Height: =Parent.Height
+                    Items: =SortByColumns(colNavigation, "SortOrder", SortOrder.Ascending)
+                    Layout: =Layout.Vertical
+                    LoadingSpinner: =LoadingSpinner.Data
+                    OnSelect: =Set(gblCurrentPage, ThisItem.Key)
+                    TemplatePadding: =0
+                    TemplateSize: =48
+                    Width: =Parent.Width
+                    ZIndex: =1
+
+                    lblNavigationItem As label:
+                        Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
+                        Color: =gblTheme.ColorText
+                        Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
+                        FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
+                        Height: =Parent.TemplateHeight
+                        OnSelect: =Select(Parent)
+                        PaddingBottom: =0
+                        PaddingLeft: =If(App.Width < gblTheme.BreakpointCompact, 0, 20)
+                        PaddingRight: =0
+                        PaddingTop: =0
+                        Text: =If(App.Width < gblTheme.BreakpointCompact, ThisItem.ShortLabel, ThisItem.Label)
+                        VerticalAlign: =VerticalAlign.Middle
+                        Width: =Parent.TemplateWidth
+                        ZIndex: =2
+
+        conHeader As groupContainer:
+            DropShadow: =DropShadow.None
+            Fill: =gblTheme.ColorPrimary
+            Height: =gblTheme.HeaderHeight
+            LayoutGridColumnMinWidth: =0
+            LayoutGridColumns: =6
+            LayoutGridRowMinHeight: =0
+            LayoutGridRows: =6
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+            ZIndex: =8
+
+            lblAppTitle As label:
+                Color: =gblTheme.ColorTextInverse
+                FontWeight: =FontWeight.Semibold
+                Height: =Parent.Height
+                Size: =20
+                Text: ="Governance Portal"
+                Width: =320
+                X: =24
+                ZIndex: =1
+
+            lblUser As label:
+                Align: =Align.Right
+                Color: =gblTheme.ColorTextInverse
+                Height: =Parent.Height
+                Text: =Coalesce(gblUser.FullName, gblUser.Email, "Benutzer")
+                Visible: =App.Width >= gblTheme.BreakpointCompact
+                Width: =260
+                X: =Parent.Width - Self.Width - 24
+                ZIndex: =2
+
+            lblEnvironment As label:
+                Align: =Align.Right
+                Color: =gblTheme.ColorTextInverse
+                Height: =Parent.Height
+                Text: =gblEnvironment & " · " & gblAppVersion
+                Width: =220
+                X: =If(lblUser.Visible, lblUser.X - Self.Width - 16, Parent.Width - Self.Width - 24)
+                ZIndex: =3
+
