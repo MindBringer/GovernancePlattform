@@ -1,7 +1,7 @@
 App As appinfo:
     BackEnabled: =true
     OnStart: |-
-        =Set(gblAppVersion, "1.0.0-alpha.2");
+        =Set(gblAppVersion, "1.0.0-alpha.2.1");
         Set(gblInitialized, false);
         Set(gblBusy, true);
         Set(gblBusyMessage, "Governance Portal wird initialisiert …");
@@ -18,7 +18,10 @@ App As appinfo:
                 ColorFooter: RGBA(236, 239, 243, 1),
                 ColorBorder: RGBA(210, 216, 224, 1),
                 ColorText: RGBA(33, 37, 41, 1),
+                ColorTextMuted: RGBA(92, 101, 111, 1),
                 ColorTextInverse: RGBA(255, 255, 255, 1),
+                ColorSelected: RGBA(224, 235, 247, 1),
+                ColorSuccess: RGBA(16, 124, 16, 1),
                 HeaderHeight: 64,
                 FooterHeight: 32,
                 NavigationWidth: 248,
@@ -29,21 +32,33 @@ App As appinfo:
         );
         ClearCollect(
             colNavigation,
-            {Key: "home", Label: "Start", SortOrder: 10},
-            {Key: "assets", Label: "Assets", SortOrder: 20},
-            {Key: "systems", Label: "Systeme", SortOrder: 30},
-            {Key: "contacts", Label: "Kontakte", SortOrder: 40},
-            {Key: "incidents", Label: "Incidents", SortOrder: 50},
-            {Key: "problems", Label: "Problems", SortOrder: 60},
-            {Key: "changes", Label: "Changes", SortOrder: 70},
-            {Key: "risks", Label: "Risiken", SortOrder: 80},
-            {Key: "controls", Label: "Controls", SortOrder: 90},
-            {Key: "measures", Label: "Maßnahmen", SortOrder: 100},
-            {Key: "architecture", Label: "Architektur", SortOrder: 110},
-            {Key: "reports", Label: "Berichte", SortOrder: 120}
+            {Key: "home", Label: "Start", ShortLabel: "ST", SortOrder: 10},
+            {Key: "assets", Label: "Assets", ShortLabel: "AS", SortOrder: 20},
+            {Key: "systems", Label: "Systeme", ShortLabel: "SY", SortOrder: 30},
+            {Key: "contacts", Label: "Kontakte", ShortLabel: "KO", SortOrder: 40},
+            {Key: "incidents", Label: "Incidents", ShortLabel: "IN", SortOrder: 50},
+            {Key: "problems", Label: "Problems", ShortLabel: "PR", SortOrder: 60},
+            {Key: "changes", Label: "Changes", ShortLabel: "CH", SortOrder: 70},
+            {Key: "risks", Label: "Risiken", ShortLabel: "RI", SortOrder: 80},
+            {Key: "controls", Label: "Controls", ShortLabel: "CO", SortOrder: 90},
+            {Key: "measures", Label: "Maßnahmen", ShortLabel: "MA", SortOrder: 100},
+            {Key: "architecture", Label: "Architektur", ShortLabel: "AR", SortOrder: 110},
+            {Key: "reports", Label: "Berichte", ShortLabel: "BE", SortOrder: 120}
+        );
+        ClearCollect(
+            colNotifications,
+            {Id: "", Type: "", Message: "", CreatedAt: Now()}
         );
         Clear(colNotifications);
+        ClearCollect(
+            colRecent,
+            {ObjectType: "", ObjectId: "", Title: "", OpenedAt: Now()}
+        );
         Clear(colRecent);
+        ClearCollect(
+            colFavorites,
+            {ObjectType: "", ObjectId: "", Title: ""}
+        );
         Clear(colFavorites);
         Set(gblBusyMessage, Blank());
         Set(gblBusy, false);

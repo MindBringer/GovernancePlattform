@@ -10,7 +10,7 @@ $target = Join-Path $RepositoryRoot "powerplatform/solution/CanvasApps/gp_govern
 
 if (-not (Test-Path $source)) { throw "Canvas source not found: $source" }
 
-& $PacCommand canvas pack --sources $source --msapp $target --overwrite
+& $PacCommand canvas pack --sources $source --msapp $target --layout Experimental --overwrite
 if ($LASTEXITCODE -ne 0) { throw "pac canvas pack failed with exit code $LASTEXITCODE" }
 
 Write-Host "Canvas app packed: $target"
