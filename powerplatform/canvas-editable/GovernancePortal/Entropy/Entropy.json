@@ -1,0 +1,64 @@
+{
+  "AppTestsMissingStepsMetadata": [],
+  "ComponentIndexes": {},
+  "ControlUniqueGuids": {},
+  "ControlUniqueIds": {
+    "App": 1,
+    "Host": 3,
+    "scrShell": 4
+  },
+  "FunctionParamsInvariantScripts": {},
+  "FunctionParamsInvariantScriptsOnInstances": {},
+  "HeaderLastSavedDateTimeUTC": "07/21/2026 08:27:22",
+  "IsLegacyComponentAllowGlobalScopeCase": false,
+  "LocalConnectionIDReferences": {
+    "48df7986-47c0-4f14-a5fc-e634437250b6": "\"/providers/microsoft.powerapps/apis/shared_sharepointonline/connections/5a6ea1f5893a41b7bf92af6588700ba0\""
+  },
+  "LocalDatabaseReferencesAsEmpty": true,
+  "LocalResourceFileNames": {},
+  "LocalResourceRootPaths": {},
+  "OrderComponentMetadata": {},
+  "OrderComponentTemplate": {},
+  "OrderDataSource": {
+    "AppSettings": 8,
+    "Assets": 5,
+    "BusinessRuleDefinitions": 0,
+    "ChoiceValues": 12,
+    "FieldDefinitions": 11,
+    "FormDefinitions": 10,
+    "FormFieldDefinitions": 9,
+    "NavigationDefinitions": 7,
+    "ObjectTypes": 6,
+    "PageDefinitions": 4,
+    "StatusPresentation": 3,
+    "TextResources": 2,
+    "ValidationDefinitions": 1
+  },
+  "OrderGroupControls": {},
+  "OrderPcfTemplate": {},
+  "OrderTemplate": {},
+  "OrderXMLTemplate": {},
+  "OverridablePropertiesEntry": {
+    "App": {},
+    "Host": {},
+    "scrShell": {}
+  },
+  "PCFDynamicSchemaForIRRetrievalEntry": {},
+  "PCFTemplateEntry": {},
+  "PublishOrderIndices": {
+    "App": 0,
+    "Host": 0,
+    "scrShell": 0
+  },
+  "ResourcesJsonIndices": {},
+  "RuleScreenIdWithoutScreen": {},
+  "TemplateVersions": {},
+  "VolatileProperties": {
+    "AnalysisLoadTime": 0.1451656,
+    "ControlCount": {
+      "screen": 1
+    },
+    "DeserializationLoadTime": 1.0916845
+  },
+  "WasLocalDatabaseReferencesEmpty": true
+}
