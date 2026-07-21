@@ -8,11 +8,202 @@
           "executionSuccessful": true
         }
       ],
-      "results": [],
+      "results": [
+        {
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "scrShell.conRoot.conBody.conNavigation.galNavigation.AccessibleLabel"
+                }
+              ],
+              "physicalLocation": {
+                "address": {
+                  "fullyQualifiedName": "scrShell.conRoot.conBody.conNavigation.galNavigation.AccessibleLabel",
+                  "relativeAddress": 0
+                }
+              },
+              "properties": {
+                "member": "AccessibleLabel",
+                "module": "scrShell",
+                "type": "scrShell.conRoot.conBody.conNavigation.galNavigation"
+              }
+            }
+          ],
+          "message": {
+            "id": "issue"
+          },
+          "properties": {
+            "level": "Medium"
+          },
+          "ruleId": "acc-AccessibleLabelNeeded",
+          "ruleIndex": 0
+        },
+        {
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "scrShell.conRoot.conBody.conNavigation.galNavigation.TabIndex"
+                }
+              ],
+              "physicalLocation": {
+                "address": {
+                  "fullyQualifiedName": "scrShell.conRoot.conBody.conNavigation.galNavigation.TabIndex",
+                  "relativeAddress": 0
+                }
+              },
+              "properties": {
+                "member": "TabIndex",
+                "module": "scrShell",
+                "type": "scrShell.conRoot.conBody.conNavigation.galNavigation"
+              }
+            }
+          ],
+          "message": {
+            "id": "issue"
+          },
+          "properties": {
+            "level": "Medium"
+          },
+          "ruleId": "acc-TabIndexShouldBeDefinedForInteractiveControl",
+          "ruleIndex": 1
+        },
+        {
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "App.gblUser"
+                }
+              ],
+              "physicalLocation": {
+                "address": {
+                  "fullyQualifiedName": "App.gblUser",
+                  "relativeAddress": 0
+                }
+              },
+              "properties": {
+                "member": "gblUser",
+                "module": "App",
+                "type": "App"
+              }
+            }
+          ],
+          "message": {
+            "id": "issue"
+          },
+          "properties": {
+            "level": "Medium"
+          },
+          "ruleId": "app-UnusedVariables",
+          "ruleIndex": 2
+        },
+        {
+          "locations": [
+            {
+              "logicalLocations": [
+                {
+                  "fullyQualifiedName": "App.OnStart"
+                }
+              ],
+              "physicalLocation": {
+                "address": {
+                  "fullyQualifiedName": "App.OnStart",
+                  "relativeAddress": 0
+                }
+              },
+              "properties": {
+                "member": "OnStart",
+                "module": "App",
+                "type": "App"
+              }
+            }
+          ],
+          "message": {
+            "id": "issue"
+          },
+          "properties": {
+            "level": "Medium"
+          },
+          "ruleId": "app-CollectingReadOnlyTable",
+          "ruleIndex": 3
+        }
+      ],
       "tool": {
         "driver": {
           "fullName": "PowerApps app checker",
           "name": "PowerApps app checker",
+          "rules": [
+            {
+              "id": "acc-AccessibleLabelNeeded",
+              "messageStrings": {
+                "issue": {
+                  "text": "Missing accessible label"
+                }
+              },
+              "properties": {
+                "componentType": "app",
+                "howToFix": [
+                  "Edit the accessible label property to describe the item."
+                ],
+                "level": "Medium",
+                "primaryCategory": "accessibility",
+                "whyFix": "If there's no accessible text, people who can’t see the screen won't understand what’s in images and controls."
+              }
+            },
+            {
+              "id": "acc-TabIndexShouldBeDefinedForInteractiveControl",
+              "messageStrings": {
+                "issue": {
+                  "text": "Missing tab stop"
+                }
+              },
+              "properties": {
+                "componentType": "app",
+                "howToFix": [
+                  "Set TabIndex to 0 or greater to ensure that interactive elements have a tab stop."
+                ],
+                "level": "Medium",
+                "primaryCategory": "accessibility",
+                "whyFix": "People who use the keyboard with your app will not be able to access this element without a tab stop."
+              }
+            },
+            {
+              "id": "app-UnusedVariables",
+              "messageStrings": {
+                "issue": {
+                  "text": "Nicht verwendete Variable"
+                }
+              },
+              "properties": {
+                "componentType": "app",
+                "howToFix": [
+                  "Entfernen Sie die nicht verwendete Variable."
+                ],
+                "level": "Medium",
+                "primaryCategory": "performance",
+                "whyFix": "Diese Variable ist deklariert, wird aber von keinem Steuerelement referenziert und daher nicht benötigt."
+              }
+            },
+            {
+              "id": "app-CollectingReadOnlyTable",
+              "messageStrings": {
+                "issue": {
+                  "text": "Die Sammlung wird initialisiert, aber nie aktualisiert"
+                }
+              },
+              "properties": {
+                "componentType": "app",
+                "howToFix": [
+                  "Ersetzen Sie „Collect“ oder „ClearCollect“ durch eine benannte Formel in „App.Formulas“. Beispiel: MyTable = Filter(Quelle, Bedingung). Benannte Formeln werden berechnet, sobald sich ihre Eingaben ändern, und verursachen nicht die Überwachungskosten einer Abfrage."
+                ],
+                "level": "Medium",
+                "primaryCategory": "performance",
+                "whyFix": "Sammlungen sollen aktualisiert werden. Power Apps erledigt zusätzliche Arbeit, um jede Sammlung nachzuverfolgen, sodass alles, was davon abhängt, synchron bleibt, wenn sich die Daten ändern. Wenn sich die Daten nach ihrer Festlegung nicht mehr ändern, ist dieser Nachverfolgungsaufwand umsonst. Eine benannte Formel liefert dieselben Daten ohne zusätzliche Kosten."
+              }
+            }
+          ],
           "version": "1.349"
         }
       }

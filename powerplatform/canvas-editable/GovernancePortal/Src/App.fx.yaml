@@ -71,3 +71,4 @@ App As appinfo:
         OnNew: =false
         OnSave: =false
         OnView: =false
+

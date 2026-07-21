@@ -1,8 +1,6 @@
 {
   "48df7986-47c0-4f14-a5fc-e634437250b6": {
-    "appActions": [
-      "providers/PowerPlatform.Governance/Operations/Read"
-    ],
+    "appActions": [],
     "connectionRef": {
       "apiTier": "Standard",
       "displayName": "SharePoint",

@@ -60,7 +60,7 @@
       "IntegrityRequirement#Id": "Integritätsbedarf Id",
       "IsActive": "Aktiv",
       "LastReviewDate": "Letztes Review",
-      "LastValidationAt": "Zuletzt validiert",
+      "LastValidationAt": "Letzte Validierung",
       "LifecycleStatus": "Lebenszyklusstatus",
       "LifecycleStatus#Id": "Lebenszyklusstatus Id",
       "Modified": "Geändert",
