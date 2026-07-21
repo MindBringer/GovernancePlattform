@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="gp_shared_sharepointonline_38df2a6fba3c4ba3a84fa9496b91f0c9">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="TextResources">
+    <label description="TextResources" languagecode="1031" />
+  </displayname>
+  <introducedversion>0.1.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>gp_GovernancePortalSharePointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="gp_shared_sharepointonline_18d5a77a9c6d4b3b9fa5be1b53ea6841">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="ValidationDefinitions">
+    <label description="ValidationDefinitions" languagecode="1031" />
+  </displayname>
+  <introducedversion>0.1.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>gp_GovernancePortalSharePointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
