@@ -1,0 +1,590 @@
+{
+  "pages": [
+    {
+      "key": "Home",
+      "displayNameDE": "Start",
+      "screenName": "scrHome",
+      "pageType": "Dashboard",
+      "icon": "Home",
+      "route": "home",
+      "sortOrder": 10,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Search",
+      "displayNameDE": "Suche",
+      "screenName": "scrSearch",
+      "pageType": "Search",
+      "icon": "Search",
+      "route": "search",
+      "sortOrder": 20,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "ObjectList",
+      "displayNameDE": "Objektliste",
+      "screenName": "scrObjectList",
+      "pageType": "List",
+      "icon": "BulletedList",
+      "route": "objects",
+      "sortOrder": 30,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "ObjectDetail",
+      "displayNameDE": "Details",
+      "screenName": "scrObjectDetail",
+      "pageType": "Detail",
+      "icon": "Info",
+      "route": "object",
+      "sortOrder": 40,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "ObjectEditor",
+      "displayNameDE": "Bearbeiten",
+      "screenName": "scrObjectEditor",
+      "pageType": "Editor",
+      "icon": "Edit",
+      "route": "edit",
+      "sortOrder": 50,
+      "requiresRole": "Contributor",
+      "enabled": true
+    },
+    {
+      "key": "Relations",
+      "displayNameDE": "Beziehungen",
+      "screenName": "scrRelations",
+      "pageType": "Relations",
+      "icon": "Relationship",
+      "route": "relations",
+      "sortOrder": 60,
+      "requiresRole": "Contributor",
+      "enabled": true
+    },
+    {
+      "key": "Documents",
+      "displayNameDE": "Dokumente",
+      "screenName": "scrDocuments",
+      "pageType": "Documents",
+      "icon": "DocumentSet",
+      "route": "documents",
+      "sortOrder": 70,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Timeline",
+      "displayNameDE": "Verlauf",
+      "screenName": "scrTimeline",
+      "pageType": "Timeline",
+      "icon": "Timeline",
+      "route": "timeline",
+      "sortOrder": 80,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Reviews",
+      "displayNameDE": "Prüfungen",
+      "screenName": "scrReviews",
+      "pageType": "Process",
+      "icon": "ReviewRequestSolid",
+      "route": "reviews",
+      "sortOrder": 90,
+      "requiresRole": "Reviewer",
+      "enabled": true
+    },
+    {
+      "key": "Approvals",
+      "displayNameDE": "Freigaben",
+      "screenName": "scrApprovals",
+      "pageType": "Process",
+      "icon": "CompletedSolid",
+      "route": "approvals",
+      "sortOrder": 100,
+      "requiresRole": "Reviewer",
+      "enabled": true
+    },
+    {
+      "key": "Reports",
+      "displayNameDE": "Auswertungen",
+      "screenName": "scrReports",
+      "pageType": "Dashboard",
+      "icon": "BarChart4",
+      "route": "reports",
+      "sortOrder": 110,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Admin",
+      "displayNameDE": "Administration",
+      "screenName": "scrAdmin",
+      "pageType": "Admin",
+      "icon": "Settings",
+      "route": "admin",
+      "sortOrder": 120,
+      "requiresRole": "PortalAdministrator",
+      "enabled": true
+    }
+  ],
+  "navigation": [
+    {
+      "key": "NavHome",
+      "parentKey": "",
+      "displayNameDE": "Start",
+      "pageKey": "Home",
+      "objectTypeKey": "",
+      "icon": "Home",
+      "sortOrder": 10,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavGovernance",
+      "parentKey": "",
+      "displayNameDE": "Governance",
+      "pageKey": "ObjectList",
+      "objectTypeKey": "Asset",
+      "icon": "Org",
+      "sortOrder": 20,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavOperations",
+      "parentKey": "",
+      "displayNameDE": "Betrieb",
+      "pageKey": "ObjectList",
+      "objectTypeKey": "Incident",
+      "icon": "Processing",
+      "sortOrder": 30,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavRisk",
+      "parentKey": "",
+      "displayNameDE": "Risiko & Compliance",
+      "pageKey": "ObjectList",
+      "objectTypeKey": "Risk",
+      "icon": "Shield",
+      "sortOrder": 40,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavDocuments",
+      "parentKey": "",
+      "displayNameDE": "Dokumente",
+      "pageKey": "Documents",
+      "objectTypeKey": "Policy",
+      "icon": "Documentation",
+      "sortOrder": 50,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavReviews",
+      "parentKey": "",
+      "displayNameDE": "Prüfungen",
+      "pageKey": "Reviews",
+      "objectTypeKey": "Review",
+      "icon": "ReviewRequestSolid",
+      "sortOrder": 60,
+      "requiresRole": "Reviewer",
+      "visible": true
+    },
+    {
+      "key": "NavReports",
+      "parentKey": "",
+      "displayNameDE": "Auswertungen",
+      "pageKey": "Reports",
+      "objectTypeKey": "",
+      "icon": "BarChart4",
+      "sortOrder": 70,
+      "requiresRole": "PortalReader",
+      "visible": true
+    },
+    {
+      "key": "NavAdmin",
+      "parentKey": "",
+      "displayNameDE": "Administration",
+      "pageKey": "Admin",
+      "objectTypeKey": "",
+      "icon": "Settings",
+      "sortOrder": 90,
+      "requiresRole": "PortalAdministrator",
+      "visible": true
+    }
+  ],
+  "dashboards": [
+    {
+      "key": "Home",
+      "displayNameDE": "Mein Governance-Dashboard",
+      "pageKey": "Home",
+      "layout": "TwoColumn",
+      "refreshSeconds": 300,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Operations",
+      "displayNameDE": "Operations",
+      "pageKey": "Reports",
+      "layout": "ThreeColumn",
+      "refreshSeconds": 300,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "Security",
+      "displayNameDE": "Security & Risk",
+      "pageKey": "Reports",
+      "layout": "ThreeColumn",
+      "refreshSeconds": 300,
+      "requiresRole": "PortalReader",
+      "enabled": true
+    },
+    {
+      "key": "DataQuality",
+      "displayNameDE": "Datenqualität",
+      "pageKey": "Admin",
+      "layout": "TwoColumn",
+      "refreshSeconds": 600,
+      "requiresRole": "PortalAdministrator",
+      "enabled": true
+    }
+  ],
+  "widgets": [
+    {
+      "key": "DueReviews",
+      "dashboardKey": "Home",
+      "displayNameDE": "Fällige Prüfungen",
+      "widgetType": "List",
+      "objectTypeKey": "Review",
+      "viewKey": "DueReviews",
+      "metric": "Count",
+      "position": 10,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "Reviews",
+      "enabled": true
+    },
+    {
+      "key": "CriticalRisks",
+      "dashboardKey": "Home",
+      "displayNameDE": "Kritische Risiken",
+      "widgetType": "KPI",
+      "objectTypeKey": "Risk",
+      "viewKey": "Active",
+      "metric": "CriticalCount",
+      "position": 20,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "ObjectList",
+      "enabled": true
+    },
+    {
+      "key": "OpenMeasures",
+      "dashboardKey": "Home",
+      "displayNameDE": "Offene Maßnahmen",
+      "widgetType": "List",
+      "objectTypeKey": "Measure",
+      "viewKey": "Active",
+      "metric": "OpenCount",
+      "position": 30,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "ObjectList",
+      "enabled": true
+    },
+    {
+      "key": "ActiveIncidents",
+      "dashboardKey": "Operations",
+      "displayNameDE": "Aktive Incidents",
+      "widgetType": "KPI",
+      "objectTypeKey": "Incident",
+      "viewKey": "Active",
+      "metric": "ActiveCount",
+      "position": 10,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "ObjectList",
+      "enabled": true
+    },
+    {
+      "key": "OpenChanges",
+      "dashboardKey": "Operations",
+      "displayNameDE": "Offene Changes",
+      "widgetType": "List",
+      "objectTypeKey": "Change",
+      "viewKey": "Active",
+      "metric": "OpenCount",
+      "position": 20,
+      "width": 2,
+      "height": 1,
+      "drilldownPageKey": "ObjectList",
+      "enabled": true
+    },
+    {
+      "key": "ControlsWithoutEvidence",
+      "dashboardKey": "Security",
+      "displayNameDE": "Kontrollen ohne Nachweis",
+      "widgetType": "List",
+      "objectTypeKey": "Control",
+      "viewKey": "Active",
+      "metric": "MissingEvidenceCount",
+      "position": 10,
+      "width": 2,
+      "height": 1,
+      "drilldownPageKey": "ObjectList",
+      "enabled": true
+    },
+    {
+      "key": "MissingOwners",
+      "dashboardKey": "DataQuality",
+      "displayNameDE": "Fehlende Verantwortliche",
+      "widgetType": "KPI",
+      "objectTypeKey": "*",
+      "viewKey": "",
+      "metric": "MissingOwnerCount",
+      "position": 10,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "Admin",
+      "enabled": true
+    },
+    {
+      "key": "MissingGovernanceIDs",
+      "dashboardKey": "DataQuality",
+      "displayNameDE": "Fehlende Governance-IDs",
+      "widgetType": "KPI",
+      "objectTypeKey": "*",
+      "viewKey": "",
+      "metric": "MissingIdCount",
+      "position": 20,
+      "width": 1,
+      "height": 1,
+      "drilldownPageKey": "Admin",
+      "enabled": true
+    }
+  ],
+  "commands": [
+    {
+      "key": "Create",
+      "displayNameDE": "Neu",
+      "icon": "Add",
+      "context": "List",
+      "actionType": "Navigate",
+      "targetPageKey": "ObjectEditor",
+      "requiresRole": "Contributor",
+      "confirm": false,
+      "sortOrder": 10,
+      "enabled": true
+    },
+    {
+      "key": "Edit",
+      "displayNameDE": "Bearbeiten",
+      "icon": "Edit",
+      "context": "Detail",
+      "actionType": "Navigate",
+      "targetPageKey": "ObjectEditor",
+      "requiresRole": "Contributor",
+      "confirm": false,
+      "sortOrder": 20,
+      "enabled": true
+    },
+    {
+      "key": "Save",
+      "displayNameDE": "Speichern",
+      "icon": "Save",
+      "context": "Editor",
+      "actionType": "Save",
+      "targetPageKey": "ObjectDetail",
+      "requiresRole": "Contributor",
+      "confirm": false,
+      "sortOrder": 10,
+      "enabled": true
+    },
+    {
+      "key": "Archive",
+      "displayNameDE": "Archivieren",
+      "icon": "Archive",
+      "context": "Detail",
+      "actionType": "Workflow",
+      "targetPageKey": "ObjectDetail",
+      "requiresRole": "GovernanceEditor",
+      "confirm": true,
+      "sortOrder": 80,
+      "enabled": true
+    },
+    {
+      "key": "AddRelation",
+      "displayNameDE": "Beziehung hinzufügen",
+      "icon": "Relationship",
+      "context": "Relations",
+      "actionType": "Navigate",
+      "targetPageKey": "Relations",
+      "requiresRole": "Contributor",
+      "confirm": false,
+      "sortOrder": 30,
+      "enabled": true
+    },
+    {
+      "key": "UploadDocument",
+      "displayNameDE": "Dokument hochladen",
+      "icon": "Upload",
+      "context": "Documents",
+      "actionType": "Upload",
+      "targetPageKey": "Documents",
+      "requiresRole": "Contributor",
+      "confirm": false,
+      "sortOrder": 40,
+      "enabled": true
+    },
+    {
+      "key": "StartReview",
+      "displayNameDE": "Prüfung starten",
+      "icon": "ReviewRequestSolid",
+      "context": "Detail",
+      "actionType": "Workflow",
+      "targetPageKey": "Reviews",
+      "requiresRole": "Reviewer",
+      "confirm": false,
+      "sortOrder": 50,
+      "enabled": true
+    },
+    {
+      "key": "SubmitApproval",
+      "displayNameDE": "Zur Freigabe einreichen",
+      "icon": "CompletedSolid",
+      "context": "Editor",
+      "actionType": "Workflow",
+      "targetPageKey": "Approvals",
+      "requiresRole": "Contributor",
+      "confirm": true,
+      "sortOrder": 60,
+      "enabled": true
+    }
+  ],
+  "validations": [
+    {
+      "key": "RequiredField",
+      "objectTypeKey": "*",
+      "fieldInternalName": "",
+      "ruleType": "Required",
+      "expression": "IsRequired && IsBlank(Value)",
+      "messageDE": "Bitte füllen Sie dieses Pflichtfeld aus.",
+      "severity": "Error",
+      "sortOrder": 10,
+      "enabled": true
+    },
+    {
+      "key": "ReviewDateFuture",
+      "objectTypeKey": "*",
+      "fieldInternalName": "NextReviewDate",
+      "ruleType": "Expression",
+      "expression": "IsBlank(Value) || Value >= Today()",
+      "messageDE": "Das nächste Review darf nicht in der Vergangenheit liegen.",
+      "severity": "Warning",
+      "sortOrder": 20,
+      "enabled": true
+    },
+    {
+      "key": "DateRange",
+      "objectTypeKey": "*",
+      "fieldInternalName": "ValidUntil",
+      "ruleType": "Expression",
+      "expression": "IsBlank(Value) || IsBlank(ValidFrom) || Value >= ValidFrom",
+      "messageDE": "Gültig bis muss nach Gültig ab liegen.",
+      "severity": "Error",
+      "sortOrder": 30,
+      "enabled": true
+    }
+  ],
+  "businessRules": [
+    {
+      "key": "GovernanceIdReadOnly",
+      "objectTypeKey": "*",
+      "trigger": "OnLoad",
+      "condition": "!IsBlank(GovernanceID)",
+      "actionType": "SetReadOnly",
+      "targetField": "GovernanceID",
+      "parametersJson": "{}",
+      "priority": 10,
+      "enabled": true
+    },
+    {
+      "key": "CalculateNextReview",
+      "objectTypeKey": "*",
+      "trigger": "OnSave",
+      "condition": "!IsBlank(ReviewCycleMonths)",
+      "actionType": "SetValue",
+      "targetField": "NextReviewDate",
+      "parametersJson": "{\"formula\":\"DateAdd(Coalesce(LastReviewDate,Today()),ReviewCycleMonths,TimeUnit.Months)\"}",
+      "priority": 20,
+      "enabled": true
+    },
+    {
+      "key": "ApprovalFields",
+      "objectTypeKey": "Change",
+      "trigger": "OnChange",
+      "condition": "ApprovalStatus = \"Genehmigt\"",
+      "actionType": "RequireFields",
+      "targetField": "Approver;ApprovedDate",
+      "parametersJson": "{}",
+      "priority": 30,
+      "enabled": true
+    }
+  ],
+  "textResources": [
+    {
+      "key": "App.Title",
+      "language": "de",
+      "text": "IT Governance Portal",
+      "context": "App",
+      "description": "Anwendungstitel"
+    },
+    {
+      "key": "Common.Save",
+      "language": "de",
+      "text": "Speichern",
+      "context": "Command",
+      "description": "Speichern"
+    },
+    {
+      "key": "Common.Cancel",
+      "language": "de",
+      "text": "Abbrechen",
+      "context": "Command",
+      "description": "Abbrechen"
+    },
+    {
+      "key": "Common.Loading",
+      "language": "de",
+      "text": "Daten werden geladen …",
+      "context": "Message",
+      "description": "Ladeanzeige"
+    },
+    {
+      "key": "Error.Generic",
+      "language": "de",
+      "text": "Die Aktion konnte nicht abgeschlossen werden.",
+      "context": "Error",
+      "description": "Allgemeine Fehlermeldung"
+    },
+    {
+      "key": "Validation.Required",
+      "language": "de",
+      "text": "Dieses Feld ist erforderlich.",
+      "context": "Validation",
+      "description": "Pflichtfeldmeldung"
+    }
+  ]
+}

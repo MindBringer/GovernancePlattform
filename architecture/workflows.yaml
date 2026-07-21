@@ -1,0 +1,39 @@
+{
+  "workflows": [
+    {
+      "key": "GenericReview",
+      "displayNameDE": "Generisches Review",
+      "trigger": "Schedule",
+      "objectTypeKey": "*",
+      "enabled": true,
+      "statusModel": "Review",
+      "requiredRole": "Reviewer",
+      "action": "CreateReview",
+      "notificationTemplate": "ReviewDue",
+      "parameters": {
+        "daysBefore": 30
+      }
+    },
+    {
+      "key": "DocumentApproval",
+      "displayNameDE": "Dokumentenfreigabe",
+      "trigger": "StatusChange",
+      "objectTypeKey": "DocumentObject",
+      "enabled": true,
+      "fromStatus": "InReview",
+      "toStatus": "Published",
+      "requiredRole": "Approver",
+      "action": "Approval",
+      "notificationTemplate": "DocumentApproval"
+    },
+    {
+      "key": "LifecycleNotification",
+      "displayNameDE": "Lifecycle-Benachrichtigung",
+      "trigger": "StatusChange",
+      "objectTypeKey": "*",
+      "enabled": true,
+      "action": "NotifyOwner",
+      "notificationTemplate": "StatusChanged"
+    }
+  ]
+}

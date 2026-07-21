@@ -1,0 +1,727 @@
+{
+  "schemaVersion": "6.2.5",
+  "platformName": "IT Governance Platform",
+  "backendLanguage": "en",
+  "frontendLanguage": "de",
+  "site": {
+    "fieldGroup": "Governance Platform 6.2.5",
+    "schemaVersionStore": {
+      "list": "AppSettings",
+      "key": "Platform.SchemaVersion"
+    }
+  },
+  "baseClasses": {
+    "BusinessObject": {
+      "fields": [
+        "GovernanceID",
+        "GovernanceStatus",
+        "Description",
+        "Owner",
+        "DeputyOwner",
+        "Criticality",
+        "ComplianceScope",
+        "LastReviewDate",
+        "NextReviewDate",
+        "ReviewCycleMonths",
+        "IsActive",
+        "Tags",
+        "SourceChannel",
+        "CorrelationID",
+        "ValidationStatus",
+        "LastValidationAt",
+        "SearchKeywords"
+      ]
+    },
+    "DocumentObject": {
+      "fields": [
+        "DocumentGovernanceID",
+        "DocumentCategory",
+        "DocumentStatus",
+        "DocumentOwner",
+        "ApprovedBy",
+        "ApprovedDate",
+        "ValidFrom",
+        "ValidUntil",
+        "DocumentVersion",
+        "Confidentiality",
+        "DocumentReviewDate",
+        "ReviewCycleMonths",
+        "Tags",
+        "IsActive"
+      ]
+    },
+    "ConfigurationObject": {
+      "fields": [
+        "Description",
+        "SortOrder",
+        "IsActive"
+      ]
+    },
+    "TechnicalObject": {
+      "fields": [
+        "CreatedAt",
+        "CorrelationID",
+        "ProcessingStatus"
+      ]
+    },
+    "AuditObject": {
+      "fields": [
+        "EventType",
+        "ObjectTypeKey",
+        "ObjectItemID",
+        "ObjectGovernanceID",
+        "ActionBy",
+        "ActionAt",
+        "Details"
+      ]
+    },
+    "RelationObject": {
+      "fields": [
+        "RelationID",
+        "RelationKey",
+        "SourceObjectTypeKey",
+        "SourceItemID",
+        "SourceGovernanceID",
+        "SourceTitle",
+        "TargetObjectTypeKey",
+        "TargetItemID",
+        "TargetGovernanceID",
+        "TargetTitle",
+        "RelationTypeKey",
+        "IsPrimary",
+        "ValidFrom",
+        "ValidUntil",
+        "CreatedByApp",
+        "IsActive"
+      ]
+    }
+  },
+  "objectTypes": [
+    {
+      "key": "Asset",
+      "displayNameDE": "Assets",
+      "pluralNameDE": "Assets",
+      "source": "Assets",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "AST",
+      "domain": "Governance",
+      "statusModel": "Lifecycle",
+      "icon": "Devices3",
+      "sortOrder": 10,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "System",
+      "displayNameDE": "System",
+      "pluralNameDE": "Systeme",
+      "source": "Systems",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "SYS",
+      "domain": "Architecture",
+      "statusModel": "Lifecycle",
+      "icon": "ServerProcesses",
+      "sortOrder": 20,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Risk",
+      "displayNameDE": "Risiko",
+      "pluralNameDE": "Risiken",
+      "source": "Risks",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "RSK",
+      "domain": "Risk",
+      "statusModel": "Risk",
+      "icon": "Warning",
+      "sortOrder": 30,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Control",
+      "displayNameDE": "Kontrolle",
+      "pluralNameDE": "Kontrollen",
+      "source": "Controls",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "CTL",
+      "domain": "Compliance",
+      "statusModel": "Lifecycle",
+      "icon": "Shield",
+      "sortOrder": 40,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Measure",
+      "displayNameDE": "Maßnahme",
+      "pluralNameDE": "Maßnahmen",
+      "source": "Measures",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "MEA",
+      "domain": "Risk",
+      "statusModel": "Measure",
+      "icon": "TaskLogo",
+      "sortOrder": 50,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Change",
+      "displayNameDE": "Change",
+      "pluralNameDE": "Changes",
+      "source": "Changes",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "CHG",
+      "domain": "Operations",
+      "statusModel": "Change",
+      "icon": "Sync",
+      "sortOrder": 60,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Problem",
+      "displayNameDE": "Problem",
+      "pluralNameDE": "Problems",
+      "source": "Problems",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "PRB",
+      "domain": "Operations",
+      "statusModel": "Lifecycle",
+      "icon": "Bug",
+      "sortOrder": 70,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Incident",
+      "displayNameDE": "Incident",
+      "pluralNameDE": "Incidents",
+      "source": "Incidents",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "INC",
+      "domain": "Operations",
+      "statusModel": "Incident",
+      "icon": "IncidentTriangle",
+      "sortOrder": 80,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Review",
+      "displayNameDE": "Review",
+      "pluralNameDE": "Reviews",
+      "source": "Reviews",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "REV",
+      "domain": "Governance",
+      "statusModel": "Review",
+      "icon": "ReviewRequestSolid",
+      "sortOrder": 90,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Contact",
+      "displayNameDE": "Kontakt",
+      "pluralNameDE": "Kontakte",
+      "source": "Contacts",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "CON",
+      "domain": "Governance",
+      "statusModel": "Lifecycle",
+      "icon": "Contact",
+      "sortOrder": 100,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Knowledge",
+      "displayNameDE": "Wissensartikel",
+      "pluralNameDE": "Wissen",
+      "source": "Knowledge",
+      "kind": "List",
+      "baseClass": "BusinessObject",
+      "prefix": "KNW",
+      "domain": "Knowledge",
+      "statusModel": "Lifecycle",
+      "icon": "KnowledgeArticle",
+      "sortOrder": 110,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": true,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": false,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Policy",
+      "displayNameDE": "Policy",
+      "pluralNameDE": "Policies",
+      "source": "Policies",
+      "kind": "Library",
+      "baseClass": "DocumentObject",
+      "prefix": "POL",
+      "domain": "Compliance",
+      "statusModel": "Document",
+      "icon": "Page",
+      "sortOrder": 200,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Procedure",
+      "displayNameDE": "Procedure",
+      "pluralNameDE": "Procedures",
+      "source": "Procedures",
+      "kind": "Library",
+      "baseClass": "DocumentObject",
+      "prefix": "PRO",
+      "domain": "Knowledge",
+      "statusModel": "Document",
+      "icon": "Processing",
+      "sortOrder": 210,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Runbook",
+      "displayNameDE": "Runbook",
+      "pluralNameDE": "Runbooks",
+      "source": "Runbooks",
+      "kind": "Library",
+      "baseClass": "DocumentObject",
+      "prefix": "RUN",
+      "domain": "Operations",
+      "statusModel": "Document",
+      "icon": "BookAnswers",
+      "sortOrder": 220,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Architecture",
+      "displayNameDE": "Architektur",
+      "pluralNameDE": "Architektur",
+      "source": "Architecture",
+      "kind": "Library",
+      "baseClass": "DocumentObject",
+      "prefix": "ARC",
+      "domain": "Architecture",
+      "statusModel": "Document",
+      "icon": "EntitlementPolicy",
+      "sortOrder": 230,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "Evidence",
+      "displayNameDE": "Nachweis",
+      "pluralNameDE": "Nachweise",
+      "source": "Evidence",
+      "kind": "Library",
+      "baseClass": "DocumentObject",
+      "prefix": "EVI",
+      "domain": "Compliance",
+      "statusModel": "Document",
+      "icon": "Certificate",
+      "sortOrder": 240,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": true,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": true,
+      "defaultView": "Active",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    }
+  ],
+  "technicalObjects": [
+    {
+      "key": "ObjectTypes",
+      "title": "ObjectTypes",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "FieldDefinitions",
+      "title": "FieldDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "FormDefinitions",
+      "title": "FormDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "StatusModels",
+      "title": "StatusModels",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "ChoiceValues",
+      "title": "ChoiceValues",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "RelationTypes",
+      "title": "RelationTypes",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "AppSettings",
+      "title": "AppSettings",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "GovernanceRelations",
+      "title": "GovernanceRelations",
+      "baseClass": "RelationObject"
+    },
+    {
+      "key": "AIMetadata",
+      "title": "AIMetadata",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "AIJobs",
+      "title": "AIJobs",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "GovernanceAuditLog",
+      "title": "GovernanceAuditLog",
+      "baseClass": "AuditObject"
+    },
+    {
+      "key": "NotificationsLog",
+      "title": "NotificationsLog",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "CanvasAppErrors",
+      "title": "CanvasAppErrors",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "AppRoles",
+      "title": "AppRoles",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "ViewDefinitions",
+      "title": "ViewDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "WorkflowDefinitions",
+      "title": "WorkflowDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "AIPrompts",
+      "title": "AIPrompts",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "AISkills",
+      "title": "AISkills",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "PermissionDefinitions",
+      "title": "PermissionDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "FormFieldDefinitions",
+      "title": "FormFieldDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "PageDefinitions",
+      "title": "PageDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "NavigationDefinitions",
+      "title": "NavigationDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "DashboardDefinitions",
+      "title": "DashboardDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "WidgetDefinitions",
+      "title": "WidgetDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "CommandDefinitions",
+      "title": "CommandDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "ValidationDefinitions",
+      "title": "ValidationDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "BusinessRuleDefinitions",
+      "title": "BusinessRuleDefinitions",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "TextResources",
+      "title": "TextResources",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "SearchIndex",
+      "title": "SearchIndex",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "TimelineEvents",
+      "title": "TimelineEvents",
+      "baseClass": "TechnicalObject"
+    },
+    {
+      "key": "NotificationTemplates",
+      "title": "NotificationTemplates",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "StatusPresentation",
+      "title": "StatusPresentation",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "SavedViews",
+      "title": "SavedViews",
+      "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "UserPreferences",
+      "title": "UserPreferences",
+      "baseClass": "TechnicalObject"
+    }
+  ],
+  "navigation": [
+    {
+      "title": "Governance",
+      "url": "{SiteUrl}/Lists/Assets/AllItems.aspx",
+      "order": 10
+    },
+    {
+      "title": "Operations",
+      "url": "{SiteUrl}/Lists/Incidents/AllItems.aspx",
+      "order": 20
+    },
+    {
+      "title": "Risiko & Compliance",
+      "url": "{SiteUrl}/Lists/Risks/AllItems.aspx",
+      "order": 30
+    },
+    {
+      "title": "Wissen",
+      "url": "{SiteUrl}/Runbooks/Forms/AllItems.aspx",
+      "order": 40
+    },
+    {
+      "title": "Architektur",
+      "url": "{SiteUrl}/Architecture/Forms/AllItems.aspx",
+      "order": 50
+    },
+    {
+      "title": "App-Konfiguration",
+      "url": "{SiteUrl}/Lists/ObjectTypes/AllItems.aspx",
+      "order": 90
+    },
+    {
+      "title": "Automatisierung & KI",
+      "url": "",
+      "order": 70,
+      "children": [
+        {
+          "title": "Workflowdefinitionen",
+          "url": "{SiteUrl}/Lists/WorkflowDefinitions/AllItems.aspx",
+          "order": 10
+        },
+        {
+          "title": "KI-Prompts",
+          "url": "{SiteUrl}/Lists/AIPrompts/AllItems.aspx",
+          "order": 20
+        },
+        {
+          "title": "KI-Skills",
+          "url": "{SiteUrl}/Lists/AISkills/AllItems.aspx",
+          "order": 30
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,78 @@
+{
+  "sourceVersion": "4.x",
+  "targetVersion": "5.0.0",
+  "rules": [
+    {
+      "id": "MIG-001",
+      "list": "Assets",
+      "field": "AssetType",
+      "currentType": "Text",
+      "targetType": "Lookup",
+      "strategy": "SideBySide",
+      "newField": "AssetTypeRef",
+      "lookupList": "AssetTypes",
+      "autoExecute": false,
+      "reason": "Type changes are never destructive or implicit."
+    },
+    {
+      "id": "MIG-002",
+      "list": "Problems",
+      "field": "KnownError",
+      "currentType": "Note",
+      "targetType": "Boolean",
+      "strategy": "RetainLegacy",
+      "autoExecute": false,
+      "reason": "Existing semantics must be reviewed before conversion."
+    },
+    {
+      "id": "MIG-003",
+      "list": "RiskCatalog",
+      "field": "DefaultLikelihood",
+      "currentType": "Choice",
+      "targetType": "Text",
+      "strategy": "KeepExisting",
+      "autoExecute": false,
+      "reason": "Choice remains suitable for Canvas and SharePoint."
+    },
+    {
+      "id": "MIG-004",
+      "list": "RiskCatalog",
+      "field": "DefaultImpact",
+      "currentType": "Choice",
+      "targetType": "Text",
+      "strategy": "KeepExisting",
+      "autoExecute": false,
+      "reason": "Choice remains suitable for Canvas and SharePoint."
+    },
+    {
+      "id": "MIG-005",
+      "list": "ControlCatalog",
+      "field": "DefaultControlType",
+      "currentType": "Choice",
+      "targetType": "Text",
+      "strategy": "KeepExisting",
+      "autoExecute": false,
+      "reason": "Choice remains suitable."
+    },
+    {
+      "id": "MIG-006",
+      "list": "ReviewTemplates",
+      "field": "ObjectType",
+      "currentType": "Choice",
+      "targetType": "Text",
+      "strategy": "KeepExisting",
+      "autoExecute": false,
+      "reason": "Preserve existing field."
+    },
+    {
+      "id": "MIG-007",
+      "list": "RoleCatalog",
+      "field": "RoleType",
+      "currentType": "Choice",
+      "targetType": "Text",
+      "strategy": "KeepExisting",
+      "autoExecute": false,
+      "reason": "Preserve existing field."
+    }
+  ]
+}

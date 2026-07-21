@@ -1,0 +1,58 @@
+{
+  "permissions": [
+    {
+      "key": "PortalReader",
+      "displayNameDE": "Portal-Leser",
+      "sharePointRole": "Read",
+      "canCreate": false,
+      "canEdit": false,
+      "canDelete": false,
+      "canApprove": false
+    },
+    {
+      "key": "Contributor",
+      "displayNameDE": "Bearbeiter",
+      "sharePointRole": "Edit",
+      "canCreate": true,
+      "canEdit": true,
+      "canDelete": false,
+      "canApprove": false
+    },
+    {
+      "key": "GovernanceEditor",
+      "displayNameDE": "Governance-Editor",
+      "sharePointRole": "Edit",
+      "canCreate": true,
+      "canEdit": true,
+      "canDelete": false,
+      "canApprove": false
+    },
+    {
+      "key": "Reviewer",
+      "displayNameDE": "Reviewer",
+      "sharePointRole": "Edit",
+      "canCreate": true,
+      "canEdit": true,
+      "canDelete": false,
+      "canApprove": false
+    },
+    {
+      "key": "Approver",
+      "displayNameDE": "Freigeber",
+      "sharePointRole": "Edit",
+      "canCreate": true,
+      "canEdit": true,
+      "canDelete": false,
+      "canApprove": true
+    },
+    {
+      "key": "PortalAdministrator",
+      "displayNameDE": "Portal-Administrator",
+      "sharePointRole": "Full Control",
+      "canCreate": true,
+      "canEdit": true,
+      "canDelete": true,
+      "canApprove": true
+    }
+  ]
+}

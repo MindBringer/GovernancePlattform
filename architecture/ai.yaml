@@ -1,0 +1,75 @@
+{
+  "prompts": [
+    {
+      "key": "SummarizeObject",
+      "objectTypeKey": "*",
+      "purpose": "Summarize",
+      "displayNameDE": "Objekt zusammenfassen",
+      "template": "Fasse das Governance-Objekt sachlich zusammen. Nenne Zweck, Status, Risiken und nächste Schritte.",
+      "provider": "Default",
+      "model": "Default",
+      "temperature": 0.2,
+      "enabled": true
+    },
+    {
+      "key": "SuggestRelations",
+      "objectTypeKey": "*",
+      "purpose": "SuggestRelations",
+      "displayNameDE": "Beziehungen vorschlagen",
+      "template": "Ermittle plausible Beziehungen zu vorhandenen Governance-Objekten und begründe jede Beziehung.",
+      "provider": "Default",
+      "model": "Default",
+      "temperature": 0.1,
+      "enabled": true
+    },
+    {
+      "key": "GenerateProcedure",
+      "objectTypeKey": "Procedure",
+      "purpose": "Generate",
+      "displayNameDE": "Procedure erzeugen",
+      "template": "Erzeuge eine prüfbare Procedure mit Zweck, Scope, Rollen, Voraussetzungen, Arbeitsschritten, Kontrollen und Nachweisen.",
+      "provider": "Default",
+      "model": "Default",
+      "temperature": 0.2,
+      "enabled": true
+    }
+  ],
+  "skills": [
+    {
+      "key": "Summarize",
+      "displayNameDE": "Zusammenfassen",
+      "purpose": "Summarize",
+      "allowedObjectTypes": [
+        "*"
+      ],
+      "promptKey": "SummarizeObject",
+      "writeTarget": "AIMetadata.Summary",
+      "requiresApproval": false,
+      "enabled": true
+    },
+    {
+      "key": "SuggestRelations",
+      "displayNameDE": "Beziehungen vorschlagen",
+      "purpose": "SuggestRelations",
+      "allowedObjectTypes": [
+        "*"
+      ],
+      "promptKey": "SuggestRelations",
+      "writeTarget": "GovernanceRelations",
+      "requiresApproval": true,
+      "enabled": true
+    },
+    {
+      "key": "GenerateProcedure",
+      "displayNameDE": "Procedure erzeugen",
+      "purpose": "Generate",
+      "allowedObjectTypes": [
+        "Procedure"
+      ],
+      "promptKey": "GenerateProcedure",
+      "writeTarget": "Document",
+      "requiresApproval": true,
+      "enabled": true
+    }
+  ]
+}

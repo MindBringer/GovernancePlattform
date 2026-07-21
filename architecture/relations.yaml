@@ -1,0 +1,85 @@
+{
+  "relationTypes": [
+    {
+      "key": "AssetUsesSystem",
+      "source": "Asset",
+      "target": "System",
+      "labelDE": "nutzt System",
+      "inverseLabelDE": "wird genutzt von Asset",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "ObjectHasRisk",
+      "source": "*",
+      "target": "Risk",
+      "labelDE": "hat Risiko",
+      "inverseLabelDE": "betrifft Objekt",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "RiskMitigatedByControl",
+      "source": "Risk",
+      "target": "Control",
+      "labelDE": "wird reduziert durch",
+      "inverseLabelDE": "reduziert Risiko",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "ControlImplementedByMeasure",
+      "source": "Control",
+      "target": "Measure",
+      "labelDE": "wird umgesetzt durch",
+      "inverseLabelDE": "setzt Kontrolle um",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "IncidentRelatedToSystem",
+      "source": "Incident",
+      "target": "System",
+      "labelDE": "betrifft System",
+      "inverseLabelDE": "hat Incident",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "IncidentCausesProblem",
+      "source": "Incident",
+      "target": "Problem",
+      "labelDE": "führt zu Problem",
+      "inverseLabelDE": "resultiert aus Incident",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "ProblemResolvedByChange",
+      "source": "Problem",
+      "target": "Change",
+      "labelDE": "wird gelöst durch",
+      "inverseLabelDE": "löst Problem",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "DocumentGovernsObject",
+      "source": "*Document",
+      "target": "*",
+      "labelDE": "regelt Objekt",
+      "inverseLabelDE": "wird geregelt durch",
+      "directional": true,
+      "multiple": true
+    },
+    {
+      "key": "EvidenceSupportsObject",
+      "source": "Evidence",
+      "target": "*",
+      "labelDE": "belegt Objekt",
+      "inverseLabelDE": "wird belegt durch",
+      "directional": true,
+      "multiple": true
+    }
+  ]
+}

@@ -1,0 +1,120 @@
+{
+  "views": [
+    {
+      "key": "Active",
+      "objectTypeKey": "BusinessObject",
+      "displayNameDE": "Aktive Einträge",
+      "isDefault": true,
+      "filter": "IsActive eq true",
+      "sort": [
+        [
+          "Modified",
+          "desc"
+        ]
+      ],
+      "columns": [
+        "Title",
+        "GovernanceID",
+        "GovernanceStatus",
+        "Owner",
+        "NextReviewDate",
+        "IsActive"
+      ],
+      "groupBy": "",
+      "personalizable": true
+    },
+    {
+      "key": "DueReviews",
+      "objectTypeKey": "BusinessObject",
+      "displayNameDE": "Fällige Reviews",
+      "isDefault": false,
+      "filter": "NextReviewDate le @Today+30",
+      "sort": [
+        [
+          "NextReviewDate",
+          "asc"
+        ]
+      ],
+      "columns": [
+        "Title",
+        "GovernanceID",
+        "Owner",
+        "NextReviewDate",
+        "Criticality"
+      ],
+      "groupBy": "Owner",
+      "personalizable": true
+    },
+    {
+      "key": "PublishedDocuments",
+      "objectTypeKey": "DocumentObject",
+      "displayNameDE": "Veröffentlichte Dokumente",
+      "isDefault": true,
+      "filter": "DocumentStatus eq Veröffentlicht and IsActive eq true",
+      "sort": [
+        [
+          "Modified",
+          "desc"
+        ]
+      ],
+      "columns": [
+        "DocIcon",
+        "LinkFilename",
+        "DocumentGovernanceID",
+        "DocumentOwner",
+        "DocumentReviewDate",
+        "Confidentiality",
+        "Modified"
+      ],
+      "groupBy": "DocumentCategory",
+      "personalizable": true
+    },
+    {
+      "key": "DueDocumentReviews",
+      "objectTypeKey": "DocumentObject",
+      "displayNameDE": "Fällige Dokumentreviews",
+      "isDefault": false,
+      "filter": "DocumentReviewDate le @Today+30 and IsActive eq true",
+      "sort": [
+        [
+          "DocumentReviewDate",
+          "asc"
+        ]
+      ],
+      "columns": [
+        "DocIcon",
+        "LinkFilename",
+        "DocumentGovernanceID",
+        "DocumentOwner",
+        "DocumentReviewDate",
+        "Confidentiality"
+      ],
+      "groupBy": "DocumentOwner",
+      "personalizable": true
+    },
+    {
+      "key": "ActiveDocuments",
+      "objectTypeKey": "DocumentObject",
+      "displayNameDE": "Aktive Dokumente",
+      "isDefault": false,
+      "filter": "IsActive eq true",
+      "sort": [
+        [
+          "Modified",
+          "desc"
+        ]
+      ],
+      "columns": [
+        "DocIcon",
+        "LinkFilename",
+        "DocumentGovernanceID",
+        "DocumentStatus",
+        "DocumentOwner",
+        "DocumentReviewDate",
+        "Modified"
+      ],
+      "groupBy": "DocumentCategory",
+      "personalizable": true
+    }
+  ]
+}

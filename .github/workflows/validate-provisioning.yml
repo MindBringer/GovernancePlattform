@@ -1,0 +1,37 @@
+name: Validate provisioning
+on:
+  push:
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  validate:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Validate architecture consistency
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-ArchitectureConsistency.ps1
+
+      - name: Validate PowerShell syntax
+        shell: pwsh
+        run: |
+          $allErrors = @()
+          foreach ($file in Get-ChildItem . -Recurse -File -Include *.ps1,*.psm1) {
+            $tokens = $null; $errors = $null
+            [void][System.Management.Automation.Language.Parser]::ParseFile($file.FullName,[ref]$tokens,[ref]$errors)
+            foreach ($error in $errors) {
+              $allErrors += [pscustomobject]@{ File=$file.FullName; Line=$error.Extent.StartLineNumber; Column=$error.Extent.StartColumnNumber; Text=$error.Extent.Text; Message=$error.Message }
+            }
+          }
+          if ($allErrors.Count -gt 0) { $allErrors | Format-Table -AutoSize; throw 'PowerShell parser validation failed.' }
+      - name: Validate architecture JSON-compatible YAML
+        shell: pwsh
+        run: |
+          foreach ($file in Get-ChildItem architecture -Filter *.yaml) {
+            Get-Content $file.FullName -Raw | ConvertFrom-Json -Depth 100 -ErrorAction Stop | Out-Null
+          }
+      - name: Run architecture compiler test
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-Architecture.ps1

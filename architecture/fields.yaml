@@ -1,0 +1,771 @@
+{
+  "fields": [
+    {
+      "key": "GovernanceID",
+      "internalName": "GovernanceID",
+      "displayNameDE": "Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": true,
+      "scope": "base"
+    },
+    {
+      "key": "GovernanceStatus",
+      "internalName": "GovernanceStatus",
+      "displayNameDE": "Governance-Status",
+      "type": "Choice",
+      "choiceSet": "LifecycleStatus",
+      "required": false,
+      "indexed": true,
+      "scope": "base"
+    },
+    {
+      "key": "Description",
+      "internalName": "Description",
+      "displayNameDE": "Beschreibung",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "scope": "base"
+    },
+    {
+      "key": "Owner",
+      "internalName": "Owner",
+      "displayNameDE": "Verantwortlich",
+      "type": "User",
+      "required": false,
+      "indexed": true,
+      "scope": "base"
+    },
+    {
+      "key": "DeputyOwner",
+      "internalName": "DeputyOwner",
+      "displayNameDE": "Stellvertretung",
+      "type": "User",
+      "required": false,
+      "indexed": false,
+      "scope": "base"
+    },
+    {
+      "key": "Criticality",
+      "internalName": "Criticality",
+      "displayNameDE": "Kritikalität",
+      "type": "Choice",
+      "choiceSet": "Criticality",
+      "required": false,
+      "indexed": true,
+      "scope": "base"
+    },
+    {
+      "key": "ComplianceScope",
+      "internalName": "ComplianceScope",
+      "displayNameDE": "Compliance-Geltungsbereich",
+      "type": "MultiChoice",
+      "choiceSet": "ComplianceScope",
+      "required": false,
+      "indexed": false,
+      "scope": "base"
+    },
+    {
+      "key": "LastReviewDate",
+      "internalName": "LastReviewDate",
+      "displayNameDE": "Letztes Review",
+      "type": "DateTime",
+      "required": false,
+      "indexed": false,
+      "scope": "base"
+    },
+    {
+      "key": "NextReviewDate",
+      "internalName": "NextReviewDate",
+      "displayNameDE": "Nächstes Review",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "scope": "base"
+    },
+    {
+      "key": "ReviewCycleMonths",
+      "internalName": "ReviewCycleMonths",
+      "displayNameDE": "Reviewzyklus (Monate)",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "base",
+      "min": 1,
+      "max": 120
+    },
+    {
+      "key": "IsActive",
+      "internalName": "IsActive",
+      "displayNameDE": "Aktiv",
+      "type": "Boolean",
+      "required": false,
+      "indexed": true,
+      "scope": "base",
+      "default": true
+    },
+    {
+      "key": "DocumentGovernanceID",
+      "internalName": "DocumentGovernanceID",
+      "displayNameDE": "Dokument-Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "scope": "document",
+      "unique": true
+    },
+    {
+      "key": "DocumentCategory",
+      "internalName": "DocumentCategory",
+      "displayNameDE": "Dokumentkategorie",
+      "type": "Choice",
+      "choiceSet": "DocumentCategory",
+      "required": false,
+      "indexed": true,
+      "scope": "document"
+    },
+    {
+      "key": "DocumentOwner",
+      "internalName": "DocumentOwner",
+      "displayNameDE": "Dokumentverantwortlich",
+      "type": "User",
+      "required": false,
+      "indexed": true,
+      "scope": "document"
+    },
+    {
+      "key": "DocumentReviewDate",
+      "internalName": "DocumentReviewDate",
+      "displayNameDE": "Nächstes Dokumentreview",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "scope": "document"
+    },
+    {
+      "key": "SortOrder",
+      "internalName": "SortOrder",
+      "displayNameDE": "Sortierung",
+      "type": "Number",
+      "required": false,
+      "indexed": true,
+      "scope": "configuration"
+    },
+    {
+      "key": "CreatedAt",
+      "internalName": "CreatedAt",
+      "displayNameDE": "Erstellt am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "scope": "technical"
+    },
+    {
+      "key": "CorrelationID",
+      "internalName": "CorrelationID",
+      "displayNameDE": "Korrelations-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "scope": "technical"
+    },
+    {
+      "key": "ProcessingStatus",
+      "internalName": "ProcessingStatus",
+      "displayNameDE": "Verarbeitungsstatus",
+      "type": "Choice",
+      "choiceSet": "ProcessingStatus",
+      "required": false,
+      "indexed": true,
+      "scope": "technical"
+    },
+    {
+      "key": "EventType",
+      "internalName": "EventType",
+      "displayNameDE": "Ereignistyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "audit"
+    },
+    {
+      "key": "ObjectTypeKey",
+      "internalName": "ObjectTypeKey",
+      "displayNameDE": "Objekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "audit",
+      "unique": true
+    },
+    {
+      "key": "ObjectItemID",
+      "internalName": "ObjectItemID",
+      "displayNameDE": "Element-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": true,
+      "scope": "audit"
+    },
+    {
+      "key": "ObjectGovernanceID",
+      "internalName": "ObjectGovernanceID",
+      "displayNameDE": "Objekt-Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "scope": "audit"
+    },
+    {
+      "key": "ActionBy",
+      "internalName": "ActionBy",
+      "displayNameDE": "Ausgeführt von",
+      "type": "User",
+      "required": false,
+      "indexed": true,
+      "scope": "audit"
+    },
+    {
+      "key": "ActionAt",
+      "internalName": "ActionAt",
+      "displayNameDE": "Ausgeführt am",
+      "type": "DateTime",
+      "required": true,
+      "indexed": true,
+      "scope": "audit"
+    },
+    {
+      "key": "Details",
+      "internalName": "Details",
+      "displayNameDE": "Details",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "scope": "audit"
+    },
+    {
+      "key": "RelationID",
+      "internalName": "RelationID",
+      "displayNameDE": "Relation-ID",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "relation",
+      "unique": true
+    },
+    {
+      "key": "RelationKey",
+      "internalName": "RelationKey",
+      "displayNameDE": "Relationsschlüssel",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "relation",
+      "unique": true
+    },
+    {
+      "key": "SourceObjectTypeKey",
+      "internalName": "SourceObjectTypeKey",
+      "displayNameDE": "Quellobjekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "SourceItemID",
+      "internalName": "SourceItemID",
+      "displayNameDE": "Quell-Element-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "SourceGovernanceID",
+      "internalName": "SourceGovernanceID",
+      "displayNameDE": "Quell-Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "SourceTitle",
+      "internalName": "SourceTitle",
+      "displayNameDE": "Quelltitel",
+      "type": "Text",
+      "required": false,
+      "indexed": false,
+      "scope": "relation"
+    },
+    {
+      "key": "TargetObjectTypeKey",
+      "internalName": "TargetObjectTypeKey",
+      "displayNameDE": "Zielobjekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "TargetItemID",
+      "internalName": "TargetItemID",
+      "displayNameDE": "Ziel-Element-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "TargetGovernanceID",
+      "internalName": "TargetGovernanceID",
+      "displayNameDE": "Ziel-Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "TargetTitle",
+      "internalName": "TargetTitle",
+      "displayNameDE": "Zieltitel",
+      "type": "Text",
+      "required": false,
+      "indexed": false,
+      "scope": "relation"
+    },
+    {
+      "key": "RelationTypeKey",
+      "internalName": "RelationTypeKey",
+      "displayNameDE": "Relationstyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "scope": "relation",
+      "unique": true
+    },
+    {
+      "key": "IsPrimary",
+      "internalName": "IsPrimary",
+      "displayNameDE": "Primärbeziehung",
+      "type": "Boolean",
+      "required": false,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "ValidFrom",
+      "internalName": "ValidFrom",
+      "displayNameDE": "Gültig ab",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "ValidUntil",
+      "internalName": "ValidUntil",
+      "displayNameDE": "Gültig bis",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "scope": "relation"
+    },
+    {
+      "key": "CreatedByApp",
+      "internalName": "CreatedByApp",
+      "displayNameDE": "Durch App erstellt",
+      "type": "Boolean",
+      "required": false,
+      "indexed": false,
+      "scope": "relation"
+    },
+    {
+      "key": "AI.ObjectTypeKey",
+      "internalName": "ObjectTypeKey",
+      "displayNameDE": "Objekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata",
+        "AIJobs"
+      ],
+      "unique": true
+    },
+    {
+      "key": "AI.ObjectItemID",
+      "internalName": "ObjectItemID",
+      "displayNameDE": "Element-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata",
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "AI.GovernanceID",
+      "internalName": "GovernanceID",
+      "displayNameDE": "Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata",
+        "AIJobs"
+      ],
+      "unique": true
+    },
+    {
+      "key": "AI.Summary",
+      "internalName": "Summary",
+      "displayNameDE": "KI-Zusammenfassung",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "appliesTo": [
+        "AIMetadata"
+      ]
+    },
+    {
+      "key": "AI.Keywords",
+      "internalName": "Keywords",
+      "displayNameDE": "KI-Schlagwörter",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "appliesTo": [
+        "AIMetadata"
+      ]
+    },
+    {
+      "key": "AI.EmbeddingVersion",
+      "internalName": "EmbeddingVersion",
+      "displayNameDE": "Embedding-Version",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata"
+      ]
+    },
+    {
+      "key": "AI.LastAnalysis",
+      "internalName": "LastAnalysis",
+      "displayNameDE": "Letzte Analyse",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata"
+      ]
+    },
+    {
+      "key": "AI.Confidence",
+      "internalName": "Confidence",
+      "displayNameDE": "Konfidenz",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "appliesTo": [
+        "AIMetadata"
+      ],
+      "min": 0,
+      "max": 1
+    },
+    {
+      "key": "AI.Provider",
+      "internalName": "Provider",
+      "displayNameDE": "KI-Anbieter",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata",
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "AI.Model",
+      "internalName": "Model",
+      "displayNameDE": "Modell",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "appliesTo": [
+        "AIMetadata",
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "AI.JobType",
+      "internalName": "JobType",
+      "displayNameDE": "Auftragstyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "appliesTo": [
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "AI.Payload",
+      "internalName": "Payload",
+      "displayNameDE": "Nutzdaten",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "appliesTo": [
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "AI.Attempts",
+      "internalName": "Attempts",
+      "displayNameDE": "Versuche",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "appliesTo": [
+        "AIJobs"
+      ]
+    },
+    {
+      "key": "Tags",
+      "internalName": "Tags",
+      "displayNameDE": "Tags",
+      "type": "MultiChoice",
+      "choiceSet": "GovernanceTags",
+      "required": false,
+      "indexed": false
+    },
+    {
+      "key": "DocumentStatus",
+      "internalName": "DocumentStatus",
+      "displayNameDE": "Dokumentstatus",
+      "type": "Choice",
+      "choiceSet": "DocumentStatus",
+      "required": false,
+      "indexed": true
+    },
+    {
+      "key": "ApprovedBy",
+      "internalName": "ApprovedBy",
+      "displayNameDE": "Freigegeben von",
+      "type": "User",
+      "required": false,
+      "indexed": true
+    },
+    {
+      "key": "ApprovedDate",
+      "internalName": "ApprovedDate",
+      "displayNameDE": "Freigegeben am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true
+    },
+    {
+      "key": "DocumentVersion",
+      "internalName": "DocumentVersion",
+      "displayNameDE": "Dokumentversion",
+      "type": "Text",
+      "required": false,
+      "indexed": true
+    },
+    {
+      "key": "Confidentiality",
+      "internalName": "Confidentiality",
+      "displayNameDE": "Vertraulichkeit",
+      "type": "Choice",
+      "choiceSet": "Confidentiality",
+      "required": false,
+      "indexed": true
+    },
+    {
+      "key": "SourceChannel",
+      "internalName": "SourceChannel",
+      "displayNameDE": "Quellkanal",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "ValidationStatus",
+      "internalName": "ValidationStatus",
+      "displayNameDE": "Validierungsstatus",
+      "type": "Choice",
+      "required": false,
+      "indexed": true,
+      "unique": false,
+      "choiceSet": "ValidationStatus"
+    },
+    {
+      "key": "LastValidationAt",
+      "internalName": "LastValidationAt",
+      "displayNameDE": "Letzte Validierung",
+      "type": "DateTime",
+      "required": false,
+      "indexed": false,
+      "unique": false
+    },
+    {
+      "key": "SearchKeywords",
+      "internalName": "SearchKeywords",
+      "displayNameDE": "Suchbegriffe",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "unique": false
+    },
+    {
+      "key": "SearchObjectTypeKey",
+      "internalName": "SearchObjectTypeKey",
+      "displayNameDE": "Objekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchItemID",
+      "internalName": "SearchItemID",
+      "displayNameDE": "Element-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchGovernanceID",
+      "internalName": "SearchGovernanceID",
+      "displayNameDE": "Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchTitle",
+      "internalName": "SearchTitle",
+      "displayNameDE": "Titel",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchSummary",
+      "internalName": "SearchSummary",
+      "displayNameDE": "Zusammenfassung",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "unique": false
+    },
+    {
+      "key": "SearchOwnerEmail",
+      "internalName": "SearchOwnerEmail",
+      "displayNameDE": "Verantwortlich",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchStatusKey",
+      "internalName": "SearchStatusKey",
+      "displayNameDE": "Status",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "SearchModifiedAt",
+      "internalName": "SearchModifiedAt",
+      "displayNameDE": "Geändert am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineObjectTypeKey",
+      "internalName": "TimelineObjectTypeKey",
+      "displayNameDE": "Objekttyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineItemID",
+      "internalName": "TimelineItemID",
+      "displayNameDE": "Element-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineGovernanceID",
+      "internalName": "TimelineGovernanceID",
+      "displayNameDE": "Governance-ID",
+      "type": "Text",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineEventType",
+      "internalName": "TimelineEventType",
+      "displayNameDE": "Ereignistyp",
+      "type": "Text",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineEventAt",
+      "internalName": "TimelineEventAt",
+      "displayNameDE": "Ereigniszeitpunkt",
+      "type": "DateTime",
+      "required": true,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineEventBy",
+      "internalName": "TimelineEventBy",
+      "displayNameDE": "Ausgeführt von",
+      "type": "User",
+      "required": false,
+      "indexed": true,
+      "unique": false
+    },
+    {
+      "key": "TimelineSummary",
+      "internalName": "TimelineSummary",
+      "displayNameDE": "Zusammenfassung",
+      "type": "Text",
+      "required": true,
+      "indexed": false,
+      "unique": false
+    },
+    {
+      "key": "TimelineDetails",
+      "internalName": "TimelineDetails",
+      "displayNameDE": "Details",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "unique": false
+    }
+  ]
+}

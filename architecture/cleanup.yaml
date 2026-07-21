@@ -1,0 +1,33 @@
+{
+  "schemaVersion": "6.2.5",
+  "confirmationToken": "RESET-LISTS-PRESERVE-LIBRARIES",
+  "protectedLibraries": [
+    "Policies",
+    "Procedures",
+    "Runbooks",
+    "Architecture",
+    "Evidence"
+  ],
+  "protectedFields": [
+    "ID",
+    "Title",
+    "ContentType",
+    "ContentTypeId",
+    "Attachments",
+    "Created",
+    "Modified",
+    "Author",
+    "Editor",
+    "_UIVersionString",
+    "FileLeafRef",
+    "FileRef",
+    "FSObjType",
+    "UniqueId"
+  ],
+  "protectedViews": [
+    "All Documents",
+    "All Items"
+  ],
+  "cleanupLibrariesByDefault": false,
+  "sendDeletedItemsToRecycleBin": true
+}

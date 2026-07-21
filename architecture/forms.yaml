@@ -1,0 +1,51 @@
+{
+  "forms": [
+    {
+      "objectTypeKey": "*",
+      "mode": "Edit",
+      "sections": [
+        {
+          "key": "General",
+          "titleDE": "Allgemein",
+          "sortOrder": 10,
+          "columnsDesktop": 2,
+          "expanded": true
+        },
+        {
+          "key": "Governance",
+          "titleDE": "Governance",
+          "sortOrder": 20,
+          "columnsDesktop": 2,
+          "expanded": true
+        },
+        {
+          "key": "Relations",
+          "titleDE": "Beziehungen",
+          "sortOrder": 30,
+          "columnsDesktop": 1,
+          "expanded": true
+        }
+      ]
+    },
+    {
+      "objectTypeKey": "Asset",
+      "mode": "Edit",
+      "sections": [
+        {
+          "key": "Ownership",
+          "titleDE": "Verantwortlichkeiten",
+          "sortOrder": 15,
+          "columnsDesktop": 2,
+          "expanded": true
+        },
+        {
+          "key": "Protection",
+          "titleDE": "Schutzbedarf",
+          "sortOrder": 25,
+          "columnsDesktop": 3,
+          "expanded": true
+        }
+      ]
+    }
+  ]
+}

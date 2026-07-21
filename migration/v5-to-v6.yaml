@@ -1,0 +1,62 @@
+{
+  "sourceVersion": "5.x",
+  "targetVersion": "6.0.0",
+  "rules": [
+    {
+      "id": "MIG-601",
+      "list": "Systems",
+      "field": "SystemType",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-602",
+      "list": "Systems",
+      "field": "Environment",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-603",
+      "list": "Risks",
+      "field": "RiskCategory",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-604",
+      "list": "Controls",
+      "field": "ControlType",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-605",
+      "list": "Controls",
+      "field": "ControlStatus",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-606",
+      "list": "Controls",
+      "field": "Effectiveness",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-607",
+      "list": "Changes",
+      "field": "ChangeType",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    },
+    {
+      "id": "MIG-608",
+      "list": "Changes",
+      "field": "ApprovalStatus",
+      "strategy": "KeepExistingChoice",
+      "safe": true
+    }
+  ]
+}
