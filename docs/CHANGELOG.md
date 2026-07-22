@@ -16,3 +16,9 @@
 - Initial 50-list metadata-driven provisioning candidate.
 - Added Canvas runtime metadata, search index, timeline, notification templates, saved views, and user preferences.
 - Corrected PowerShell parser errors from 6.2.3.
+
+## v1.0.0-alpha.3.0
+
+- Metadata-driven application framework
+- Framework dashboard and metadata views
+- Editor bootstrap based on form definitions

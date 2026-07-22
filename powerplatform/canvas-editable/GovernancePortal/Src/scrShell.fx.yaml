@@ -1,12 +1,7 @@
 scrShell As screen:
     Fill: =gblTheme.ColorWorkspace
     LoadingSpinnerColor: =gblTheme.ColorPrimary
-    OnVisible: |-
-        =If(
-            !gblInitialized,
-            Set(gblBusy, true);
-            Set(gblBusyMessage, "Initialisierung wird abgeschlossen …")
-        )
+    OnVisible: =If(!gblInitialized, Set(gblBusy, true); Set(gblBusyMessage, "Initialisierung wird abgeschlossen …"))
 
     conRoot As groupContainer:
         DropShadow: =DropShadow.None
@@ -23,7 +18,7 @@ scrShell As screen:
 
         conBusyOverlay As groupContainer:
             DropShadow: =DropShadow.None
-            Fill: =RGBA(255, 255, 255, 0.72)
+            Fill: =RGBA(255, 255, 255, 0.78)
             Height: =Parent.Height
             LayoutGridColumnMinWidth: =0
             LayoutGridColumns: =6
@@ -35,7 +30,7 @@ scrShell As screen:
             RadiusTopRight: =0
             Visible: =gblBusy
             Width: =Parent.Width
-            ZIndex: =5
+            ZIndex: =20
 
             lblBusyMessage As label:
                 Align: =Align.Center
@@ -43,7 +38,7 @@ scrShell As screen:
                 FontWeight: =FontWeight.Semibold
                 Height: =48
                 Text: =Coalesce(gblBusyMessage, "Bitte warten …")
-                Width: =320
+                Width: =420
                 X: =(Parent.Width - Self.Width) / 2
                 Y: =(Parent.Height - Self.Height) / 2
                 ZIndex: =1
@@ -65,10 +60,10 @@ scrShell As screen:
             ZIndex: =6
 
             lblFooterStatus As label:
-                Color: =gblTheme.ColorTextMuted
+                Color: =If(gblDataError, gblTheme.ColorError, gblTheme.ColorTextMuted)
                 Height: =Parent.Height
                 Size: =10
-                Text: =If(gblInitialized, "Bereit", "Initialisierung") & " · " & gblEnvironment & " · " & gblAppVersion
+                Text: =If(gblDataError, "Metadaten konnten nicht vollständig geladen werden", If(gblInitialized, "Bereit", "Initialisierung")) & " · " & gblEnvironment & " · " & gblAppVersion & " · " & Text(gblLastRefresh, "dd.mm.yyyy hh:mm")
                 Width: =Parent.Width - 32
                 X: =16
                 ZIndex: =2
@@ -126,16 +121,255 @@ scrShell As screen:
                         FontWeight: =FontWeight.Semibold
                         Height: =44
                         Size: =24
-                        Text: =Coalesce(LookUp(colNavigation, Key = gblCurrentPage, Label), "Governance Portal")
-                        Width: =Parent.Width
+                        Text: =Coalesce(LookUp(colPages, PageKey = gblCurrentPage, DisplayNameDE), LookUp(colNavigation, Key = gblCurrentPage, Label), "Governance Portal")
+                        Width: =Parent.Width - 220
                         ZIndex: =1
 
-                    lblPagePlaceholder As label:
-                        Color: =gblTheme.ColorTextMuted
-                        Text: ="Modul '" & lblPageTitle.Text & "' wird in einer folgenden Iteration implementiert."
-                        Width: =Parent.Width
-                        Y: =56
+                    lblRefresh As label:
+                        Align: =Align.Center
+                        BorderColor: =gblTheme.ColorBorder
+                        BorderThickness: =1
+                        Color: =gblTheme.ColorPrimary
+                        Fill: =gblTheme.ColorSurface
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        OnSelect: |-
+                            =Set(gblBusy, true);
+                            Set(gblBusyMessage, "Metadaten werden aktualisiert …");
+                            Refresh(PageDefinitions);
+                            Refresh(NavigationDefinitions);
+                            Refresh(ObjectTypes);
+                            Refresh(FormDefinitions);
+                            Refresh(FormFieldDefinitions);
+                            Refresh(FieldDefinitions);
+                            Refresh(ValidationDefinitions);
+                            Set(gblLastRefresh, Now());
+                            Set(gblBusy, false);
+                            Set(gblBusyMessage, Blank())
+                        Text: ="Aktualisieren"
+                        Width: =120
+                        X: =Parent.Width - Self.Width
                         ZIndex: =2
+
+                    lblNew As label:
+                        Align: =Align.Center
+                        BorderColor: =gblTheme.ColorPrimary
+                        BorderThickness: =1
+                        Color: =gblTheme.ColorTextInverse
+                        Fill: =gblTheme.ColorPrimary
+                        FontWeight: =FontWeight.Semibold
+                        Height: =36
+                        OnSelect: |-
+                            =Set(gblEditorMode, "New");
+                            Set(gblObjectType, Coalesce(LookUp(colNavigation, Key = gblCurrentPage, ObjectTypeKey), First(colObjectTypes).ObjectTypeKey));
+                            Set(gblSelectedObjectDefinition, LookUp(colObjectTypes, ObjectTypeKey = gblObjectType));
+                            Set(gblSelectedRecord, Blank());
+                            Set(gblCurrentPage, "editor")
+                        Text: ="Neu"
+                        Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
+                        Width: =80
+                        X: =lblRefresh.X - Self.Width - 12
+                        ZIndex: =3
+
+                    "galDashboardCards As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        DelayItemLoading: =true
+                        Height: =Min(220, Parent.Height - 80)
+                        Items: =SortByColumns(colDashboardCards, "SortOrder", SortOrder.Ascending)
+                        Layout: =Layout.Horizontal
+                        LoadingSpinner: =LoadingSpinner.Data
+                        OnSelect: =Set(gblCurrentPage, ThisItem.TargetPage)
+                        TemplatePadding: =8
+                        TemplateSize: =190
+                        Visible: =gblCurrentPage = "home"
+                        Width: =Parent.Width
+                        Y: =64
+                        ZIndex: =4
+
+                        lblDashboardValue As label:
+                            Align: =Align.Center
+                            Color: =gblTheme.ColorPrimary
+                            Fill: =gblTheme.ColorSurface
+                            FontWeight: =FontWeight.Bold
+                            Height: =92
+                            OnSelect: =Select(Parent)
+                            Size: =28
+                            Text: =Text(ThisItem.Value)
+                            Width: =Parent.TemplateWidth - 16
+                            X: =8
+                            Y: =8
+                            ZIndex: =1
+
+                        lblDashboardTitle As label:
+                            Align: =Align.Center
+                            Color: =gblTheme.ColorText
+                            Fill: =gblTheme.ColorSurface
+                            FontWeight: =FontWeight.Semibold
+                            Height: =56
+                            OnSelect: =Select(Parent)
+                            Text: =ThisItem.Title
+                            Width: =Parent.TemplateWidth - 16
+                            X: =8
+                            Y: =100
+                            ZIndex: =2
+
+                    lblFrameworkIntro As label:
+                        Color: =gblTheme.ColorTextMuted
+                        Height: =54
+                        Text: ="Das Framework lädt Navigation, Objekttypen, Formulare, Felder und Validierungen aus den zentralen SharePoint-Metadatenlisten."
+                        Visible: =gblCurrentPage = "home"
+                        Width: =Parent.Width
+                        Y: =292
+                        ZIndex: =5
+
+                    "galObjectTypes As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        DelayItemLoading: =true
+                        Height: =Parent.Height - 124
+                        Items: =If(gblCurrentPage = "objects", colObjectTypes, Filter(colObjectTypes, ObjectTypeKey = Coalesce(LookUp(colNavigation, Key = gblCurrentPage, ObjectTypeKey), gblObjectType)))
+                        Layout: =Layout.Vertical
+                        LoadingSpinner: =LoadingSpinner.Data
+                        OnSelect: |-
+                            =Set(gblObjectType, ThisItem.ObjectTypeKey);
+                            Set(gblSelectedObjectDefinition, ThisItem)
+                        TemplatePadding: =4
+                        TemplateSize: =72
+                        Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor" && gblCurrentPage <> "fields" && gblCurrentPage <> "forms" && gblCurrentPage <> "validation" && gblCurrentPage <> "pages"
+                        Width: =Min(420, Parent.Width)
+                        Y: =64
+                        ZIndex: =6
+
+                        lblObjectTypeTitle As label:
+                            Color: =gblTheme.ColorText
+                            Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                            FontWeight: =FontWeight.Semibold
+                            Height: =36
+                            OnSelect: =Select(Parent)
+                            PaddingLeft: =12
+                            Text: =Coalesce(ThisItem.DisplayNameDE, ThisItem.Title)
+                            Width: =Parent.TemplateWidth
+                            ZIndex: =1
+
+                        lblObjectTypeMeta As label:
+                            Color: =gblTheme.ColorTextMuted
+                            Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                            Height: =28
+                            OnSelect: =Select(Parent)
+                            PaddingLeft: =12
+                            Size: =10
+                            Text: =ThisItem.ObjectTypeKey & " · " & ThisItem.SourceListTitle & " · " & CountRows(Filter(colFieldDefinitions, ObjectTypeKey = ThisItem.ObjectTypeKey)) & " Felder"
+                            Width: =Parent.TemplateWidth
+                            Y: =36
+                            ZIndex: =2
+
+                    "galMetadata As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                        DelayItemLoading: =true
+                        Height: =Parent.Height - 124
+                        Items: =Switch(gblCurrentPage, "fields", colFieldDefinitions, "forms", colFormDefinitions, "validation", colValidationDefinitions, "pages", colPages, colFieldDefinitions)
+                        Layout: =Layout.Vertical
+                        LoadingSpinner: =LoadingSpinner.Data
+                        TemplatePadding: =4
+                        TemplateSize: =64
+                        Visible: =gblCurrentPage = "fields" || gblCurrentPage = "forms" || gblCurrentPage = "validation" || gblCurrentPage = "pages"
+                        Width: =Parent.Width
+                        Y: =64
+                        ZIndex: =7
+
+                        lblMetadataTitle As label:
+                            Color: =gblTheme.ColorText
+                            Fill: =gblTheme.ColorSurface
+                            FontWeight: =FontWeight.Semibold
+                            Height: =32
+                            PaddingLeft: =12
+                            Text: =Switch(gblCurrentPage, "fields", Coalesce(ThisItem.DisplayNameDE, ThisItem.FieldInternalName), "forms", Coalesce(ThisItem.SectionTitleDE, ThisItem.FormDefinitionKey), "validation", Coalesce(ThisItem.MessageDE, ThisItem.ValidationKey), "pages", Coalesce(ThisItem.DisplayNameDE, ThisItem.PageKey), ThisItem.Title)
+                            Width: =Parent.TemplateWidth
+                            ZIndex: =1
+
+                        lblMetadataDetail As label:
+                            Color: =gblTheme.ColorTextMuted
+                            Fill: =gblTheme.ColorSurface
+                            Height: =26
+                            PaddingLeft: =12
+                            Size: =10
+                            Text: =Switch(gblCurrentPage, "fields", ThisItem.ObjectTypeKey & " · " & ThisItem.FieldInternalName & " · " & ThisItem.ControlType, "forms", ThisItem.ObjectTypeKey & " · " & ThisItem.FormMode & " · " & ThisItem.SectionKey, "validation", ThisItem.ObjectTypeKey & " · " & ThisItem.RuleType & " · " & ThisItem.Severity, "pages", ThisItem.PageKey & " · " & ThisItem.PageType & " · " & ThisItem.ScreenName, "")
+                            Width: =Parent.TemplateWidth
+                            Y: =32
+                            ZIndex: =2
+
+                    conEditor As groupContainer:
+                        DropShadow: =DropShadow.None
+                        Fill: =gblTheme.ColorSurface
+                        Height: =Parent.Height - 72
+                        LayoutGridColumnMinWidth: =0
+                        LayoutGridColumns: =6
+                        LayoutGridRowMinHeight: =0
+                        LayoutGridRows: =6
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Visible: =gblCurrentPage = "editor"
+                        Width: =Parent.Width
+                        Y: =64
+                        ZIndex: =8
+
+                        lblEditorTitle As label:
+                            Color: =gblTheme.ColorText
+                            FontWeight: =FontWeight.Semibold
+                            Height: =42
+                            Size: =18
+                            Text: =If(gblEditorMode = "New", "Neu: ", "Bearbeiten: ") & Coalesce(gblSelectedObjectDefinition.DisplayNameDE, gblObjectType)
+                            Width: =Parent.Width - 160
+                            X: =16
+                            Y: =8
+                            ZIndex: =1
+
+                        lblEditorCancel As label:
+                            Align: =Align.Center
+                            BorderColor: =gblTheme.ColorBorder
+                            BorderThickness: =1
+                            Color: =gblTheme.ColorPrimary
+                            Height: =34
+                            OnSelect: |-
+                                =Set(gblEditorMode, Blank());
+                                Set(gblCurrentPage, "home")
+                            Text: ="Abbrechen"
+                            Width: =100
+                            X: =Parent.Width - Self.Width - 16
+                            Y: =12
+                            ZIndex: =2
+
+                        "galEditorFields As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
+                            DelayItemLoading: =true
+                            Height: =Parent.Height - 72
+                            Items: =SortByColumns(Filter(colFormFields, ObjectTypeKey = gblObjectType), "SortOrder", SortOrder.Ascending)
+                            Layout: =Layout.Vertical
+                            LoadingSpinner: =LoadingSpinner.Data
+                            TemplatePadding: =4
+                            TemplateSize: =64
+                            Width: =Parent.Width - 32
+                            X: =16
+                            Y: =56
+                            ZIndex: =3
+
+                            lblEditorField As label:
+                                Color: =gblTheme.ColorText
+                                Fill: =gblTheme.ColorWorkspace
+                                FontWeight: =FontWeight.Semibold
+                                Height: =32
+                                PaddingLeft: =12
+                                Text: =Coalesce(ThisItem.OverrideLabelDE, LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, DisplayNameDE), ThisItem.FieldInternalName)
+                                Width: =Parent.TemplateWidth
+                                ZIndex: =1
+
+                            lblEditorFieldMeta As label:
+                                Color: =gblTheme.ColorTextMuted
+                                Fill: =gblTheme.ColorWorkspace
+                                Height: =26
+                                PaddingLeft: =12
+                                Size: =10
+                                Text: =ThisItem.FieldInternalName & " · " & Coalesce(LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, ControlType), "Control") & If(!IsBlank(ThisItem.RequiredIf), " · Pflichtbedingung", "")
+                                Width: =Parent.TemplateWidth
+                                Y: =32
+                                ZIndex: =2
 
             conNavigation As groupContainer:
                 DropShadow: =DropShadow.None
@@ -159,7 +393,10 @@ scrShell As screen:
                     Items: =SortByColumns(colNavigation, "SortOrder", SortOrder.Ascending)
                     Layout: =Layout.Vertical
                     LoadingSpinner: =LoadingSpinner.Data
-                    OnSelect: =Set(gblCurrentPage, ThisItem.Key)
+                    OnSelect: |-
+                        =Set(gblCurrentPage, ThisItem.Key);
+                        Set(gblObjectType, ThisItem.ObjectTypeKey);
+                        Set(gblSelectedObjectDefinition, LookUp(colObjectTypes, ObjectTypeKey = gblObjectType))
                     TemplatePadding: =0
                     TemplateSize: =48
                     Width: =Parent.Width
@@ -224,4 +461,3 @@ scrShell As screen:
                 Width: =220
                 X: =If(lblUser.Visible, lblUser.X - Self.Width - 16, Parent.Width - Self.Width - 24)
                 ZIndex: =3
-
