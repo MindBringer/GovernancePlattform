@@ -26,6 +26,35 @@ App:
       Set(gblSelectedRecordId, 0);
       Set(gblSelectedObjectTypeKey, "");
 
+      Set(gblEditorDirty, false);
+      Set(gblEditorCanSave, false);
+
+      ClearCollect(
+          colEditorValues,
+          {
+              EditorFieldKey: "",
+              ObjectTypeKey: "",
+              FieldInternalName: "",
+              DisplayNameDE: "",
+              ControlType: "",
+              SectionKey: "",
+              SortOrder: 0,
+              IsRequired: false,
+              IsReadOnly: false,
+              DefaultValue: "",
+              ValueText: "",
+              ValueNumber: Blank(),
+              ValueBoolean: false,
+              ValueDate: Blank(),
+              ValueChoiceKey: "",
+              ValueLookupId: Blank(),
+              IsDirty: false,
+              IsValid: true,
+              ErrorMessage: ""
+          }
+      );
+      Clear(colEditorValues);
+
       Set(gblDataError, false);
       Set(gblLastRefresh, Now());
 

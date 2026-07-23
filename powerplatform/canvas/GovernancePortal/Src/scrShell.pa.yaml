@@ -160,6 +160,67 @@ Screens:
                                       Set(gblObjectType, gblSelectedObjectTypeKey);
                                       Set(gblSelectedRecordId, 0);
                                       Set(gblPreviousPage, gblCurrentPage);
+
+                                      Clear(colEditorValues);
+                                      ForAll(
+                                          SortByColumns(
+                                              Filter(
+                                                  colFormFields,
+                                                  ObjectTypeKey = gblSelectedObjectTypeKey
+                                              ),
+                                              "SortOrder",
+                                              SortOrder.Ascending
+                                          ) As formField,
+                                          With(
+                                              {
+                                                  fieldDefinition: LookUp(
+                                                      colFieldDefinitions,
+                                                      ObjectTypeKey = gblSelectedObjectTypeKey
+                                                          && FieldInternalName = formField.FieldInternalName
+                                                  )
+                                              },
+                                              Collect(
+                                                  colEditorValues,
+                                                  {
+                                                      EditorFieldKey: gblSelectedObjectTypeKey & ":" & formField.FieldInternalName,
+                                                      ObjectTypeKey: gblSelectedObjectTypeKey,
+                                                      FieldInternalName: formField.FieldInternalName,
+                                                      DisplayNameDE: Coalesce(
+                                                          formField.OverrideLabelDE,
+                                                          fieldDefinition.DisplayNameDE,
+                                                          formField.FieldInternalName
+                                                      ),
+                                                      ControlType: Coalesce(
+                                                          fieldDefinition.ControlType,
+                                                          "Text"
+                                                      ),
+                                                      SectionKey: Coalesce(
+                                                          formField.SectionKey,
+                                                          ""
+                                                      ),
+                                                      SortOrder: Coalesce(
+                                                          formField.SortOrder,
+                                                          0
+                                                      ),
+                                                      IsRequired: !IsBlank(formField.RequiredIf),
+                                                      IsReadOnly: false,
+                                                      DefaultValue: "",
+                                                      ValueText: "",
+                                                      ValueNumber: Blank(),
+                                                      ValueBoolean: false,
+                                                      ValueDate: Blank(),
+                                                      ValueChoiceKey: "",
+                                                      ValueLookupId: Blank(),
+                                                      IsDirty: false,
+                                                      IsValid: true,
+                                                      ErrorMessage: ""
+                                                  }
+                                              )
+                                          )
+                                      );
+
+                                      Set(gblEditorDirty, false);
+                                      Set(gblEditorCanSave, CountRows(colEditorValues) > 0);
                                       Set(gblCurrentPage, "editor")
                                     Text: ="Neu"
                                     Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
@@ -508,7 +569,10 @@ Screens:
                                           Font: =Font.'Open Sans'
                                           Height: =34
                                           OnSelect: |-
-                                            =Set(gblCurrentPage, gblPreviousPage);
+                                            =Clear(colEditorValues);
+                                            Set(gblEditorDirty, false);
+                                            Set(gblEditorCanSave, false);
+                                            Set(gblCurrentPage, gblPreviousPage);
                                             Set(gblEditorMode, "");
                                             Set(gblObjectType, "");
                                             Set(gblSelectedRecordId, 0)
@@ -522,7 +586,7 @@ Screens:
                                         Properties:
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Height: =Parent.Height - 72
-                                          Items: =SortByColumns(Filter(colFormFields, ObjectTypeKey = gblObjectType), "SortOrder", SortOrder.Ascending)
+                                          Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
                                           TemplatePadding: =4
                                           TemplateSize: =64
                                           Visible: |-
@@ -542,7 +606,7 @@ Screens:
                                                 FontWeight: =FontWeight.Semibold
                                                 Height: =32
                                                 PaddingLeft: =12
-                                                Text: =Coalesce(ThisItem.OverrideLabelDE, LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, DisplayNameDE), ThisItem.FieldInternalName)
+                                                Text: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " *", "")
                                                 Width: =Parent.TemplateWidth
                                           - lblEditorFieldMeta:
                                               Control: Label@2.5.1
@@ -554,7 +618,7 @@ Screens:
                                                 Height: =26
                                                 PaddingLeft: =12
                                                 Size: =10
-                                                Text: =ThisItem.FieldInternalName & " · " & Coalesce(LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, ControlType), "Control") & If(!IsBlank(ThisItem.RequiredIf), " · Pflichtbedingung", "")
+                                                Text: =ThisItem.FieldInternalName & " · " & ThisItem.ControlType & If(ThisItem.IsReadOnly, " · schreibgeschützt", "")
                                                 Width: =Parent.TemplateWidth
                                                 Y: =32
                   - conNavigation:
@@ -582,6 +646,9 @@ Screens:
                                 =Set(gblCurrentNavigationKey, ThisItem.NavKey);
                                 Set(gblCurrentPage, ThisItem.TargetPage);
 
+                                Clear(colEditorValues);
+                                Set(gblEditorDirty, false);
+                                Set(gblEditorCanSave, false);
                                 Set(gblEditorMode, "");
                                 Set(gblObjectType, "");
                                 Set(gblSelectedObjectTypeKey, "");
