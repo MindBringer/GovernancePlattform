@@ -38,3 +38,12 @@ README-APPLY.md
 
 # Local refactoring/cache directories
 .refact/
+
+artifacts/inbound/*
+artifacts/outbound/*
+!artifacts/inbound/.gitkeep
+!artifacts/outbound/.gitkeep
+.DS_Store
+*.log
+*.tmp
+.vscode/settings.json

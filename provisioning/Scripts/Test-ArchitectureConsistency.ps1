@@ -38,15 +38,59 @@ foreach($rule in $runtime.businessRules){
   }
 }
 
-$documentStatus=@(($choices.choiceSets|Where-Object key -eq 'DocumentStatus').values.displayNameDE)
+$documentStatusSet = $choices.choiceSets |
+    Where-Object key -eq 'DocumentStatus'
+
+if (-not $documentStatusSet) {
+    throw "ChoiceSet 'DocumentStatus' wurde in architecture/choices.yaml nicht gefunden."
+}
+
+$documentStatus = @(
+    foreach ($value in $documentStatusSet.values) {
+        if ($null -eq $value -or $value.Count -lt 2) {
+            throw "Ungültiger Eintrag im ChoiceSet 'DocumentStatus'. Erwartet wird mindestens [Key, DisplayNameDE]."
+        }
+
+        [string]$value[1]
+    }
+)
 $published=($views.views|Where-Object key -eq 'PublishedDocuments').filter
 if($published -notmatch 'DocumentStatus eq ([^ ]+)'){$errors.Add('PublishedDocuments filter does not specify DocumentStatus.')}
 elseif($Matches[1] -notin $documentStatus){$errors.Add("PublishedDocuments uses unknown stored choice value '$($Matches[1])'.")}
 
-foreach($nav in $platform.navigation){
-  foreach($child in @($nav.children)){
-    if($child.url -and $child.url -notmatch '^\{SiteUrl\}/'){$errors.Add("Navigation child '$($child.title)' is not site-relative via {SiteUrl}: $($child.url)")}
-  }
+foreach ($nav in @($platform.navigation)) {
+    $navigationItems =
+        if ($nav.PSObject.Properties.Name -contains 'children') {
+            @($nav.children)
+        }
+        else {
+            @($nav)
+        }
+
+    foreach ($item in $navigationItems) {
+        $hasUrlProperty = $item.PSObject.Properties.Name -contains 'url'
+
+        if (
+            $hasUrlProperty -and
+            $item.url -and
+            $item.url -notmatch '^\{SiteUrl\}/'
+        ) {
+            $title =
+                if ($item.PSObject.Properties.Name -contains 'title') {
+                    $item.title
+                }
+                elseif ($item.PSObject.Properties.Name -contains 'key') {
+                    $item.key
+                }
+                else {
+                    '<unbekannt>'
+                }
+
+            $errors.Add(
+                "Navigation entry '$title' is not site-relative via {SiteUrl}: $($item.url)"
+            )
+        }
+    }
 }
 if($errors.Count){$errors|ForEach-Object{Write-Error $_};throw "Architecture consistency validation failed with $($errors.Count) error(s)."}
 Write-Host 'Architecture consistency validation passed.'
