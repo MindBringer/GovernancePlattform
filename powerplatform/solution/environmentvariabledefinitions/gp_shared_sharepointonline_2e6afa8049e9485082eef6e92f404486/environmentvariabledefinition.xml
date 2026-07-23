@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="gp_shared_sharepointonline_2e6afa8049e9485082eef6e92f404486">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="ChoiceValues">
+    <label description="ChoiceValues" languagecode="1031" />
+  </displayname>
+  <introducedversion>0.1.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>gp_GovernancePortalSharePointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

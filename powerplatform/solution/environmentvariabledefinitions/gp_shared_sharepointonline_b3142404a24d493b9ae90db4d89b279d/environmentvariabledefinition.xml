@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="gp_shared_sharepointonline_b3142404a24d493b9ae90db4d89b279d">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="ObjectTypes">
+    <label description="ObjectTypes" languagecode="1031" />
+  </displayname>
+  <introducedversion>0.1.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>gp_GovernancePortalSharePointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>

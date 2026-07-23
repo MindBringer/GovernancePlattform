@@ -1,0 +1,15 @@
+<environmentvariabledefinition schemaname="gp_shared_sharepointonline_9010dc897d4c4281a42fb28e31f7f27d">
+  <apiid>/providers/microsoft.powerapps/apis/shared_sharepointonline</apiid>
+  <displayname default="FormFieldDefinitions">
+    <label description="FormFieldDefinitions" languagecode="1031" />
+  </displayname>
+  <introducedversion>0.1.0</introducedversion>
+  <iscustomizable>1</iscustomizable>
+  <isrequired>0</isrequired>
+  <parameterkey>table</parameterkey>
+  <parentdefinitionid>
+    <schemaname>gp_GovernancePortalSharePointSite</schemaname>
+  </parentdefinitionid>
+  <secretstore>0</secretstore>
+  <type>100000004</type>
+</environmentvariabledefinition>
