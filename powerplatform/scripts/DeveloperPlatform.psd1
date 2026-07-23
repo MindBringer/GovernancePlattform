@@ -7,6 +7,7 @@
 
   # Canvas App
   CanvasAppRelativePath = 'artifacts/work/GovernancePortal.msapp'
+  CanvasSolutionArtifactRelativePath = 'powerplatform/solution/canvas/GovernancePortal/gp_governanceportal_c93a1_DocumentUri.msapr'
 
   SolutionSourceRelativePath = 'powerplatform/solution'
   InboundRelativePath = 'artifacts/inbound'
