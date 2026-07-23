@@ -1,0 +1,8 @@
+artifacts/inbound/*
+artifacts/outbound/*
+!artifacts/inbound/.gitkeep
+!artifacts/outbound/.gitkeep
+.DS_Store
+*.log
+*.tmp
+.vscode/settings.json
