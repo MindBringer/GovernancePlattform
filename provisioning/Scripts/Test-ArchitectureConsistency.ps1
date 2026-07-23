@@ -38,7 +38,22 @@ foreach($rule in $runtime.businessRules){
   }
 }
 
-$documentStatus=@(($choices.choiceSets|Where-Object key -eq 'DocumentStatus').values.displayNameDE)
+$documentStatusSet = $choices.choiceSets |
+    Where-Object key -eq 'DocumentStatus'
+
+if (-not $documentStatusSet) {
+    throw "ChoiceSet 'DocumentStatus' wurde in architecture/choices.yaml nicht gefunden."
+}
+
+$documentStatus = @(
+    foreach ($value in $documentStatusSet.values) {
+        if ($null -eq $value -or $value.Count -lt 2) {
+            throw "Ungültiger Eintrag im ChoiceSet 'DocumentStatus'. Erwartet wird mindestens [Key, DisplayNameDE]."
+        }
+
+        [string]$value[1]
+    }
+)
 $published=($views.views|Where-Object key -eq 'PublishedDocuments').filter
 if($published -notmatch 'DocumentStatus eq ([^ ]+)'){$errors.Add('PublishedDocuments filter does not specify DocumentStatus.')}
 elseif($Matches[1] -notin $documentStatus){$errors.Add("PublishedDocuments uses unknown stored choice value '$($Matches[1])'.")}
