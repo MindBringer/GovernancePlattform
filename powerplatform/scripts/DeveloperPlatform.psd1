@@ -5,8 +5,8 @@
   # Canonical, version-controlled Canvas source (SourceCode layout only)
   CanvasSourceRelativePath = 'powerplatform/canvas/GovernancePortal'
 
-  # Canvas component inside the unpacked solution
-  CanvasSolutionArtifactRelativePath = 'powerplatform/solution/canvas/GovernancePortal/gp_governanceportal_c93a1_DocumentUri.msapr'
+  # Canvas App
+  CanvasAppRelativePath = 'artifacts/work/GovernancePortal.msapp'
 
   SolutionSourceRelativePath = 'powerplatform/solution'
   InboundRelativePath = 'artifacts/inbound'
