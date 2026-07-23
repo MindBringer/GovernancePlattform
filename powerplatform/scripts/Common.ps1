@@ -36,7 +36,7 @@ function Invoke-Native {
     param([Parameter(Mandatory)][string]$Command, [Parameter(Mandatory)][string[]]$Arguments)
     & $Command @Arguments
     if ($LASTEXITCODE -ne 0) {
-        throw "Command failed with exit code $LASTEXITCODE: $Command $($Arguments -join ' ')"
+        throw "Command failed with exit code ${LASTEXITCODE}: $Command $($Arguments -join ' ')"
     }
 }
 
