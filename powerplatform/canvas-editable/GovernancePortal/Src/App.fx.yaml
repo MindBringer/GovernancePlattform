@@ -1,7 +1,9 @@
 App As appinfo:
     BackEnabled: =true
     OnStart: |-
-        =Set(gblAppVersion, "1.0.0-alpha.3.0");
+        =Set(gblAppVersion, "1.0.0-alpha.3.2");
+        Set(gblBuildDate, DateTimeValue("2026-07-23 11:00"));
+        Set(gblBuildCommit, "local");
         Set(gblInitialized, false);
         Set(gblBusy, true);
         Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -48,6 +50,7 @@ App As appinfo:
                 ClearCollect(colFormDefinitions, SortByColumns(Filter(FormDefinitions, IsActive = true), "SortOrder", SortOrder.Ascending)),
                 ClearCollect(colFormFields, SortByColumns(Filter(FormFieldDefinitions, IsActive = true), "SortOrder", SortOrder.Ascending)),
                 ClearCollect(colFieldDefinitions, SortByColumns(Filter(FieldDefinitions, IsActive = true), "SortOrder", SortOrder.Ascending)),
+                ClearCollect(colChoiceValues, SortByColumns(Filter(ChoiceValues, IsActive = true), "SortOrder", SortOrder.Ascending)),
                 ClearCollect(colValidationDefinitions, SortByColumns(Filter(ValidationDefinitions, IsActive = true), "SortOrder", SortOrder.Ascending)),
                 ClearCollect(colBusinessRules, SortByColumns(Filter(BusinessRuleDefinitions, IsActive = true), "SortOrder", SortOrder.Ascending)),
                 ClearCollect(colAppSettings, SortByColumns(Filter(AppSettings, IsActive = true), "SortOrder", SortOrder.Ascending))
@@ -93,6 +96,36 @@ App As appinfo:
         Clear(colRecent);
         ClearCollect(colFavorites, {ObjectType: "", ObjectId: "", Title: ""});
         Clear(colFavorites);
+        ClearCollect(
+            colEditorValues,
+            {
+                FormFieldDefinitionKey: "",
+                FieldDefinitionKey: "",
+                ObjectTypeKey: "",
+                FieldInternalName: "",
+                DisplayNameDE: "",
+                ControlType: "",
+                ChoiceSetKey: "",
+                LookupObjectTypeKey: "",
+                SectionKey: "",
+                SortOrder: 0,
+                IsRequired: false,
+                IsReadOnly: false,
+                DefaultValue: "",
+                ValueText: "",
+                ValueNumber: Blank(),
+                ValueBoolean: Blank(),
+                ValueDate: Blank(),
+                ValueChoiceKey: "",
+                ValueLookupId: Blank(),
+                IsDirty: false,
+                IsValid: true,
+                ErrorMessage: ""
+            }
+        );
+        Clear(colEditorValues);
+        Set(gblEditorDirty, false);
+        Set(gblEditorCanSave, false);
         Set(gblBusyMessage, Blank());
         Set(gblBusy, false);
         Set(gblInitialized, true)

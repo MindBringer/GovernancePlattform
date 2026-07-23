@@ -63,7 +63,7 @@ scrShell As screen:
                 Color: =If(gblDataError, gblTheme.ColorError, gblTheme.ColorTextMuted)
                 Height: =Parent.Height
                 Size: =10
-                Text: =If(gblDataError, "Metadaten konnten nicht vollständig geladen werden", If(gblInitialized, "Bereit", "Initialisierung")) & " · " & gblEnvironment & " · " & gblAppVersion & " · " & Text(gblLastRefresh, "dd.mm.yyyy hh:mm")
+                Text: =If(gblDataError, "Metadaten konnten nicht vollständig geladen werden", If(gblInitialized, "Bereit", "Initialisierung")) & " · " & gblEnvironment & " · " & gblAppVersion & " · Build " & Text(gblBuildDate, "dd.mm.yyyy hh:mm") & If(!IsBlank(gblBuildCommit), " · " & gblBuildCommit, "") & " · Refresh " & Text(gblLastRefresh, "dd.mm.yyyy hh:mm")
                 Width: =Parent.Width - 32
                 X: =16
                 ZIndex: =2
@@ -161,9 +161,58 @@ scrShell As screen:
                         Height: =36
                         OnSelect: |-
                             =Set(gblEditorMode, "New");
-                            Set(gblObjectType, Coalesce(LookUp(colNavigation, Key = gblCurrentPage, ObjectTypeKey), First(colObjectTypes).ObjectTypeKey));
+                            Set(gblObjectType, Coalesce(LookUp(colNavigation, Key = gblCurrentPage, ObjectTypeKey), gblObjectType, First(colObjectTypes).ObjectTypeKey));
                             Set(gblSelectedObjectDefinition, LookUp(colObjectTypes, ObjectTypeKey = gblObjectType));
                             Set(gblSelectedRecord, Blank());
+                            ClearCollect(
+                                colEditorValues,
+                                ForAll(
+                                    SortByColumns(
+                                        Filter(
+                                            colFormFields,
+                                            ObjectTypeKey = gblObjectType &&
+                                            FormMode = "Edit"
+                                        ),
+                                        "SortOrder",
+                                        SortOrder.Ascending
+                                    ) As formField,
+                                    With(
+                                        {
+                                            fieldDefinition: LookUp(
+                                                colFieldDefinitions,
+                                                ObjectTypeKey = gblObjectType &&
+                                                FieldInternalName = formField.FieldInternalName
+                                            )
+                                        },
+                                        {
+                                            FormFieldDefinitionKey: formField.FormFieldDefinitionKey,
+                                            FieldDefinitionKey: fieldDefinition.FieldDefinitionKey,
+                                            ObjectTypeKey: gblObjectType,
+                                            FieldInternalName: formField.FieldInternalName,
+                                            DisplayNameDE: Coalesce(formField.OverrideLabelDE, fieldDefinition.DisplayNameDE, formField.FieldInternalName),
+                                            ControlType: Coalesce(fieldDefinition.ControlType, "Text"),
+                                            ChoiceSetKey: Coalesce(fieldDefinition.ChoiceSetKey, ""),
+                                            LookupObjectTypeKey: Coalesce(fieldDefinition.LookupObjectTypeKey, ""),
+                                            SectionKey: Coalesce(formField.SectionKey, fieldDefinition.SectionKey, "General"),
+                                            SortOrder: formField.SortOrder,
+                                            IsRequired: Coalesce(fieldDefinition.IsRequired, false) || !IsBlank(formField.RequiredIf),
+                                            IsReadOnly: Coalesce(fieldDefinition.IsReadOnly, false),
+                                            DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
+                                            ValueText: Coalesce(fieldDefinition.DefaultValue, ""),
+                                            ValueNumber: Blank(),
+                                            ValueBoolean: Blank(),
+                                            ValueDate: Blank(),
+                                            ValueChoiceKey: "",
+                                            ValueLookupId: Blank(),
+                                            IsDirty: false,
+                                            IsValid: true,
+                                            ErrorMessage: ""
+                                        }
+                                    )
+                                )
+                            );
+                            Set(gblEditorDirty, false);
+                            Set(gblEditorCanSave, false);
                             Set(gblCurrentPage, "editor")
                         Text: ="Neu"
                         Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
@@ -329,7 +378,11 @@ scrShell As screen:
                             Color: =gblTheme.ColorPrimary
                             Height: =34
                             OnSelect: |-
-                                =Set(gblEditorMode, Blank());
+                                =Clear(colEditorValues);
+                                Set(gblEditorDirty, false);
+                                Set(gblEditorCanSave, false);
+                                Set(gblEditorMode, Blank());
+                                Set(gblSelectedRecord, Blank());
                                 Set(gblCurrentPage, "home")
                             Text: ="Abbrechen"
                             Width: =100
@@ -339,12 +392,12 @@ scrShell As screen:
 
                         "galEditorFields As gallery.'BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0'":
                             DelayItemLoading: =true
-                            Height: =Parent.Height - 72
-                            Items: =SortByColumns(Filter(colFormFields, ObjectTypeKey = gblObjectType), "SortOrder", SortOrder.Ascending)
+                            Height: =Parent.Height - 112
+                            Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
                             Layout: =Layout.Vertical
                             LoadingSpinner: =LoadingSpinner.Data
-                            TemplatePadding: =4
-                            TemplateSize: =64
+                            TemplatePadding: =6
+                            TemplateSize: =124
                             Width: =Parent.Width - 32
                             X: =16
                             Y: =56
@@ -352,24 +405,159 @@ scrShell As screen:
 
                             lblEditorField As label:
                                 Color: =gblTheme.ColorText
-                                Fill: =gblTheme.ColorWorkspace
                                 FontWeight: =FontWeight.Semibold
-                                Height: =32
-                                PaddingLeft: =12
-                                Text: =Coalesce(ThisItem.OverrideLabelDE, LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, DisplayNameDE), ThisItem.FieldInternalName)
-                                Width: =Parent.TemplateWidth
+                                Height: =28
+                                PaddingLeft: =4
+                                Text: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " *", "")
+                                Width: =Parent.TemplateWidth - 8
+                                X: =4
                                 ZIndex: =1
 
-                            lblEditorFieldMeta As label:
-                                Color: =gblTheme.ColorTextMuted
-                                Fill: =gblTheme.ColorWorkspace
-                                Height: =26
-                                PaddingLeft: =12
-                                Size: =10
-                                Text: =ThisItem.FieldInternalName & " · " & Coalesce(LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, ControlType), "Control") & If(!IsBlank(ThisItem.RequiredIf), " · Pflichtbedingung", "")
-                                Width: =Parent.TemplateWidth
-                                Y: =32
+                            txtEditorText As text:
+                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                Default: =ThisItem.ValueText
+                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                Height: =40
+                                Mode: =If(Lower(ThisItem.ControlType) = "multiline", TextMode.MultiLine, TextMode.SingleLine)
+                                OnChange: |-
+                                    =Patch(
+                                        colEditorValues,
+                                        ThisItem,
+                                        {
+                                            ValueText: Self.Text,
+                                            IsDirty: true,
+                                            IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                            ErrorMessage: If(ThisItem.IsRequired && IsBlank(Trim(Self.Text)), "Pflichtfeld", "")
+                                        }
+                                    );
+                                    Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                    Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0 && CountRows(Filter(colEditorValues, IsRequired && IsBlank(ValueText) && IsBlank(ValueNumber) && IsBlank(ValueDate) && IsBlank(ValueChoiceKey) && IsBlank(ValueBoolean))) = 0)
+                                Visible: =Lower(ThisItem.ControlType) = "text" || Lower(ThisItem.ControlType) = "multiline" || Lower(ThisItem.ControlType) = "email" || Lower(ThisItem.ControlType) = "url"
+                                Width: =Parent.TemplateWidth - 8
+                                X: =4
+                                Y: =30
                                 ZIndex: =2
+
+                            txtEditorNumber As text:
+                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                Default: =If(IsBlank(ThisItem.ValueNumber), "", Text(ThisItem.ValueNumber))
+                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                Format: =TextFormat.Number
+                                Height: =40
+                                OnChange: |-
+                                    =Patch(
+                                        colEditorValues,
+                                        ThisItem,
+                                        {
+                                            ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
+                                            IsDirty: true,
+                                            IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
+                                            ErrorMessage: If(ThisItem.IsRequired && IsBlank(Self.Text), "Pflichtfeld", "")
+                                        }
+                                    );
+                                    Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                    Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                Visible: =Lower(ThisItem.ControlType) = "number" || Lower(ThisItem.ControlType) = "currency" || Lower(ThisItem.ControlType) = "decimal"
+                                Width: =Parent.TemplateWidth - 8
+                                X: =4
+                                Y: =30
+                                ZIndex: =3
+
+                            togEditorBoolean As toggle:
+                                Default: =Coalesce(ThisItem.ValueBoolean, false)
+                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                Height: =40
+                                OnChange: |-
+                                    =Patch(
+                                        colEditorValues,
+                                        ThisItem,
+                                        {
+                                            ValueBoolean: Self.Value,
+                                            IsDirty: true,
+                                            IsValid: true,
+                                            ErrorMessage: ""
+                                        }
+                                    );
+                                    Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                    Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                Visible: =Lower(ThisItem.ControlType) = "boolean" || Lower(ThisItem.ControlType) = "toggle" || Lower(ThisItem.ControlType) = "yesno"
+                                Width: =120
+                                X: =4
+                                Y: =30
+                                ZIndex: =4
+
+                            datEditorDate As datePicker:
+                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                DefaultDate: =ThisItem.ValueDate
+                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                Height: =40
+                                OnChange: |-
+                                    =Patch(
+                                        colEditorValues,
+                                        ThisItem,
+                                        {
+                                            ValueDate: Self.SelectedDate,
+                                            IsDirty: true,
+                                            IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
+                                            ErrorMessage: If(ThisItem.IsRequired && IsBlank(Self.SelectedDate), "Pflichtfeld", "")
+                                        }
+                                    );
+                                    Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                    Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                Visible: =Lower(ThisItem.ControlType) = "date" || Lower(ThisItem.ControlType) = "datetime"
+                                Width: =260
+                                X: =4
+                                Y: =30
+                                ZIndex: =5
+
+                            drpEditorChoice As dropdown:
+                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                Default: =Coalesce(LookUp(colChoiceValues, ChoiceSetKey = ThisItem.ChoiceSetKey && ChoiceKey = ThisItem.ValueChoiceKey, DisplayNameDE), "")
+                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                Height: =40
+                                Items: =SortByColumns(Filter(colChoiceValues, ChoiceSetKey = ThisItem.ChoiceSetKey), "SortOrder", SortOrder.Ascending)
+                                OnChange: |-
+                                    =Patch(
+                                        colEditorValues,
+                                        ThisItem,
+                                        {
+                                            ValueChoiceKey: Coalesce(Self.Selected.ChoiceKey, ""),
+                                            ValueText: Coalesce(Self.Selected.DisplayNameDE, ""),
+                                            IsDirty: true,
+                                            IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
+                                            ErrorMessage: If(ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey), "Pflichtfeld", "")
+                                        }
+                                    );
+                                    Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                    Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                Value: ="DisplayNameDE"
+                                Visible: =Lower(ThisItem.ControlType) = "choice" || Lower(ThisItem.ControlType) = "dropdown"
+                                Width: =Min(420, Parent.TemplateWidth - 8)
+                                X: =4
+                                Y: =30
+                                ZIndex: =6
+
+                            lblEditorUnsupported As label:
+                                Color: =gblTheme.ColorWarning
+                                Height: =40
+                                PaddingLeft: =4
+                                Text: ="Steuerelementtyp wird in diesem Schritt noch nicht unterstützt: " & ThisItem.ControlType
+                                Visible: =!(Lower(ThisItem.ControlType) in ["text", "multiline", "email", "url", "number", "currency", "decimal", "boolean", "toggle", "yesno", "date", "datetime", "choice", "dropdown"])
+                                Width: =Parent.TemplateWidth - 8
+                                X: =4
+                                Y: =30
+                                ZIndex: =7
+
+                            lblEditorFieldMeta As label:
+                                Color: =If(ThisItem.IsValid, gblTheme.ColorTextMuted, gblTheme.ColorError)
+                                Height: =24
+                                PaddingLeft: =4
+                                Size: =9
+                                Text: =If(!ThisItem.IsValid, ThisItem.ErrorMessage & " · ", "") & ThisItem.FieldInternalName & " · " & ThisItem.ControlType & " · " & ThisItem.SectionKey & If(ThisItem.IsReadOnly, " · schreibgeschützt", "")
+                                Width: =Parent.TemplateWidth - 8
+                                X: =4
+                                Y: =74
+                                ZIndex: =8
 
             conNavigation As groupContainer:
                 DropShadow: =DropShadow.None
@@ -457,7 +645,7 @@ scrShell As screen:
                 Align: =Align.Right
                 Color: =gblTheme.ColorTextInverse
                 Height: =Parent.Height
-                Text: =gblEnvironment & " · " & gblAppVersion
+                Text: =gblEnvironment & " · " & gblAppVersion & " · Build " & Text(gblBuildDate, "dd.mm.yyyy")
                 Width: =220
                 X: =If(lblUser.Visible, lblUser.X - Self.Width - 16, Parent.Width - Self.Width - 24)
                 ZIndex: =3
