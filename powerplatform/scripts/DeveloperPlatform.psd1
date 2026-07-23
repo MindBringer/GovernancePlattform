@@ -8,6 +8,6 @@
   InboundRelativePath = 'artifacts/inbound'
   OutboundRelativePath = 'artifacts/outbound'
   DeploymentSettingsRelativePath = 'powerplatform/deployment-settings.dev.json'
-  Version = '1.0.0-alpha.3.1'
+  Version = '1.0.0-alpha.3.2'
   EnvironmentUrl = ''
 }
