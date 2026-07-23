@@ -1,0 +1,707 @@
+# ************************************************************************************************
+# Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
+# Use the maker portal to create and edit your Power Apps.
+# 
+# The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
+# 
+# For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
+# ************************************************************************************************
+Screens:
+  scrShell:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: =If(!gblInitialized, Set(gblBusy, true); Set(gblBusyMessage, "Initialisierung wird abgeschlossen …"))
+    Children:
+      - conRoot:
+          Control: GroupContainer@1.5.0
+          Variant: ManualLayout
+          Properties:
+            DropShadow: =DropShadow.None
+            Height: =Parent.Height
+            RadiusBottomLeft: =0
+            RadiusBottomRight: =0
+            RadiusTopLeft: =0
+            RadiusTopRight: =0
+            Width: =Parent.Width
+          Children:
+            - conFooter:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorFooter
+                  Height: =gblTheme.FooterHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                  Y: =Parent.Height - Self.Height
+                Children:
+                  - lblFooterStatus:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =If(gblDataError, gblTheme.ColorError, gblTheme.ColorTextMuted)
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Size: =10
+                        Text: =If(gblDataError, "Metadaten konnten nicht vollständig geladen werden", If(gblInitialized, "Bereit", "Initialisierung")) & " · " & gblEnvironment & " · " & gblAppVersion & " · " & Text(gblLastRefresh, "dd.mm.yyyy hh:mm")
+                        Width: =Parent.Width - 32
+                        X: =16
+            - conBody:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorWorkspace
+                  Height: =Parent.Height - gblTheme.HeaderHeight - gblTheme.FooterHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                  Y: =gblTheme.HeaderHeight
+                Children:
+                  - conWorkspace:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =gblTheme.ColorWorkspace
+                        Height: =Parent.Height
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =Parent.Width - conNavigation.Width
+                        X: =conNavigation.Width
+                      Children:
+                        - conWorkspaceContent:
+                            Control: GroupContainer@1.5.0
+                            Variant: ManualLayout
+                            Properties:
+                              DropShadow: =DropShadow.None
+                              Fill: =gblTheme.ColorWorkspace
+                              Height: =Parent.Height - (2 * gblTheme.ContentPadding)
+                              RadiusBottomLeft: =0
+                              RadiusBottomRight: =0
+                              RadiusTopLeft: =0
+                              RadiusTopRight: =0
+                              Width: =Parent.Width - (2 * gblTheme.ContentPadding)
+                              X: =gblTheme.ContentPadding
+                              Y: =gblTheme.ContentPadding
+                            Children:
+                              - lblPageTitle:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Semibold
+                                    Height: =44
+                                    Size: =24
+                                    Text: |-
+                                      =Coalesce(
+                                          LookUp(
+                                              colNavigation,
+                                              NavKey = gblCurrentNavigationKey,
+                                              Label
+                                          ),
+                                          "Governance Portal"
+                                      )
+                                    Width: =Parent.Width - 220
+                              - lblRefresh:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    BorderColor: =gblTheme.ColorBorder
+                                    BorderThickness: =1
+                                    Color: =gblTheme.ColorPrimary
+                                    Fill: =gblTheme.ColorSurface
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Semibold
+                                    OnSelect: |-
+                                      =Set(gblBusy, true);
+                                      Set(gblBusyMessage, "Metadaten werden aktualisiert …");
+                                      Refresh(PageDefinitions);
+                                      Refresh(NavigationDefinitions);
+                                      Refresh(ObjectTypes);
+                                      Refresh(FormDefinitions);
+                                      Refresh(FormFieldDefinitions);
+                                      Refresh(FieldDefinitions);
+                                      Refresh(ValidationDefinitions);
+                                      Set(gblLastRefresh, Now());
+                                      Set(gblBusy, false);
+                                      Set(gblBusyMessage, Blank())
+                                    Text: ="Aktualisieren"
+                                    Width: =140
+                                    Wrap: =false
+                                    X: =Parent.Width - Self.Width
+                                    Y: =2
+                              - lblNew:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =Align.Center
+                                    BorderColor: =gblTheme.ColorPrimary
+                                    BorderThickness: =1
+                                    Color: =gblTheme.ColorTextInverse
+                                    DisplayMode: |-
+                                      =If(
+                                          IsBlank(gblSelectedObjectTypeKey),
+                                          DisplayMode.Disabled,
+                                          DisplayMode.Edit
+                                      )
+                                    Fill: =gblTheme.ColorPrimary
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =FontWeight.Semibold
+                                    OnSelect: |-
+                                      =Set(gblEditorMode, "New");
+                                      Set(gblObjectType, gblSelectedObjectTypeKey);
+                                      Set(gblSelectedRecordId, 0);
+                                      Set(gblPreviousPage, gblCurrentPage);
+                                      Set(gblCurrentPage, "editor")
+                                    Text: ="Neu"
+                                    Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
+                                    Width: =80
+                                    X: =lblRefresh.X - Self.Width - 12
+                                    Y: =2
+                              - galDashboardCards:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =Min(220, Parent.Height - 80)
+                                    Items: =SortByColumns(colDashboardCards, "SortOrder", SortOrder.Ascending)
+                                    OnSelect: =Set(gblCurrentPage, ThisItem.TargetPage)
+                                    TemplatePadding: =8
+                                    TemplateSize: =190
+                                    Visible: =gblCurrentPage = "home"
+                                    Width: =Parent.Width
+                                    Y: =64
+                                  Children:
+                                    - lblDashboardValue:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorPrimary
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =92
+                                          OnSelect: =Select(Parent)
+                                          Size: =28
+                                          Text: =Text(ThisItem.Value)
+                                          Width: =Parent.TemplateWidth - 16
+                                          X: =8
+                                          Y: =8
+                                    - lblDashboardTitle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =56
+                                          OnSelect: =Select(Parent)
+                                          Text: =ThisItem.Title
+                                          Width: =Parent.TemplateWidth - 16
+                                          X: =8
+                                          Y: =100
+                              - lblFrameworkIntro:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =gblTheme.ColorTextMuted
+                                    Font: =Font.'Open Sans'
+                                    Height: =54
+                                    Text: ="Das Framework lädt Navigation, Objekttypen, Formulare, Felder und Validierungen aus den zentralen SharePoint-Metadatenlisten."
+                                    Visible: =gblCurrentPage = "home"
+                                    Width: =Parent.Width
+                                    Y: =292
+                              - galObjectTypes:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =Parent.Height - 124
+                                    Items: |-
+                                      =Switch(
+                                          gblCurrentNavigationKey,
+
+                                          "NavGovernance",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Asset",
+                                                  "System",
+                                                  "Contact"
+                                              ]
+                                          ),
+
+                                          "NavOperations",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Incident",
+                                                  "Problem",
+                                                  "Change"
+                                              ]
+                                          ),
+
+                                          "NavRiskCompliance",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Risk",
+                                                  "Control",
+                                                  "Measure"
+                                              ]
+                                          ),
+
+                                          FirstN(
+                                              colObjectTypes,
+                                              0
+                                          )
+                                      )
+                                    OnSelect: |-
+                                      =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
+                                      Set(gblObjectType, ThisItem.ObjectTypeKey);
+                                      Set(gblSelectedRecordId, 0)
+                                    TemplateFill: |-
+                                      =If(
+                                          ThisItem.ObjectTypeKey = gblSelectedObjectTypeKey,
+                                          RGBA(230, 240, 250, 1),
+                                          RGBA(0, 0, 0, 0)
+                                      )
+                                    TemplatePadding: =4
+                                    TemplateSize: =72
+                                    Visible: =gblCurrentPage = "ObjectList"
+                                    Width: =Min(420, Parent.Width)
+                                    Y: =64
+                                  Children:
+                                    - lblObjectTypeTitle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =36
+                                          OnSelect: =Select(Parent)
+                                          PaddingLeft: =12
+                                          Text: |-
+                                            =Coalesce(
+                                                ThisItem.PluralNameDE,
+                                                ThisItem.Title,
+                                                ThisItem.ObjectTypeKey
+                                            )
+                                          Width: =Parent.TemplateWidth
+                                    - lblObjectTypeMeta:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorTextMuted
+                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          Font: =Font.'Open Sans'
+                                          Height: =28
+                                          OnSelect: =Select(Parent)
+                                          PaddingLeft: =12
+                                          Size: =10
+                                          Text: |-
+                                            =ThisItem.ObjectTypeKey
+                                                & " · "
+                                                & Coalesce(
+                                                    ThisItem.PluralNameDE,
+                                                    ThisItem.Title
+                                                )
+                                                & " · "
+                                                & CountRows(
+                                                    Filter(
+                                                        colFieldDefinitions,
+                                                        ObjectTypeKey = ThisItem.ObjectTypeKey
+                                                    )
+                                                )
+                                                & " Felder"
+                                          Width: =Parent.TemplateWidth
+                                          Y: =36
+                              - galMetadata:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =Parent.Height - 124
+                                    Items: |-
+                                      =Switch(
+                                          gblCurrentPage,
+
+                                          "fields",
+                                          ForAll(
+                                              colFieldDefinitions,
+                                              {
+                                                  ItemKey: FieldDefinitionKey,
+                                                  TitleText: Coalesce(DisplayNameDE, FieldInternalName, Title),
+                                                  DetailText:
+                                                      ObjectTypeKey
+                                                      & " · "
+                                                      & FieldInternalName
+                                                      & " · "
+                                                      & ControlType,
+                                                  SourceType: "Field",
+                                                  SourceId: ID
+                                              }
+                                          ),
+
+                                          "forms",
+                                          ForAll(
+                                              colFormDefinitions,
+                                              {
+                                                  ItemKey: FormDefinitionKey,
+                                                  TitleText: Coalesce(SectionTitleDE, FormDefinitionKey, Title),
+                                                  DetailText:
+                                                      ObjectTypeKey
+                                                      & " · "
+                                                      & FormMode
+                                                      & " · "
+                                                      & SectionKey,
+                                                  SourceType: "Form",
+                                                  SourceId: ID
+                                              }
+                                          ),
+
+                                          "validation",
+                                          ForAll(
+                                              colValidationDefinitions,
+                                              {
+                                                  ItemKey: ValidationKey,
+                                                  TitleText: Coalesce(MessageDE, ValidationKey, Title),
+                                                  DetailText:
+                                                      ObjectTypeKey
+                                                      & " · "
+                                                      & RuleType
+                                                      & " · "
+                                                      & Severity,
+                                                  SourceType: "Validation",
+                                                  SourceId: ID
+                                              }
+                                          ),
+
+                                          "pages",
+                                          ForAll(
+                                              colPages,
+                                              {
+                                                  ItemKey: PageKey,
+                                                  TitleText: Coalesce(DisplayNameDE, PageKey, Title),
+                                                  DetailText:
+                                                      PageKey
+                                                      & " · "
+                                                      & PageType
+                                                      & " · "
+                                                      & ScreenName,
+                                                  SourceType: "Page",
+                                                  SourceId: ID
+                                              }
+                                          ),
+
+                                          Filter(
+                                              Table(
+                                                  {
+                                                      ItemKey: "",
+                                                      TitleText: "",
+                                                      DetailText: "",
+                                                      SourceType: "",
+                                                      SourceId: 0
+                                                  }
+                                              ),
+                                              ItemKey = "__never__"
+                                          )
+                                      )
+                                    TemplatePadding: =4
+                                    TemplateSize: =64
+                                    Visible: |-
+                                      =gblCurrentPage in [
+                                          "fields",
+                                          "forms",
+                                          "validation",
+                                          "pages"
+                                      ]
+                                    Width: =Parent.Width
+                                    Y: =64
+                                  Children:
+                                    - lblMetadataTitle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =32
+                                          PaddingLeft: =12
+                                          Text: =ThisItem.TitleText
+                                          Width: =Parent.TemplateWidth
+                                    - lblMetadataDetail:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorTextMuted
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          Height: =26
+                                          PaddingLeft: =12
+                                          Size: =10
+                                          Text: =ThisItem.DetailText
+                                          Width: =Parent.TemplateWidth
+                                          Y: =32
+                              - conEditor:
+                                  Control: GroupContainer@1.5.0
+                                  Variant: ManualLayout
+                                  Properties:
+                                    DropShadow: =DropShadow.None
+                                    Fill: =gblTheme.ColorSurface
+                                    Height: =Parent.Height - 72
+                                    RadiusBottomLeft: =0
+                                    RadiusBottomRight: =0
+                                    RadiusTopLeft: =0
+                                    RadiusTopRight: =0
+                                    Visible: =gblCurrentPage = "editor"
+                                    Width: =Parent.Width
+                                    Y: =64
+                                  Children:
+                                    - lblEditorTitle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =42
+                                          Size: =18
+                                          Text: |-
+                                            =If(
+                                                gblEditorMode = "New",
+                                                "Neues Objekt anlegen: " &
+                                                Coalesce(
+                                                LookUp(
+                                                    colObjectTypes,
+                                                    ObjectTypeKey = gblObjectType,
+                                                    Title
+                                                ),
+                                                gblObjectType
+                                            ),
+                                                "Objekt bearbeiten"
+                                            )
+                                          Width: =Parent.Width - 160
+                                          X: =16
+                                          Y: =8
+                                    - lblEditorCancel:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =gblTheme.ColorBorder
+                                          BorderThickness: =1
+                                          Color: =gblTheme.ColorPrimary
+                                          Font: =Font.'Open Sans'
+                                          Height: =34
+                                          OnSelect: |-
+                                            =Set(gblCurrentPage, gblPreviousPage);
+                                            Set(gblEditorMode, "");
+                                            Set(gblObjectType, "");
+                                            Set(gblSelectedRecordId, 0)
+                                          Text: ="Abbrechen"
+                                          Width: =100
+                                          X: =Parent.Width - Self.Width - 16
+                                          Y: =12
+                                    - galEditorFields:
+                                        Control: Gallery@2.15.0
+                                        Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Height: =Parent.Height - 72
+                                          Items: =SortByColumns(Filter(colFormFields, ObjectTypeKey = gblObjectType), "SortOrder", SortOrder.Ascending)
+                                          TemplatePadding: =4
+                                          TemplateSize: =64
+                                          Visible: |-
+                                            =gblCurrentPage = "editor"
+                                                && gblObjectType <> ""
+                                          Width: =Parent.Width - 32
+                                          X: =16
+                                          Y: =56
+                                        Children:
+                                          - lblEditorField:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                Color: =gblTheme.ColorText
+                                                Fill: =gblTheme.ColorWorkspace
+                                                Font: =Font.'Open Sans'
+                                                FontWeight: =FontWeight.Semibold
+                                                Height: =32
+                                                PaddingLeft: =12
+                                                Text: =Coalesce(ThisItem.OverrideLabelDE, LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, DisplayNameDE), ThisItem.FieldInternalName)
+                                                Width: =Parent.TemplateWidth
+                                          - lblEditorFieldMeta:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                Color: =gblTheme.ColorTextMuted
+                                                Fill: =gblTheme.ColorWorkspace
+                                                Font: =Font.'Open Sans'
+                                                Height: =26
+                                                PaddingLeft: =12
+                                                Size: =10
+                                                Text: =ThisItem.FieldInternalName & " · " & Coalesce(LookUp(colFieldDefinitions, ObjectTypeKey = gblObjectType && FieldInternalName = ThisItem.FieldInternalName, ControlType), "Control") & If(!IsBlank(ThisItem.RequiredIf), " · Pflichtbedingung", "")
+                                                Width: =Parent.TemplateWidth
+                                                Y: =32
+                  - conNavigation:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.None
+                        Fill: =gblTheme.ColorNavigation
+                        Height: =Parent.Height
+                        RadiusBottomLeft: =0
+                        RadiusBottomRight: =0
+                        RadiusTopLeft: =0
+                        RadiusTopRight: =0
+                        Width: =If(App.Width < gblTheme.BreakpointCompact, gblTheme.NavigationWidthCompact, gblTheme.NavigationWidth)
+                      Children:
+                        - galNavigation:
+                            Control: Gallery@2.15.0
+                            Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                            Properties:
+                              BorderColor: =RGBA(0, 18, 107, 1)
+                              Fill: =Color.Transparent
+                              Height: =Parent.Height
+                              Items: =SortByColumns(colNavigation, "SortOrder", SortOrder.Ascending)
+                              OnSelect: |-
+                                =Set(gblCurrentNavigationKey, ThisItem.NavKey);
+                                Set(gblCurrentPage, ThisItem.TargetPage);
+
+                                Set(gblEditorMode, "");
+                                Set(gblObjectType, "");
+                                Set(gblSelectedObjectTypeKey, "");
+                                Set(gblSelectedRecordId, 0)
+                              TemplateFill: |-
+                                =If(
+                                    ThisItem.NavKey = gblCurrentNavigationKey,
+                                    gblTheme.ColorSelected,
+                                    RGBA(0, 0, 0, 0)
+                                )
+                              TemplateSize: =48
+                              Width: =Parent.Width
+                            Children:
+                              - lblNavigationItem:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
+                                    BorderColor: =RGBA(0, 0, 0, 1)
+                                    Color: =gblTheme.ColorText
+                                    Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
+                                    Font: =Font.'Open Sans'
+                                    FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
+                                    Height: =Parent.TemplateHeight
+                                    OnSelect: =Select(Parent)
+                                    PaddingBottom: =0
+                                    PaddingLeft: =If(App.Width < gblTheme.BreakpointCompact, 0, 20)
+                                    PaddingRight: =0
+                                    PaddingTop: =0
+                                    Size: =14
+                                    Text: =ThisItem.Label
+                                    Width: =Parent.TemplateWidth
+            - conHeader:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =gblTheme.ColorPrimary
+                  Height: =gblTheme.HeaderHeight
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Width: =Parent.Width
+                Children:
+                  - lblAppTitle:
+                      Control: Label@2.5.1
+                      Properties:
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =Parent.Height
+                        Size: =20
+                        Text: ="Governance Portal"
+                        Width: =320
+                        X: =24
+                  - lblUser:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Text: =Coalesce(gblUser.FullName, gblUser.Email, "Benutzer")
+                        Visible: =App.Width >= gblTheme.BreakpointCompact
+                        Width: =260
+                        X: =Parent.Width - Self.Width - 24
+                  - lblEnvironment:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Text: =gblEnvironment & " · " & gblAppVersion
+                        Width: =220
+                        X: =If(lblUser.Visible, lblUser.X - Self.Width - 16, Parent.Width - Self.Width - 24)
+                  - lblEnvironment_1:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Right
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorTextInverse
+                        Font: =Font.'Open Sans'
+                        Height: =Parent.Height
+                        Text: |-
+                          =CountRows(
+                              Filter(
+                                  colFieldDefinitions,
+                                  ObjectTypeKey = gblObjectType
+                              )
+                          )
+                        Width: =425
+                        X: =366
+            - conBusyOverlay:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(255, 255, 255, 0.78)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =gblBusy
+                  Width: =Parent.Width
+                Children:
+                  - lblBusyMessage:
+                      Control: Label@2.5.1
+                      Properties:
+                        Align: =Align.Center
+                        BorderColor: =RGBA(0, 18, 107, 1)
+                        Color: =gblTheme.ColorText
+                        Font: =Font.'Open Sans'
+                        FontWeight: =FontWeight.Semibold
+                        Height: =48
+                        Text: =Coalesce(gblBusyMessage, "Bitte warten …")
+                        Width: =420
+                        X: =(Parent.Width - Self.Width) / 2
+                        Y: =(Parent.Height - Self.Height) / 2

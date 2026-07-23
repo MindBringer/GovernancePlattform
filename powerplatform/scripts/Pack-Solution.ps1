@@ -1,8 +1,28 @@
-[CmdletBinding()]param([string]$RepositoryRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')),[string]$OutputPath,[string]$PacCommand='pac')
-$ErrorActionPreference='Stop'; Import-Module (Join-Path $PSScriptRoot 'Common/DeveloperPlatform.Common.psm1') -Force
-$c=Get-DeveloperPlatformConfig $RepositoryRoot; Assert-Command $PacCommand
-New-Item -ItemType Directory -Force $c.Outbound|Out-Null
-if(-not $OutputPath){$safe=$c.Version -replace '[^0-9A-Za-z.-]','-';$OutputPath=Join-Path $c.Outbound "GovernancePortal_$safe.zip"}
-Invoke-Native $PacCommand @('solution','pack','--zipfile',$OutputPath,'--folder',$c.SolutionSource,'--packagetype','Unmanaged')
-if(-not(Test-Path $OutputPath)){throw 'Solution package was not created.'}
-Write-Host "Solution packed: $OutputPath"
+[CmdletBinding()]
+param()
+
+. (Join-Path $PSScriptRoot 'Common.ps1')
+
+$root = Get-RepositoryRoot
+$config = Get-DeveloperPlatformConfig -RepositoryRoot $root
+Assert-Command pac
+
+$solutionSource = Resolve-RepoPath $root $config.SolutionSourceRelativePath
+$outbound = Resolve-RepoPath $root $config.OutboundRelativePath
+$outFile = Join-Path $outbound "$($config.SolutionUniqueName)_$($config.Version).zip"
+
+New-Item -ItemType Directory -Path $outbound -Force | Out-Null
+Remove-Item -LiteralPath $outFile -Force -ErrorAction SilentlyContinue
+Remove-PlatformNoise -Path $solutionSource
+
+Invoke-Native pac @(
+    'solution', 'pack',
+    '--folder', $solutionSource,
+    '--zipfile', $outFile,
+    '--packagetype', 'Unmanaged'
+)
+
+if (-not (Test-Path -LiteralPath $outFile -PathType Leaf)) {
+    throw "Solution package was not created: $outFile"
+}
+Write-Host "Solution package created: $outFile"

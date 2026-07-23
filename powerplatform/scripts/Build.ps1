@@ -1,13 +1,19 @@
-[CmdletBinding()]param([string]$RepositoryRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')),[string]$PacCommand='pac',[switch]$SkipValidation)
-$ErrorActionPreference='Stop'
-if(-not $SkipValidation){& (Join-Path $PSScriptRoot 'Validate.ps1') -RepositoryRoot $RepositoryRoot -PacCommand $PacCommand}
-& Get-ChildItem `
-    -Path $CanvasEditablePath `
-    -Filter ".DS_Store" `
-    -Recurse `
-    -Force `
-    -ErrorAction SilentlyContinue |
-Remove-Item -Force -ErrorAction SilentlyContinue
-& (Join-Path $PSScriptRoot 'Pack-Canvas.ps1') -RepositoryRoot $RepositoryRoot -PacCommand $PacCommand
-& (Join-Path $PSScriptRoot 'Pack-Solution.ps1') -RepositoryRoot $RepositoryRoot -PacCommand $PacCommand
-Write-Host 'Build completed successfully.'
+[CmdletBinding()]
+param()
+
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+
+$steps = @(
+    'Validate-CanvasSource.ps1',
+    'Pack-Canvas.ps1',
+    'Pack-Solution.ps1'
+)
+
+foreach ($step in $steps) {
+    $path = Join-Path $PSScriptRoot $step
+    Write-Host "`n=== $step ==="
+    & $path
+}
+
+Write-Host "`nBuild completed successfully."
