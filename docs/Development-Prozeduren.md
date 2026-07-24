@@ -5,7 +5,7 @@
 2. Zip-Download in ./artifacts/inbound legen
 3. pwsh entpacken:
 pac solution unpack `
-  --zipfile ./artifacts/inbound/GovernancePortal_1_0_3_8.zip `
+  --zipfile ./artifacts/inbound/GovernancePortal_1_0_4_7.zip `
   --folder ./powerplatform/solution `
   --packagetype Unmanaged `
   --allowDelete true `
@@ -19,7 +19,7 @@ pac canvas unpack `
 
 5. Commit:
 git add .
-git commit -m "baseline: v1.0.3.8 with template controls"
+git commit -m "baseline: v1.0.4.7 with systems and office365 connector"
 
 	ODER:
 git commit -m "feat(canvas): stage 2 metadata editor foundation
