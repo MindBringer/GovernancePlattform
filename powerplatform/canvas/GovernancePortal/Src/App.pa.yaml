@@ -43,17 +43,30 @@ App:
               IsReadOnly: false,
               DefaultValue: "",
               ValueText: "",
-              ValueNumber: Blank(),
+              ValueNumber: If(false, 0, Blank()),
               ValueBoolean: false,
-              ValueDate: Blank(),
+              ValueDate: If(false, Today(), Blank()),
               ValueChoiceKey: "",
-              ValueLookupId: Blank(),
+              ValueLookupId: If(false, 0, Blank()),
               IsDirty: false,
               IsValid: true,
               ErrorMessage: ""
           }
       );
       Clear(colEditorValues);
+
+      ClearCollect(
+          colChoiceValues,
+          {
+              ObjectTypeKey: "",
+              FieldInternalName: "",
+              ChoiceKey: "",
+              DisplayNameDE: "",
+              SortOrder: 0,
+              IsActive: false
+          }
+      );
+      Clear(colChoiceValues);
 
       Set(gblDataError, false);
       Set(gblLastRefresh, Now());

@@ -206,11 +206,11 @@ Screens:
                                                       IsReadOnly: false,
                                                       DefaultValue: "",
                                                       ValueText: "",
-                                                      ValueNumber: Blank(),
+                                                      ValueNumber: If(false, 0, Blank()),
                                                       ValueBoolean: false,
-                                                      ValueDate: Blank(),
+                                                      ValueDate: If(false, Today(), Blank()),
                                                       ValueChoiceKey: "",
-                                                      ValueLookupId: Blank(),
+                                                      ValueLookupId: If(false, 0, Blank()),
                                                       IsDirty: false,
                                                       IsValid: true,
                                                       ErrorMessage: ""
@@ -580,6 +580,42 @@ Screens:
                                           Width: =100
                                           X: =Parent.Width - Self.Width - 16
                                           Y: =12
+                                    - lblEditorSave:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorBorder)
+                                          BorderThickness: =1
+                                          Color: =If(gblEditorCanSave, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
+                                          Fill: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorFooter)
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =34
+                                          OnSelect: |-
+                                            =If(
+                                                gblEditorCanSave,
+                                                Notify(
+                                                    "Speichern wird in Stage 3 implementiert.",
+                                                    NotificationType.Information
+                                                )
+                                            )
+                                          Text: ="Speichern"
+                                          Width: =100
+                                          X: =lblEditorCancel.X - Self.Width - 12
+                                          Y: =12
+                                    - lblEditorState:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Right
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =If(gblEditorDirty, gblTheme.ColorWarning, gblTheme.ColorTextMuted)
+                                          Font: =Font.'Open Sans'
+                                          Height: =34
+                                          Size: =10
+                                          Text: =If(gblEditorDirty, "Nicht gespeicherte Änderungen", "Keine Änderungen")
+                                          Width: =220
+                                          X: =lblEditorSave.X - Self.Width - 12
+                                          Y: =12
                                     - galEditorFields:
                                         Control: Gallery@2.15.0
                                         Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -587,8 +623,8 @@ Screens:
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Height: =Parent.Height - 72
                                           Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
-                                          TemplatePadding: =4
-                                          TemplateSize: =64
+                                          TemplatePadding: =6
+                                          TemplateSize: =112
                                           Visible: |-
                                             =gblCurrentPage = "editor"
                                                 && gblObjectType <> ""
@@ -601,26 +637,284 @@ Screens:
                                               Properties:
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Color: =gblTheme.ColorText
-                                                Fill: =gblTheme.ColorWorkspace
                                                 Font: =Font.'Open Sans'
                                                 FontWeight: =FontWeight.Semibold
-                                                Height: =32
+                                                Height: =30
                                                 PaddingLeft: =12
                                                 Text: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " *", "")
-                                                Width: =Parent.TemplateWidth
+                                                Width: =Parent.TemplateWidth * 0.34
+                                                Y: =10
                                           - lblEditorFieldMeta:
                                               Control: Label@2.5.1
                                               Properties:
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Color: =gblTheme.ColorTextMuted
-                                                Fill: =gblTheme.ColorWorkspace
                                                 Font: =Font.'Open Sans'
-                                                Height: =26
+                                                Height: =38
                                                 PaddingLeft: =12
-                                                Size: =10
-                                                Text: =ThisItem.FieldInternalName & " · " & ThisItem.ControlType & If(ThisItem.IsReadOnly, " · schreibgeschützt", "")
-                                                Width: =Parent.TemplateWidth
-                                                Y: =32
+                                                Size: =9
+                                                Text: =ThisItem.FieldInternalName & " · " & ThisItem.ControlType
+                                                Width: =Parent.TemplateWidth * 0.34
+                                                Y: =40
+                                          - txtEditorText:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                Default: =ThisItem.ValueText
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                HintText: =ThisItem.DisplayNameDE
+                                                HoverBorderColor: =gblTheme.ColorPrimary
+                                                HoverFill: =gblTheme.ColorSelected
+                                                Mode: =TextMode.SingleLine
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueText: Self.Text,
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                Visible: =ThisItem.ControlType in ["Text", "User", "Lookup"]
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - txtEditorMultiline:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                Default: =ThisItem.ValueText
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =78
+                                                HintText: =ThisItem.DisplayNameDE
+                                                HoverBorderColor: =gblTheme.ColorPrimary
+                                                HoverFill: =gblTheme.ColorSelected
+                                                Mode: =TextMode.MultiLine
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueText: Self.Text,
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                Visible: =ThisItem.ControlType in ["Note", "MultilineText"]
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - txtEditorNumber:
+                                              Control: Classic/TextInput@2.3.2
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                Default: =If(IsBlank(ThisItem.ValueNumber), "", Text(ThisItem.ValueNumber))
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Format: =TextFormat.Number
+                                                Height: =40
+                                                HintText: ="0"
+                                                HoverBorderColor: =gblTheme.ColorPrimary
+                                                HoverFill: =gblTheme.ColorSelected
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsBlank(Self.Text),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                Visible: =ThisItem.ControlType = "Number"
+                                                Width: =Parent.TemplateWidth * 0.30
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - datEditorDate:
+                                              Control: Classic/DatePicker@2.6.0
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                DefaultDate: =ThisItem.ValueDate
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                IconBackground: =gblTheme.ColorPrimary
+                                                IconFill: =gblTheme.ColorTextInverse
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueDate: Self.SelectedDate,
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsBlank(Self.SelectedDate),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                Visible: =ThisItem.ControlType in ["Date", "DateTime"]
+                                                Width: =Parent.TemplateWidth * 0.30
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - togEditorBoolean:
+                                              Control: Classic/Toggle@2.1.0
+                                              Properties:
+                                                BorderColor: =gblTheme.ColorBorder
+                                                Default: =ThisItem.ValueBoolean
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                FalseText: ="Nein"
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                OnCheck: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueBoolean: true,
+                                                          IsDirty: true,
+                                                          IsValid: true,
+                                                          ErrorMessage: ""
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, true);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                OnUncheck: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueBoolean: false,
+                                                          IsDirty: true,
+                                                          IsValid: true,
+                                                          ErrorMessage: ""
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, true);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                TrueFill: =gblTheme.ColorPrimary
+                                                TrueText: ="Ja"
+                                                Visible: =ThisItem.ControlType = "Boolean"
+                                                Width: =160
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - drpEditorChoice:
+                                              Control: Classic/DropDown@2.3.1
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                ChevronBackground: =gblTheme.ColorPrimary
+                                                ChevronFill: =gblTheme.ColorTextInverse
+                                                Default: =ThisItem.ValueChoiceKey
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                HoverFill: =gblTheme.ColorSelected
+                                                Items: |-
+                                                  =SortByColumns(
+                                                      Filter(
+                                                          colChoiceValues,
+                                                          ObjectTypeKey = ThisItem.ObjectTypeKey
+                                                              && FieldInternalName = ThisItem.FieldInternalName
+                                                              && IsActive
+                                                      ),
+                                                      "SortOrder",
+                                                      SortOrder.Ascending
+                                                  )
+                                                Items.Value: =DisplayNameDE
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueChoiceKey: Self.Selected.ChoiceKey,
+                                                          ValueText: Self.Selected.DisplayNameDE,
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                SelectionFill: =gblTheme.ColorPrimary
+                                                Visible: =ThisItem.ControlType = "Choice"
+                                                Width: =Parent.TemplateWidth * 0.42
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - lblEditorUnsupported:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                BorderColor: =gblTheme.ColorWarning
+                                                BorderThickness: =1
+                                                Color: =gblTheme.ColorWarning
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                PaddingLeft: =10
+                                                Text: |-
+                                                  ="Noch nicht unterstützter Feldtyp: " & ThisItem.ControlType
+                                                Visible: |-
+                                                  =Not(
+                                                      ThisItem.ControlType in [
+                                                          "Text",
+                                                          "User",
+                                                          "Lookup",
+                                                          "Note",
+                                                          "MultilineText",
+                                                          "Number",
+                                                          "Date",
+                                                          "DateTime",
+                                                          "Boolean",
+                                                          "Choice"
+                                                      ]
+                                                  )
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - lblEditorError:
+                                              Control: Label@2.5.1
+                                              Properties:
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                Color: =gblTheme.ColorError
+                                                Font: =Font.'Open Sans'
+                                                Height: =22
+                                                Size: =9
+                                                Text: =ThisItem.ErrorMessage
+                                                Visible: =!ThisItem.IsValid
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =84
                   - conNavigation:
                       Control: GroupContainer@1.5.0
                       Variant: ManualLayout
