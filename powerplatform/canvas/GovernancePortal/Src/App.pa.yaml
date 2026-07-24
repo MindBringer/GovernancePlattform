@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.3.2");
+      =Set(gblAppVersion, "1.0.0-alpha.3.2-stage3.2");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -37,6 +37,7 @@ App:
               FieldInternalName: "",
               DisplayNameDE: "",
               ControlType: "",
+              ChoiceSetKey: "",
               SectionKey: "",
               SortOrder: 0,
               IsRequired: false,
@@ -58,12 +59,12 @@ App:
       ClearCollect(
           colChoiceValues,
           {
-              ObjectTypeKey: "",
-              FieldInternalName: "",
+              ChoiceSetKey: "",
               ChoiceKey: "",
               DisplayNameDE: "",
               SortOrder: 0,
-              IsActive: false
+              IsActive: false,
+              IsDefault: false
           }
       );
       Clear(colChoiceValues);
@@ -167,6 +168,18 @@ App:
                   SortByColumns(
                       Filter(
                           FieldDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colChoiceValues,
+                  SortByColumns(
+                      Filter(
+                          ChoiceValues,
                           IsActive = true
                       ),
                       "SortOrder",

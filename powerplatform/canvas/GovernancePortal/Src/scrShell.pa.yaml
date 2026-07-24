@@ -130,6 +130,7 @@ Screens:
                                       Refresh(FormDefinitions);
                                       Refresh(FormFieldDefinitions);
                                       Refresh(FieldDefinitions);
+                                      Refresh(ChoiceValues);
                                       Refresh(ValidationDefinitions);
                                       Set(gblLastRefresh, Now());
                                       Set(gblBusy, false);
@@ -194,6 +195,10 @@ Screens:
                                                           fieldDefinition.ControlType,
                                                           "Text"
                                                       ),
+                                                      ChoiceSetKey: Coalesce(
+                                                          fieldDefinition.ChoiceSetKey,
+                                                          ""
+                                                      ),
                                                       SectionKey: Coalesce(
                                                           formField.SectionKey,
                                                           ""
@@ -204,16 +209,72 @@ Screens:
                                                       ),
                                                       IsRequired: !IsBlank(formField.RequiredIf),
                                                       IsReadOnly: false,
-                                                      DefaultValue: "",
-                                                      ValueText: "",
-                                                      ValueNumber: If(false, 0, Blank()),
-                                                      ValueBoolean: false,
-                                                      ValueDate: If(false, Today(), Blank()),
-                                                      ValueChoiceKey: "",
+                                                      DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
+                                                      ValueText: If(
+                                                          Coalesce(fieldDefinition.ControlType, "Text") in ["Text", "Note", "MultilineText"],
+                                                          Coalesce(fieldDefinition.DefaultValue, ""),
+                                                          ""
+                                                      ),
+                                                      ValueNumber: If(
+                                                          Coalesce(fieldDefinition.ControlType, "") = "Number"
+                                                              && !IsBlank(fieldDefinition.DefaultValue),
+                                                          Value(fieldDefinition.DefaultValue),
+                                                          If(false, 0, Blank())
+                                                      ),
+                                                      ValueBoolean: If(
+                                                          Coalesce(fieldDefinition.ControlType, "") = "Boolean",
+                                                          Lower(Coalesce(fieldDefinition.DefaultValue, "false")) in ["true", "1", "ja", "yes"],
+                                                          false
+                                                      ),
+                                                      ValueDate: If(
+                                                          Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
+                                                              && !IsBlank(fieldDefinition.DefaultValue),
+                                                          DateValue(fieldDefinition.DefaultValue),
+                                                          If(false, Today(), Blank())
+                                                      ),
+                                                      ValueChoiceKey: Coalesce(
+                                                          LookUp(
+                                                              colChoiceValues As choiceValue,
+                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                  && choiceValue.IsDefault = true,
+                                                              choiceValue.ChoiceKey
+                                                          ),
+                                                          fieldDefinition.DefaultValue,
+                                                          ""
+                                                      ),
                                                       ValueLookupId: If(false, 0, Blank()),
                                                       IsDirty: false,
-                                                      IsValid: true,
-                                                      ErrorMessage: ""
+                                                      IsValid: If(
+                                                          !IsBlank(formField.RequiredIf),
+                                                          Switch(
+                                                              Coalesce(fieldDefinition.ControlType, "Text"),
+                                                              "Boolean", true,
+                                                              "Number", !IsBlank(fieldDefinition.DefaultValue),
+                                                              "Date", !IsBlank(fieldDefinition.DefaultValue),
+                                                              "DateTime", !IsBlank(fieldDefinition.DefaultValue),
+                                                              "Choice",
+                                                                  !IsBlank(
+                                                                      Coalesce(
+                                                                          LookUp(
+                                                                              colChoiceValues As choiceValue,
+                                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                                  && choiceValue.IsDefault = true,
+                                                                              choiceValue.ChoiceKey
+                                                                          ),
+                                                                          fieldDefinition.DefaultValue
+                                                                      )
+                                                                  ),
+                                                              !IsBlank(fieldDefinition.DefaultValue)
+                                                          ),
+                                                          true
+                                                      ),
+                                                      ErrorMessage: If(
+                                                          !IsBlank(formField.RequiredIf)
+                                                              && IsBlank(fieldDefinition.DefaultValue)
+                                                              && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
+                                                          "Pflichtfeld",
+                                                          ""
+                                                      )
                                                   }
                                               )
                                           )
@@ -653,7 +714,23 @@ Screens:
                                                 Height: =38
                                                 PaddingLeft: =12
                                                 Size: =9
-                                                Text: =ThisItem.FieldInternalName & " · " & ThisItem.ControlType
+                                                Text: |-
+                                                  =ThisItem.FieldInternalName
+                                                      & " · "
+                                                      & ThisItem.ControlType
+                                                      & If(
+                                                          ThisItem.ControlType = "Choice",
+                                                          " · "
+                                                              & CountRows(
+                                                                  Filter(
+                                                                      colChoiceValues As choiceValue,
+                                                                      choiceValue.ChoiceSetKey = ThisItem.ChoiceSetKey
+                                                                          && choiceValue.IsActive = true
+                                                                  )
+                                                              )
+                                                              & " Werte",
+                                                          ""
+                                                      )
                                                 Width: =Parent.TemplateWidth * 0.34
                                                 Y: =40
                                           - txtEditorText:
@@ -841,10 +918,9 @@ Screens:
                                                 Items: |-
                                                   =SortByColumns(
                                                       Filter(
-                                                          colChoiceValues,
-                                                          ObjectTypeKey = ThisItem.ObjectTypeKey
-                                                              && FieldInternalName = ThisItem.FieldInternalName
-                                                              && IsActive
+                                                          colChoiceValues As choiceValue,
+                                                          choiceValue.ChoiceSetKey = ThisItem.ChoiceSetKey
+                                                              && choiceValue.IsActive = true
                                                       ),
                                                       "SortOrder",
                                                       SortOrder.Ascending
