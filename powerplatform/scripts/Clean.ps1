@@ -1,2 +1,0 @@
-[CmdletBinding(SupportsShouldProcess)]param([string]$RepositoryRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')),[switch]$Inbound,[switch]$Outbound)
-$targets=@();if($Inbound){$targets+=Join-Path $RepositoryRoot 'artifacts/inbound/*'};if($Outbound){$targets+=Join-Path $RepositoryRoot 'artifacts/outbound/*'};foreach($t in $targets){if($PSCmdlet.ShouldProcess($t,'Remove build artifacts')){Remove-Item $t -Recurse -Force -ErrorAction SilentlyContinue}}

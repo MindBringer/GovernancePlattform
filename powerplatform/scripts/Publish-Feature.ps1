@@ -1,3 +1,0 @@
-[CmdletBinding()]param([string]$RepositoryRoot=(Resolve-Path (Join-Path $PSScriptRoot '../..')),[Parameter(Mandatory)][string]$CommitMessage,[string]$PacCommand='pac',[switch]$SkipBuild)
-$ErrorActionPreference='Stop'; Push-Location $RepositoryRoot
-try {$b=git branch --show-current;if($b -notlike 'feature/*'){throw "Current branch '$b' is not a feature branch."};if(-not $SkipBuild){& (Join-Path $PSScriptRoot 'Build.ps1') -RepositoryRoot $RepositoryRoot -PacCommand $PacCommand};git add .;git diff --cached --check;if($LASTEXITCODE -ne 0){throw 'Staged diff check failed'};git commit -m $CommitMessage;if($LASTEXITCODE -ne 0){throw 'Commit failed'};git push -u origin $b;if($LASTEXITCODE -ne 0){throw 'Push failed'}} finally {Pop-Location}

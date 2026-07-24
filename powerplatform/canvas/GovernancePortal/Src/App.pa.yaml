@@ -9,13 +9,141 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.2.1");
+      =Set(gblAppVersion, "1.0.0-alpha.3.4.1");
       Set(gblInitialized, false);
       Set(gblBusy, true);
-      Set(gblBusyMessage, "Governance Portal wird initialisiert …");
+      Set(gblBusyMessage, "Governance Framework wird initialisiert …");
+
       Set(gblCurrentPage, "home");
+      Set(gblCurrentNavigationKey, "home");
+      Set(gblPreviousPage, "home");
+
       Set(gblEnvironment, "DEV");
       Set(gblUser, User());
+
+      Set(gblEditorMode, "");
+      Set(gblObjectType, "");
+      Set(gblSelectedRecordId, 0);
+      Set(gblSelectedObjectTypeKey, "");
+
+      Set(gblEditorDirty, false);
+      Set(gblEditorCanSave, false);
+      Set(gblSaveBusy, false);
+      Set(gblSaveError, "");
+      Set(gblSavedRecordId, 0);
+
+      ClearCollect(
+          colEditorValues,
+          {
+              EditorFieldKey: "",
+              ObjectTypeKey: "",
+              FieldInternalName: "",
+              DisplayNameDE: "",
+              ControlType: "",
+              ChoiceSetKey: "",
+              LookupObjectTypeKey: "",
+              AllowMultiple: false,
+              SectionKey: "",
+              SortOrder: 0,
+              IsRequired: false,
+              IsReadOnly: false,
+              DefaultValue: "",
+              ValueText: "",
+              ValueNumber: If(false, 0, Blank()),
+              ValueBoolean: false,
+              ValueDate: If(false, Today(), Blank()),
+              ValueChoiceKey: "",
+              ValueLookupId: If(false, 0, Blank()),
+              ValueLookupText: "",
+              ValuePersonEmail: "",
+              ValuePersonClaims: "",
+              ValuePersonDepartment: "",
+              ValuePersonJobTitle: "",
+              IsDirty: false,
+              IsValid: true,
+              ErrorMessage: ""
+          }
+      );
+      Clear(colEditorValues);
+
+      ClearCollect(
+          colChoiceValues,
+          {
+              ChoiceSetKey: "",
+              ChoiceKey: "",
+              DisplayNameDE: "",
+              SortOrder: 0,
+              IsActive: false,
+              IsDefault: false
+          }
+      );
+      Clear(colChoiceValues);
+
+      ClearCollect(
+          colLookupValues,
+          {
+              LookupObjectTypeKey: "",
+              LookupId: If(false, 0, Blank()),
+              LookupKey: "",
+              DisplayText: "",
+              SecondaryText: "",
+              IsActiveValue: false
+          }
+      );
+      Clear(colLookupValues);
+
+      ClearCollect(
+          colLookupRegistry,
+          {
+              LookupObjectTypeKey: "",
+              DataSourceKey: "",
+              IsConfigured: false
+          }
+      );
+      Clear(colLookupRegistry);
+      Collect(
+          colLookupRegistry,
+          {
+              LookupObjectTypeKey: "Asset",
+              DataSourceKey: "Assets",
+              IsConfigured: true
+          },
+          {
+              LookupObjectTypeKey: "System",
+              DataSourceKey: "Systems",
+              IsConfigured: true
+          }
+      );
+
+      ClearCollect(
+          colLoadedLookupTargets,
+          {
+              LookupObjectTypeKey: "",
+              LoadedAt: If(false, Now(), Blank())
+          }
+      );
+      Clear(colLoadedLookupTargets);
+
+      ClearCollect(
+          colSavePayload,
+          {
+              FieldInternalName: "",
+              ControlType: "",
+              TextValue: "",
+              NumberValue: If(false, 0, Blank()),
+              BooleanValue: false,
+              DateValue: If(false, Today(), Blank()),
+              ChoiceKey: "",
+              LookupId: If(false, 0, Blank()),
+              PersonEmail: "",
+              PersonClaims: ""
+          }
+      );
+      Clear(colSavePayload);
+
+      Set(gblDataError, false);
+      Set(gblLastRefresh, Now());
+
       Set(
           gblTheme,
           {
@@ -23,6 +151,7 @@ App:
               ColorPrimaryDark: RGBA(22, 47, 74, 1),
               ColorNavigation: RGBA(245, 247, 250, 1),
               ColorWorkspace: RGBA(255, 255, 255, 1),
+              ColorSurface: RGBA(250, 251, 252, 1),
               ColorFooter: RGBA(236, 239, 243, 1),
               ColorBorder: RGBA(210, 216, 224, 1),
               ColorText: RGBA(33, 37, 41, 1),
@@ -30,45 +159,379 @@ App:
               ColorTextInverse: RGBA(255, 255, 255, 1),
               ColorSelected: RGBA(224, 235, 247, 1),
               ColorSuccess: RGBA(16, 124, 16, 1),
+              ColorWarning: RGBA(157, 93, 0, 1),
+              ColorError: RGBA(164, 38, 44, 1),
+
               HeaderHeight: 64,
               FooterHeight: 32,
               NavigationWidth: 248,
               NavigationWidthCompact: 72,
               BreakpointCompact: 900,
-              ContentPadding: 24
+              ContentPadding: 24,
+              CardGap: 16
           }
       );
+
+      IfError(
+          Concurrent(
+              ClearCollect(
+                  colPages,
+                  SortByColumns(
+                      Filter(
+                          PageDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colNavigationDefinitions,
+                  SortByColumns(
+                      Filter(
+                          NavigationDefinitions,
+                          IsActive = true
+                              && IsVisible = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colObjectTypes,
+                  SortByColumns(
+                      Filter(
+                          ObjectTypes,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colFormDefinitions,
+                  SortByColumns(
+                      Filter(
+                          FormDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colFormFields,
+                  SortByColumns(
+                      Filter(
+                          FormFieldDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colFieldDefinitions,
+                  SortByColumns(
+                      Filter(
+                          FieldDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colChoiceValues,
+                  SortByColumns(
+                      Filter(
+                          ChoiceValues,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colValidationDefinitions,
+                  SortByColumns(
+                      Filter(
+                          ValidationDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colBusinessRules,
+                  SortByColumns(
+                      Filter(
+                          BusinessRuleDefinitions,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              ),
+
+              ClearCollect(
+                  colAppSettings,
+                  SortByColumns(
+                      Filter(
+                          AppSettings,
+                          IsActive = true
+                      ),
+                      "SortOrder",
+                      SortOrder.Ascending
+                  )
+              )
+          ),
+
+          Set(gblDataError, true)
+      );
+
+      /*
+          Navigation normalisieren.
+
+          Key und NavKey identifizieren den konkreten Menüeintrag.
+          TargetPage ist die technische Zielseite.
+
+          Beispiel:
+          governance      -> objects
+          operations      -> objects
+          risk-compliance -> objects
+      */
       ClearCollect(
           colNavigation,
-          {Key: "home", Label: "Start", ShortLabel: "ST", SortOrder: 10},
-          {Key: "assets", Label: "Assets", ShortLabel: "AS", SortOrder: 20},
-          {Key: "systems", Label: "Systeme", ShortLabel: "SY", SortOrder: 30},
-          {Key: "contacts", Label: "Kontakte", ShortLabel: "KO", SortOrder: 40},
-          {Key: "incidents", Label: "Incidents", ShortLabel: "IN", SortOrder: 50},
-          {Key: "problems", Label: "Problems", ShortLabel: "PR", SortOrder: 60},
-          {Key: "changes", Label: "Changes", ShortLabel: "CH", SortOrder: 70},
-          {Key: "risks", Label: "Risiken", ShortLabel: "RI", SortOrder: 80},
-          {Key: "controls", Label: "Controls", ShortLabel: "CO", SortOrder: 90},
-          {Key: "measures", Label: "Maßnahmen", ShortLabel: "MA", SortOrder: 100},
-          {Key: "architecture", Label: "Architektur", ShortLabel: "AR", SortOrder: 110},
-          {Key: "reports", Label: "Berichte", ShortLabel: "BE", SortOrder: 120}
+          AddColumns(
+              colNavigationDefinitions,
+
+              Key,
+              Coalesce(
+                  NavigationKey,
+                  PageKey
+              ),
+
+              NavKey,
+              Coalesce(
+                  NavigationKey,
+                  PageKey
+              ),
+
+              TargetPage,
+              Coalesce(
+                  PageKey,
+                  NavigationKey
+              ),
+
+              Label,
+              Coalesce(
+                  DisplayNameDE,
+                  Title,
+                  NavigationKey
+              ),
+
+              ShortLabel,
+              Upper(
+                  Left(
+                      Coalesce(
+                          DisplayNameDE,
+                          Title,
+                          NavigationKey
+                      ),
+                      2
+                  )
+              )
+          )
       );
+
+      /*
+          Fallback nur verwenden, wenn keine Navigationsdefinitionen
+          aus SharePoint geladen wurden.
+      */
+      If(
+          IsEmpty(colNavigation),
+
+          ClearCollect(
+              colNavigation,
+
+              {
+                  Key: "home",
+                  NavKey: "home",
+                  TargetPage: "home",
+                  Label: "Start",
+                  ShortLabel: "ST",
+                  SortOrder: 10,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "governance",
+                  NavKey: "governance",
+                  TargetPage: "objects",
+                  Label: "Governance",
+                  ShortLabel: "GO",
+                  SortOrder: 20,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "operations",
+                  NavKey: "operations",
+                  TargetPage: "objects",
+                  Label: "Betrieb",
+                  ShortLabel: "BE",
+                  SortOrder: 30,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "risk-compliance",
+                  NavKey: "risk-compliance",
+                  TargetPage: "objects",
+                  Label: "Risiko & Compliance",
+                  ShortLabel: "RC",
+                  SortOrder: 40,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "documents",
+                  NavKey: "documents",
+                  TargetPage: "documents",
+                  Label: "Dokumente",
+                  ShortLabel: "DO",
+                  SortOrder: 50,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "audits",
+                  NavKey: "audits",
+                  TargetPage: "audits",
+                  Label: "Prüfungen",
+                  ShortLabel: "PR",
+                  SortOrder: 60,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "reports",
+                  NavKey: "reports",
+                  TargetPage: "reports",
+                  Label: "Auswertungen",
+                  ShortLabel: "AU",
+                  SortOrder: 70,
+                  ObjectTypeKey: ""
+              },
+
+              {
+                  Key: "administration",
+                  NavKey: "administration",
+                  TargetPage: "administration",
+                  Label: "Administration",
+                  ShortLabel: "AD",
+                  SortOrder: 80,
+                  ObjectTypeKey: ""
+              }
+          )
+      );
+
+      ClearCollect(
+          colDashboardCards,
+
+          {
+              Key: "objects",
+              Title: "Objekttypen",
+              Value: CountRows(colObjectTypes),
+              TargetPage: "objects",
+              SortOrder: 10
+          },
+
+          {
+              Key: "pages",
+              Title: "Seiten",
+              Value: CountRows(colPages),
+              TargetPage: "pages",
+              SortOrder: 20
+          },
+
+          {
+              Key: "fields",
+              Title: "Felddefinitionen",
+              Value: CountRows(colFieldDefinitions),
+              TargetPage: "fields",
+              SortOrder: 30
+          },
+
+          {
+              Key: "forms",
+              Title: "Formularbereiche",
+              Value: CountRows(colFormDefinitions),
+              TargetPage: "forms",
+              SortOrder: 40
+          },
+
+          {
+              Key: "validation",
+              Title: "Validierungsregeln",
+              Value: CountRows(colValidationDefinitions),
+              TargetPage: "validation",
+              SortOrder: 50
+          },
+
+          {
+              Key: "assets",
+              Title: "Assets",
+              Value: CountRows(Assets),
+              TargetPage: "assets",
+              SortOrder: 60
+          }
+      );
+
       ClearCollect(
           colNotifications,
-          {Id: "", Type: "", Message: "", CreatedAt: Now()}
+          {
+              Id: "",
+              Type: "",
+              Message: "",
+              CreatedAt: Now()
+          }
       );
       Clear(colNotifications);
+
       ClearCollect(
           colRecent,
-          {ObjectType: "", ObjectId: "", Title: "", OpenedAt: Now()}
+          {
+              ObjectType: "",
+              ObjectId: "",
+              Title: "",
+              OpenedAt: Now()
+          }
       );
       Clear(colRecent);
+
       ClearCollect(
           colFavorites,
-          {ObjectType: "", ObjectId: "", Title: ""}
+          {
+              ObjectType: "",
+              ObjectId: "",
+              Title: ""
+          }
       );
       Clear(colFavorites);
-      Set(gblBusyMessage, Blank());
+
+      Set(gblLastRefresh, Now());
+      Set(gblBusyMessage, "");
       Set(gblBusy, false);
       Set(gblInitialized, true)
     Theme: =PowerAppsTheme
