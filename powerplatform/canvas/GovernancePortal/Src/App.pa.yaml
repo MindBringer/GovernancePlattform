@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.3.2-stage3.2");
+      =Set(gblAppVersion, "1.0.0-alpha.3.2");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -38,6 +38,8 @@ App:
               DisplayNameDE: "",
               ControlType: "",
               ChoiceSetKey: "",
+              LookupObjectTypeKey: "",
+              AllowMultiple: false,
               SectionKey: "",
               SortOrder: 0,
               IsRequired: false,
@@ -49,6 +51,9 @@ App:
               ValueDate: If(false, Today(), Blank()),
               ValueChoiceKey: "",
               ValueLookupId: If(false, 0, Blank()),
+              ValueLookupText: "",
+              ValuePersonEmail: "",
+              ValuePersonClaims: "",
               IsDirty: false,
               IsValid: true,
               ErrorMessage: ""
@@ -68,6 +73,51 @@ App:
           }
       );
       Clear(colChoiceValues);
+
+      ClearCollect(
+          colLookupValues,
+          {
+              LookupObjectTypeKey: "",
+              LookupId: If(false, 0, Blank()),
+              LookupKey: "",
+              DisplayText: "",
+              SecondaryText: "",
+              IsActiveValue: false
+          }
+      );
+      Clear(colLookupValues);
+
+      ClearCollect(
+          colLookupRegistry,
+          {
+              LookupObjectTypeKey: "",
+              DataSourceKey: "",
+              IsConfigured: false
+          }
+      );
+      Clear(colLookupRegistry);
+      Collect(
+          colLookupRegistry,
+          {
+              LookupObjectTypeKey: "Asset",
+              DataSourceKey: "Assets",
+              IsConfigured: true
+          },
+          {
+              LookupObjectTypeKey: "System",
+              DataSourceKey: "Systems",
+              IsConfigured: false
+          }
+      );
+
+      ClearCollect(
+          colLoadedLookupTargets,
+          {
+              LookupObjectTypeKey: "",
+              LoadedAt: If(false, Now(), Blank())
+          }
+      );
+      Clear(colLoadedLookupTargets);
 
       Set(gblDataError, false);
       Set(gblLastRefresh, Now());

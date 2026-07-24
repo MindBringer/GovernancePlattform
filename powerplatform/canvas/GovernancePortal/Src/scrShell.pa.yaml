@@ -199,6 +199,14 @@ Screens:
                                                           fieldDefinition.ChoiceSetKey,
                                                           ""
                                                       ),
+                                                      LookupObjectTypeKey: Coalesce(
+                                                          fieldDefinition.LookupObjectTypeKey,
+                                                          ""
+                                                      ),
+                                                      AllowMultiple: Coalesce(
+                                                          fieldDefinition.AllowMultiple,
+                                                          false
+                                                      ),
                                                       SectionKey: Coalesce(
                                                           formField.SectionKey,
                                                           ""
@@ -243,6 +251,9 @@ Screens:
                                                           ""
                                                       ),
                                                       ValueLookupId: If(false, 0, Blank()),
+                                                      ValueLookupText: "",
+                                                      ValuePersonEmail: "",
+                                                      ValuePersonClaims: "",
                                                       IsDirty: false,
                                                       IsValid: If(
                                                           !IsBlank(formField.RequiredIf),
@@ -277,6 +288,77 @@ Screens:
                                                       )
                                                   }
                                               )
+                                          )
+                                      );
+
+                                      /*
+                                          Stage 3.3: Lookup Registry + Cache + Provider.
+
+                                          Power Fx kann Datenquellen nicht dynamisch anhand eines
+                                          Textwertes dereferenzieren. Die Registry beschreibt deshalb
+                                          die verfügbaren Ziele; der Provider enthält je verbundener
+                                          SharePoint-Liste einen statischen Zweig.
+
+                                          Bereits geladene Ziele bleiben im Cache und werden beim
+                                          erneuten Öffnen eines Editors nicht nochmals geladen.
+                                      */
+                                      ForAll(
+                                          Distinct(
+                                              Filter(
+                                                  colEditorValues,
+                                                  ControlType = "Lookup"
+                                                      && !IsBlank(LookupObjectTypeKey)
+                                              ),
+                                              LookupObjectTypeKey
+                                          ) As requiredTarget,
+                                          Switch(
+                                              requiredTarget.Value,
+                                              "Asset",
+                                              If(
+                                                  IsBlank(
+                                                      LookUp(
+                                                          colLoadedLookupTargets,
+                                                          LookupObjectTypeKey = "Asset"
+                                                      )
+                                                  ),
+                                                  Collect(
+                                                      colLookupValues,
+                                                      AddColumns(
+                                                          ShowColumns(
+                                                              Assets,
+                                                              ID,
+                                                              Title,
+                                                              GovernanceID,
+                                                              IsActive
+                                                          ),
+                                                          LookupObjectTypeKey,
+                                                          "Asset",
+                                                          LookupId,
+                                                          ID,
+                                                          LookupKey,
+                                                          Coalesce(GovernanceID, Text(ID)),
+                                                          DisplayText,
+                                                          Coalesce(Title, GovernanceID, Text(ID)),
+                                                          SecondaryText,
+                                                          Coalesce(GovernanceID, ""),
+                                                          IsActiveValue,
+                                                          Coalesce(IsActive, true)
+                                                      )
+                                                  );
+                                                  Collect(
+                                                      colLoadedLookupTargets,
+                                                      {
+                                                          LookupObjectTypeKey: "Asset",
+                                                          LoadedAt: Now()
+                                                      }
+                                                  )
+                                              ),
+                                              /*
+                                                  "System" ist in der Registry dokumentiert, aber
+                                                  noch nicht als Canvas-Datenquelle verbunden.
+                                                  Deshalb gibt es absichtlich keinen Systems-Zugriff.
+                                              */
+                                              Blank()
                                           )
                                       );
 
@@ -719,6 +801,16 @@ Screens:
                                                       & " · "
                                                       & ThisItem.ControlType
                                                       & If(
+                                                          ThisItem.ControlType = "Lookup",
+                                                          " · Ziel: " & ThisItem.LookupObjectTypeKey,
+                                                          ""
+                                                      )
+                                                      & If(
+                                                          ThisItem.ControlType = "User",
+                                                          " · Person",
+                                                          ""
+                                                      )
+                                                      & If(
                                                           ThisItem.ControlType = "Choice",
                                                           " · "
                                                               & CountRows(
@@ -762,7 +854,7 @@ Screens:
                                                   );
                                                   Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
                                                   Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
-                                                Visible: =ThisItem.ControlType in ["Text", "User", "Lookup"]
+                                                Visible: =ThisItem.ControlType = "Text"
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
                                                 Y: =12
@@ -949,6 +1041,106 @@ Screens:
                                                 Width: =Parent.TemplateWidth * 0.42
                                                 X: =Parent.TemplateWidth * 0.36
                                                 Y: =12
+                                          - cmbEditorLookup:
+                                              Control: Classic/ComboBox@2.4.0
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                ChevronBackground: =gblTheme.ColorPrimary
+                                                ChevronFill: =gblTheme.ColorTextInverse
+                                                DisplayFields: =["DisplayText"]
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                HoverFill: =gblTheme.ColorSelected
+                                                IsSearchable: =true
+                                                Items: |-
+                                                  =Filter(
+                                                      colLookupValues As lookupValue,
+                                                      lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
+                                                          && lookupValue.IsActiveValue = true
+                                                  )
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueLookupId: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              Blank(),
+                                                              First(Self.SelectedItems).LookupId
+                                                          ),
+                                                          ValueLookupText: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              First(Self.SelectedItems).DisplayText
+                                                          ),
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                SearchFields: =["DisplayText", "SecondaryText"]
+                                                SelectMultiple: =ThisItem.AllowMultiple
+                                                Visible: =ThisItem.ControlType = "Lookup"
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - cmbEditorPerson:
+                                              Control: Classic/ComboBox@2.4.0
+                                              Properties:
+                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
+                                                ChevronBackground: =gblTheme.ColorPrimary
+                                                ChevronFill: =gblTheme.ColorTextInverse
+                                                DisplayFields: =["DisplayName", "Email"]
+                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                Font: =Font.'Open Sans'
+                                                Height: =40
+                                                HoverFill: =gblTheme.ColorSelected
+                                                IsSearchable: =true
+                                                Items: =Choices([@FieldDefinitions].Author)
+                                                OnChange: |-
+                                                  =Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      {
+                                                          ValueText: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              First(Self.SelectedItems).DisplayName
+                                                          ),
+                                                          ValuePersonEmail: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              First(Self.SelectedItems).Email
+                                                          ),
+                                                          ValuePersonClaims: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              First(Self.SelectedItems).Claims
+                                                          ),
+                                                          IsDirty: true,
+                                                          IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
+                                                          ErrorMessage: If(
+                                                              ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  );
+                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
+                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                SearchFields: =["DisplayName", "Email"]
+                                                SelectMultiple: =ThisItem.AllowMultiple
+                                                Visible: =ThisItem.ControlType = "User"
+                                                Width: =Parent.TemplateWidth * 0.62
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
                                           - lblEditorUnsupported:
                                               Control: Label@2.5.1
                                               Properties:
@@ -972,7 +1164,9 @@ Screens:
                                                           "Date",
                                                           "DateTime",
                                                           "Boolean",
-                                                          "Choice"
+                                                          "Choice",
+                                                          "Lookup",
+                                                          "User"
                                                       ]
                                                   )
                                                 Width: =Parent.TemplateWidth * 0.62
