@@ -254,6 +254,8 @@ Screens:
                                                       ValueLookupText: "",
                                                       ValuePersonEmail: "",
                                                       ValuePersonClaims: "",
+                                                      ValuePersonDepartment: "",
+                                                      ValuePersonJobTitle: "",
                                                       IsDirty: false,
                                                       IsValid: If(
                                                           !IsBlank(formField.RequiredIf),
@@ -353,11 +355,46 @@ Screens:
                                                       }
                                                   )
                                               ),
-                                              /*
-                                                  "System" ist in der Registry dokumentiert, aber
-                                                  noch nicht als Canvas-Datenquelle verbunden.
-                                                  Deshalb gibt es absichtlich keinen Systems-Zugriff.
-                                              */
+                                              "System",
+                                              If(
+                                                  IsBlank(
+                                                      LookUp(
+                                                          colLoadedLookupTargets,
+                                                          LookupObjectTypeKey = "System"
+                                                      )
+                                                  ),
+                                                  Collect(
+                                                      colLookupValues,
+                                                      AddColumns(
+                                                          ShowColumns(
+                                                              Systems,
+                                                              ID,
+                                                              Title,
+                                                              GovernanceID,
+                                                              IsActive
+                                                          ),
+                                                          LookupObjectTypeKey,
+                                                          "System",
+                                                          LookupId,
+                                                          ID,
+                                                          LookupKey,
+                                                          Coalesce(GovernanceID, Text(ID)),
+                                                          DisplayText,
+                                                          Coalesce(Title, GovernanceID, Text(ID)),
+                                                          SecondaryText,
+                                                          Coalesce(GovernanceID, ""),
+                                                          IsActiveValue,
+                                                          Coalesce(IsActive, true)
+                                                      )
+                                                  );
+                                                  Collect(
+                                                      colLoadedLookupTargets,
+                                                      {
+                                                          LookupObjectTypeKey: "System",
+                                                          LoadedAt: Now()
+                                                      }
+                                                  )
+                                              ),
                                               Blank()
                                           )
                                       );
@@ -736,13 +773,244 @@ Screens:
                                           Height: =34
                                           OnSelect: |-
                                             =If(
-                                                gblEditorCanSave,
-                                                Notify(
-                                                    "Speichern wird in Stage 3 implementiert.",
-                                                    NotificationType.Information
-                                                )
+                                                gblEditorCanSave && !gblSaveBusy,
+                                                Set(gblSaveBusy, true);
+                                                Set(gblSaveError, "");
+                                                Set(gblSavedRecordId, 0);
+
+                                                ClearCollect(
+                                                    colSavePayload,
+                                                    ForAll(
+                                                        colEditorValues As editorValue,
+                                                        {
+                                                            FieldInternalName: editorValue.FieldInternalName,
+                                                            ControlType: editorValue.ControlType,
+                                                            TextValue: editorValue.ValueText,
+                                                            NumberValue: editorValue.ValueNumber,
+                                                            BooleanValue: editorValue.ValueBoolean,
+                                                            DateValue: editorValue.ValueDate,
+                                                            ChoiceKey: editorValue.ValueChoiceKey,
+                                                            LookupId: editorValue.ValueLookupId,
+                                                            PersonEmail: editorValue.ValuePersonEmail,
+                                                            PersonClaims: editorValue.ValuePersonClaims
+                                                        }
+                                                    )
+                                                );
+
+                                                Switch(
+                                                    gblObjectType,
+                                                    "Asset",
+                                                    IfError(
+                                                        Set(
+                                                            gblSavedRecord,
+                                                            Patch(
+                                                                Assets,
+                                                                If(
+                                                                    gblEditorMode = "Edit" && gblSelectedRecordId > 0,
+                                                                    LookUp(Assets, ID = gblSelectedRecordId),
+                                                                    Defaults(Assets)
+                                                                ),
+                                                                {
+                                                                    Title: LookUp(colEditorValues, FieldInternalName = "Title", ValueText),
+                                                                    Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
+                                                                    GovernanceStatus: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus", ValueChoiceKey)
+                                                                    },
+                                                                    Owner: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    DeputyOwner: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "DeputyOwner")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    Criticality: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)
+                                                                    },
+                                                                    LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
+                                                                    NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
+                                                                    ReviewCycleMonths: LookUp(colEditorValues, FieldInternalName = "ReviewCycleMonths", ValueNumber),
+                                                                    IsActive: Coalesce(LookUp(colEditorValues, FieldInternalName = "IsActive", ValueBoolean), true),
+                                                                    AssetType: LookUp(colEditorValues, FieldInternalName = "AssetType", ValueText),
+                                                                    BusinessOwner: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "BusinessOwner")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    TechnicalOwner: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "TechnicalOwner")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    DataClassification: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "DataClassification", ValueChoiceKey)
+                                                                    },
+                                                                    LifecycleStatus: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "LifecycleStatus", ValueChoiceKey)
+                                                                    },
+                                                                    ConfidentialityRequirement: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement", ValueChoiceKey)
+                                                                    },
+                                                                    IntegrityRequirement: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement", ValueChoiceKey)
+                                                                    },
+                                                                    AvailabilityRequirement: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement", ValueChoiceKey)
+                                                                    },
+                                                                    DataSteward: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "DataSteward")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    )
+                                                                }
+                                                            )
+                                                        );
+                                                        Set(gblSavedRecordId, gblSavedRecord.ID),
+                                                        Set(gblSaveError, FirstError.Message)
+                                                    ),
+                                                    "System",
+                                                    IfError(
+                                                        Set(
+                                                            gblSavedRecord,
+                                                            Patch(
+                                                                Systems,
+                                                                If(
+                                                                    gblEditorMode = "Edit" && gblSelectedRecordId > 0,
+                                                                    LookUp(Systems, ID = gblSelectedRecordId),
+                                                                    Defaults(Systems)
+                                                                ),
+                                                                {
+                                                                    Title: LookUp(colEditorValues, FieldInternalName = "Title", ValueText),
+                                                                    Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
+                                                                    GovernanceStatus: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus", ValueChoiceKey)
+                                                                    },
+                                                                    Owner: With(
+                                                                        {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
+                                                                        If(
+                                                                            IsBlank(personValue.ValuePersonClaims),
+                                                                            Blank(),
+                                                                            {
+                                                                                Claims: personValue.ValuePersonClaims,
+                                                                                DisplayName: personValue.ValueText,
+                                                                                Email: personValue.ValuePersonEmail,
+                                                                                Department: personValue.ValuePersonDepartment,
+                                                                                JobTitle: personValue.ValuePersonJobTitle,
+                                                                                Picture: ""
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    Criticality: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)
+                                                                    },
+                                                                    LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
+                                                                    NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
+                                                                    ReviewCycleMonths: LookUp(colEditorValues, FieldInternalName = "ReviewCycleMonths", ValueNumber),
+                                                                    IsActive: Coalesce(LookUp(colEditorValues, FieldInternalName = "IsActive", ValueBoolean), true),
+                                                                    LinkedAsset: With(
+                                                                        {lookupValue: LookUp(colEditorValues, FieldInternalName = "LinkedAsset")},
+                                                                        If(
+                                                                            IsBlank(lookupValue.ValueLookupId),
+                                                                            Blank(),
+                                                                            {
+                                                                                Id: lookupValue.ValueLookupId,
+                                                                                Value: lookupValue.ValueLookupText
+                                                                            }
+                                                                        )
+                                                                    ),
+                                                                    SystemType: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "SystemType", ValueChoiceKey)
+                                                                    },
+                                                                    Environment: {
+                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Environment", ValueChoiceKey)
+                                                                    },
+                                                                    MonitoringStatus: LookUp(colEditorValues, FieldInternalName = "MonitoringStatus", ValueText),
+                                                                    BackupStatus: LookUp(colEditorValues, FieldInternalName = "BackupStatus", ValueText),
+                                                                    AuthenticationType: LookUp(colEditorValues, FieldInternalName = "AuthenticationType", ValueText),
+                                                                    SupportModel: LookUp(colEditorValues, FieldInternalName = "SupportModel", ValueText)
+                                                                }
+                                                            )
+                                                        );
+                                                        Set(gblSavedRecordId, gblSavedRecord.ID),
+                                                        Set(gblSaveError, FirstError.Message)
+                                                    ),
+                                                    Set(
+                                                        gblSaveError,
+                                                        "Für den Objekttyp '" & gblObjectType & "' ist der Stage-3.4-Save-Provider noch nicht registriert."
+                                                    )
+                                                );
+
+                                                If(
+                                                    IsBlank(gblSaveError) && gblSavedRecordId > 0,
+                                                    Notify(
+                                                        "Datensatz wurde gespeichert. ID: " & Text(gblSavedRecordId),
+                                                        NotificationType.Success
+                                                    );
+                                                    Clear(colEditorValues);
+                                                    Set(gblEditorDirty, false);
+                                                    Set(gblEditorCanSave, false);
+                                                    Set(gblCurrentPage, gblPreviousPage),
+                                                    Notify(
+                                                        Coalesce(gblSaveError, "Speichern fehlgeschlagen."),
+                                                        NotificationType.Error
+                                                    )
+                                                );
+
+                                                Set(gblSaveBusy, false)
                                             )
-                                          Text: ="Speichern"
+                                          Text: =If(gblSaveBusy, "Speichert …", "Speichern")
                                           Width: =100
                                           X: =lblEditorCancel.X - Self.Width - 12
                                           Y: =12
@@ -1097,13 +1365,28 @@ Screens:
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
-                                                DisplayFields: =["DisplayName", "Email"]
+                                                DisplayFields: =["DisplayName", "Mail", "JobTitle"]
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
                                                 Height: =40
                                                 HoverFill: =gblTheme.ColorSelected
                                                 IsSearchable: =true
-                                                Items: =Choices([@FieldDefinitions].Author)
+                                                Items: |-
+                                                  =With(
+                                                      {
+                                                          searchValue: Trim(Self.SearchText)
+                                                      },
+                                                      Office365Users.SearchUserV2(
+                                                          {
+                                                              searchTerm: If(
+                                                                  IsBlank(searchValue),
+                                                                  User().Email,
+                                                                  searchValue
+                                                              ),
+                                                              top: 25
+                                                          }
+                                                      ).value
+                                                  )
                                                 OnChange: |-
                                                   =Patch(
                                                       colEditorValues,
@@ -1117,12 +1400,37 @@ Screens:
                                                           ValuePersonEmail: If(
                                                               IsEmpty(Self.SelectedItems),
                                                               "",
-                                                              First(Self.SelectedItems).Email
+                                                              Coalesce(
+                                                                  First(Self.SelectedItems).Mail,
+                                                                  First(Self.SelectedItems).UserPrincipalName
+                                                              )
                                                           ),
                                                           ValuePersonClaims: If(
                                                               IsEmpty(Self.SelectedItems),
                                                               "",
-                                                              First(Self.SelectedItems).Claims
+                                                              "i:0#.f|membership|" &
+                                                              Lower(
+                                                                  Coalesce(
+                                                                      First(Self.SelectedItems).Mail,
+                                                                      First(Self.SelectedItems).UserPrincipalName
+                                                                  )
+                                                              )
+                                                          ),
+                                                          ValuePersonDepartment: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              Coalesce(
+                                                                  First(Self.SelectedItems).Department,
+                                                                  ""
+                                                              )
+                                                          ),
+                                                          ValuePersonJobTitle: If(
+                                                              IsEmpty(Self.SelectedItems),
+                                                              "",
+                                                              Coalesce(
+                                                                  First(Self.SelectedItems).JobTitle,
+                                                                  ""
+                                                              )
                                                           ),
                                                           IsDirty: true,
                                                           IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
@@ -1135,7 +1443,7 @@ Screens:
                                                   );
                                                   Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
                                                   Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
-                                                SearchFields: =["DisplayName", "Email"]
+                                                SearchFields: =["DisplayName", "Mail", "UserPrincipalName"]
                                                 SelectMultiple: =ThisItem.AllowMultiple
                                                 Visible: =ThisItem.ControlType = "User"
                                                 Width: =Parent.TemplateWidth * 0.62

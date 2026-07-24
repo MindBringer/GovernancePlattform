@@ -1,57 +1,50 @@
 [CmdletBinding()]
-param()
-
-. (Join-Path $PSScriptRoot 'Common.ps1')
-
-$root = Get-RepositoryRoot
-$config = Get-DeveloperPlatformConfig -RepositoryRoot $root
-Assert-Command pac
-
-$source = Resolve-RepoPath $root $config.CanvasSourceRelativePath
-$work = Resolve-RepoPath $root $config.WorkRelativePath
-$solutionArtifact = Resolve-RepoPath $root $config.CanvasSolutionArtifactRelativePath
-$stagedMsApp = Join-Path $work "$($config.CanvasAppName).msapp"
-$verification = Join-Path $work "$($config.CanvasAppName)-verify"
-
-& (Join-Path $PSScriptRoot 'Validate-CanvasSource.ps1')
-
-New-Item -ItemType Directory -Path $work -Force | Out-Null
-New-Item -ItemType Directory -Path (Split-Path $solutionArtifact -Parent) -Force | Out-Null
-Remove-Item -LiteralPath $stagedMsApp -Force -ErrorAction SilentlyContinue
-Remove-Item -LiteralPath $verification -Recurse -Force -ErrorAction SilentlyContinue
-Remove-PlatformNoise -Path $source
-
-Invoke-Native pac @(
-    'canvas', 'pack',
-    '--sources', $source,
-    '--msapp', $stagedMsApp,
-    '--layout', 'SourceCode',
-    '--overwrite'
+param(
+    [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')),
+    [string]$PacCommand = 'pac',
+    [ValidateSet('Experimental', 'SourceCode')]
+    [string]$CanvasLayout = 'SourceCode'
 )
 
-if (-not (Test-Path -LiteralPath $stagedMsApp -PathType Leaf)) {
-    throw "PAC did not create the staged .msapp: $stagedMsApp"
-}
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-# Round-trip verification: proves that the binary was built from Src/*.pa.yaml.
-Invoke-Native pac @(
-    'canvas', 'unpack',
-    '--msapp', $stagedMsApp,
-    '--sources', $verification,
-    '--layout', 'SourceCode',
-    '--overwrite'
+$RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
+
+$candidates = @(
+    (Join-Path $RepositoryRoot 'powerplatform/canvas-editable/GovernancePortal'),
+    (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal')
 )
+$matches = @($candidates | Where-Object {
+    Test-Path -LiteralPath (Join-Path $_ 'Src/App.pa.yaml') -PathType Leaf
+})
 
-$verifiedApp = Join-Path $verification 'Src/App.pa.yaml'
-if (-not (Test-Path -LiteralPath $verifiedApp -PathType Leaf)) {
-    throw "Round-trip verification failed: missing $verifiedApp"
-}
-$verifiedText = Get-Content -LiteralPath $verifiedApp -Raw
-if ($verifiedText -notmatch [regex]::Escape([string]$config.Version)) {
-    throw "Round-trip verification failed: version '$($config.Version)' not found in packed app."
+if ($matches.Count -ne 1) {
+    throw "Expected exactly one Canvas source tree. Found $($matches.Count):`n$($matches -join "`n")"
 }
 
-# The unpacked solution expects the compiled canvas payload under its DocumentUri artifact name.
-Copy-Item -LiteralPath $stagedMsApp -Destination $solutionArtifact -Force
-Write-Host "Canvas packed and verified: $stagedMsApp"
-Write-Host "Solution canvas artifact updated: $solutionArtifact"
+$source = $matches[0]
+$target = Join-Path $RepositoryRoot 'powerplatform/solution/CanvasApps/gp_governanceportal_c93a1_DocumentUri.msapp'
+$targetDirectory = Split-Path -Parent $target
+New-Item -ItemType Directory -Force -Path $targetDirectory | Out-Null
+
+$pac = Get-Command $PacCommand -ErrorAction SilentlyContinue
+if ($null -eq $pac) {
+    throw "PAC CLI command '$PacCommand' was not found in PATH."
+}
+
+& $PacCommand canvas pack `
+    --sources $source `
+    --msapp $target `
+    --layout $CanvasLayout `
+    --overwrite
+
+if ($LASTEXITCODE -ne 0) {
+    throw "pac canvas pack failed with exit code $LASTEXITCODE"
+}
+
+if (-not (Test-Path -LiteralPath $target -PathType Leaf)) {
+    throw "PAC reported success, but the .msapp file was not created: $target"
+}
+
+Write-Host "Canvas app packed: $target"

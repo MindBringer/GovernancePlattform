@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.3.2");
+      =Set(gblAppVersion, "1.0.0-alpha.3.4.1");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -28,6 +28,9 @@ App:
 
       Set(gblEditorDirty, false);
       Set(gblEditorCanSave, false);
+      Set(gblSaveBusy, false);
+      Set(gblSaveError, "");
+      Set(gblSavedRecordId, 0);
 
       ClearCollect(
           colEditorValues,
@@ -54,6 +57,8 @@ App:
               ValueLookupText: "",
               ValuePersonEmail: "",
               ValuePersonClaims: "",
+              ValuePersonDepartment: "",
+              ValuePersonJobTitle: "",
               IsDirty: false,
               IsValid: true,
               ErrorMessage: ""
@@ -106,7 +111,7 @@ App:
           {
               LookupObjectTypeKey: "System",
               DataSourceKey: "Systems",
-              IsConfigured: false
+              IsConfigured: true
           }
       );
 
@@ -118,6 +123,23 @@ App:
           }
       );
       Clear(colLoadedLookupTargets);
+
+      ClearCollect(
+          colSavePayload,
+          {
+              FieldInternalName: "",
+              ControlType: "",
+              TextValue: "",
+              NumberValue: If(false, 0, Blank()),
+              BooleanValue: false,
+              DateValue: If(false, Today(), Blank()),
+              ChoiceKey: "",
+              LookupId: If(false, 0, Blank()),
+              PersonEmail: "",
+              PersonClaims: ""
+          }
+      );
+      Clear(colSavePayload);
 
       Set(gblDataError, false);
       Set(gblLastRefresh, Now());

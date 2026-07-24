@@ -1,42 +1,123 @@
 [CmdletBinding()]
-param()
+param(
+    [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+)
 
-. (Join-Path $PSScriptRoot 'Common.ps1')
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
 
-$root = Get-RepositoryRoot
-$config = Get-DeveloperPlatformConfig -RepositoryRoot $root
-$source = Resolve-RepoPath $root $config.CanvasSourceRelativePath
+$RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
 
-if (-not (Test-Path -LiteralPath $source -PathType Container)) {
-    throw "Canvas SourceCode directory not found: $source"
+function Resolve-CanvasSource {
+    param([Parameter(Mandatory)][string]$Root)
+
+    $candidates = @(
+        (Join-Path $Root 'powerplatform/canvas-editable/GovernancePortal'),
+        (Join-Path $Root 'powerplatform/canvas/GovernancePortal')
+    )
+
+    $matches = @($candidates | Where-Object {
+        Test-Path -LiteralPath (Join-Path $_ 'Src/App.pa.yaml') -PathType Leaf
+    })
+
+    if ($matches.Count -eq 0) {
+        throw "Canvas source not found. Checked:`n$($candidates -join "`n")"
+    }
+    if ($matches.Count -gt 1) {
+        throw "Multiple Canvas source trees found. Keep only one canonical source:`n$($matches -join "`n")"
+    }
+
+    return $matches[0]
 }
 
-$src = Join-Path $source 'Src'
-$app = Join-Path $src 'App.pa.yaml'
-if (-not (Test-Path -LiteralPath $app -PathType Leaf)) {
-    throw "Missing canonical source file: $app"
+$canvasSource = Resolve-CanvasSource -Root $RepositoryRoot
+$src = Join-Path $canvasSource 'Src'
+$appPath = Join-Path $src 'App.pa.yaml'
+$versionFile = Join-Path $RepositoryRoot 'powerplatform/VERSION'
+
+if (-not (Test-Path -LiteralPath $versionFile -PathType Leaf)) {
+    throw "Version file missing: $versionFile"
 }
 
-$fxFiles = @(Get-ChildItem -LiteralPath $source -Recurse -File -Filter '*.fx.yaml' -ErrorAction SilentlyContinue)
-if ($fxFiles.Count -gt 0) {
-    throw "Retired Experimental sources found. Remove all *.fx.yaml files:`n$($fxFiles.FullName -join "`n")"
+$configuredVersion = (Get-Content -LiteralPath $versionFile -Raw).Trim()
+if ($configuredVersion -notmatch '^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$') {
+    throw "Invalid Semantic Version in ${versionFile}: '$configuredVersion'"
 }
 
-$nestedOtherSources = Join-Path $source 'Other/Src'
-if (Test-Path -LiteralPath $nestedOtherSources) {
-    throw "Mixed source layouts detected: $nestedOtherSources. Recreate the baseline with SourceCode layout."
+$legacyFxFiles = @(
+    Get-ChildItem -LiteralPath $canvasSource -Recurse -File -Filter '*.fx.yaml' -ErrorAction SilentlyContinue
+)
+if ($legacyFxFiles.Count -gt 0) {
+    throw "Legacy *.fx.yaml files found:`n$($legacyFxFiles.FullName -join "`n")"
 }
 
-$paFiles = @(Get-ChildItem -LiteralPath $src -Recurse -File -Filter '*.pa.yaml')
+$paFiles = @(
+    Get-ChildItem -LiteralPath $src -Recurse -File -Filter '*.pa.yaml' -ErrorAction Stop
+)
 if ($paFiles.Count -lt 2) {
-    throw "Canvas source appears incomplete: expected App.pa.yaml and at least one screen/component file."
+    throw "Canvas source is incomplete. Expected App.pa.yaml and at least one additional *.pa.yaml file."
 }
 
-$versionPattern = [regex]::Escape([string]$config.Version)
-$appText = Get-Content -LiteralPath $app -Raw
-if ($appText -notmatch $versionPattern) {
-    throw "Configured version '$($config.Version)' is not present in Src/App.pa.yaml."
+foreach ($file in $paFiles) {
+    if ($file.Length -eq 0) {
+        throw "Empty Canvas source file: $($file.FullName)"
+    }
+
+    $text = Get-Content -LiteralPath $file.FullName -Raw
+
+    if ($text -match '(?m)^(<<<<<<<|=======|>>>>>>>)') {
+        throw "Unresolved Git merge markers in $($file.FullName)"
+    }
+
+    if ($text.Contains("`t")) {
+        throw "Tab character found in YAML source: $($file.FullName). Use spaces only."
+    }
 }
 
-Remove-PlatformNoise -Path $source
-Write-Host "Canvas SourceCode validation passed. Files=$($paFiles.Count); Version=$($config.Version)"
+$appText = Get-Content -LiteralPath $appPath -Raw
+$versionMatches = [regex]::Matches(
+    $appText,
+    'Set\s*\(\s*gblAppVersion\s*[,;]\s*"(?<version>[^"]+)"\s*\)\s*;?'
+)
+
+if ($versionMatches.Count -ne 1) {
+    throw "Expected exactly one Set(gblAppVersion, ...) expression in $appPath; found $($versionMatches.Count)."
+}
+
+$canvasVersion = $versionMatches[0].Groups['version'].Value
+if ($canvasVersion -ne $configuredVersion) {
+    throw "Version mismatch: powerplatform/VERSION='$configuredVersion'; App.pa.yaml='$canvasVersion'. Run Set-BuildVersion.ps1."
+}
+
+# Guard against accidentally checking in generated platform noise.
+$noiseNames = @(
+    '.DS_Store',
+    'Thumbs.db'
+)
+$noiseFiles = @(
+    Get-ChildItem -LiteralPath $canvasSource -Recurse -File -ErrorAction SilentlyContinue |
+    Where-Object { $noiseNames -contains $_.Name }
+)
+if ($noiseFiles.Count -gt 0) {
+    throw "Platform noise found in Canvas source:`n$($noiseFiles.FullName -join "`n")"
+}
+
+$solutionXmlPath = Join-Path $RepositoryRoot 'powerplatform/solution/Other/Solution.xml'
+if (-not (Test-Path -LiteralPath $solutionXmlPath -PathType Leaf)) {
+    throw "Solution manifest not found: $solutionXmlPath"
+}
+
+[xml]$solutionXml = Get-Content -LiteralPath $solutionXmlPath -Raw
+$solutionVersionNode = $solutionXml.SelectSingleNode('//ImportExportXml/SolutionManifest/Version')
+if ($null -eq $solutionVersionNode -or [string]::IsNullOrWhiteSpace($solutionVersionNode.InnerText)) {
+    throw "Solution version is missing in $solutionXmlPath"
+}
+if ($solutionVersionNode.InnerText -notmatch '^\d+\.\d+\.\d+\.\d+$') {
+    throw "Solution version '$($solutionVersionNode.InnerText)' is not numeric four-part format."
+}
+
+Write-Host "Canvas validation passed."
+Write-Host "  Source:   $canvasSource"
+Write-Host "  Files:    $($paFiles.Count)"
+Write-Host "  Canvas:   $canvasVersion"
+Write-Host "  Solution: $($solutionVersionNode.InnerText)"
