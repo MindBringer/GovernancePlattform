@@ -1,40 +1,15 @@
-# Governance Platform 6.2.5 – Architecture Notes
+# Dokumentationsübersicht
 
-## Single source of truth
+Dieser Ordner enthält die aktuell verbindliche Projektdokumentation. Historische Iterations- und Migrationsunterlagen befinden sich unter `docs/archive/` und sind nicht als aktuelle Arbeitsanweisung zu verwenden.
 
-The files in `architecture/` define both the physical SharePoint schema and the runtime behavior of the Canvas App, generic Power Automate flows and AI services.
-
-| File | Responsibility |
+| Dokument | Zweck |
 |---|---|
-| `platform.yaml` | object types, base classes, technical objects, navigation |
-| `fields.yaml` | reusable physical field definitions |
-| `object-fields.yaml` | object-specific fields and UI metadata |
-| `choices.yaml` | controlled vocabularies |
-| `status-models.yaml` | lifecycle state machines |
-| `relations.yaml` | graph relation types |
-| `forms.yaml` | dynamic form sections |
-| `views.yaml` | SharePoint and Canvas views |
-| `workflows.yaml` | generic workflow runtime configuration |
-| `ai.yaml` | governed prompts and AI skills |
-| `permissions.yaml` | application permission capabilities |
+| `Architecture.md` | Gesamtarchitektur, Verantwortungsgrenzen und Datenfluss |
+| `Roadmap.md` | abgeschlossene und geplante Entwicklungsstufen |
+| `Development-Prozeduren.md` | lokaler Workflow für Export, Build, Validierung und Git |
+| `CodingStandards.md` | Namens-, Layout- und Commit-Konventionen |
+| `GIT-BASELINE.md` | Abnahmekriterien der Provisioning-Baseline 6.2.5 |
+| `ALM/Developer-Platform-1.0.md` | technische Details der Developer Platform |
+| `Repository-Cleanup.md` | Bereinigungsentscheidungen und Archivregeln |
 
-## Runtime model
-
-A new object type should normally require only metadata changes. The intended runtime consists of generic screens:
-
-- ObjectListScreen
-- ObjectDetailsScreen
-- DynamicEditScreen
-- RelationScreen
-- ReviewScreen
-- SearchScreen
-
-The Canvas App reads `ObjectTypes`, `FieldDefinitions`, `FormDefinitions`, `ViewDefinitions`, `StatusModels`, `ChoiceValues`, `RelationTypes` and `PermissionDefinitions`.
-
-## Migration behavior
-
-Provisioning is additive. Type changes require explicit migration rules. Version 6 aligns existing controlled fields such as SystemType, Environment, RiskCategory, ControlType and ApprovalStatus with SharePoint Choice fields rather than weakening them to free text.
-
-## Operational boundary
-
-This package provisions and seeds the SharePoint/runtime foundation. It does not import a Canvas App package or Power Automate solution. Those consumers are deliberately decoupled and use the provisioned metadata.
+Das Architekturmodell selbst liegt in `../architecture/*.yaml`. Diese YAML-Dateien sind für technische Definitionen maßgeblich; Markdown erklärt das Modell und den Entwicklungsprozess.
