@@ -37,6 +37,10 @@ if (-not $SkipVersionSync) {
     Invoke-CheckedScript -ScriptName 'Set-BuildVersion.ps1' -Parameters $versionParameters
 }
 
+# Studio-Exporte können lokalisierte Datenquellennamen und Connector-Schemata
+# erneut in eine ältere Schreibweise zurückführen. Vor jeder Validierung wird
+# deshalb ausschließlich die bekannte Office-365-Personenreferenz normalisiert.
+Invoke-CheckedScript -ScriptName 'Fix-LocalizedCanvasReferences.ps1'
 Invoke-CheckedScript -ScriptName 'Validate-CanvasSource.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot }
 
 if (-not $SkipCanvasPack) {
