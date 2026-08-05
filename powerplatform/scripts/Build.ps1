@@ -37,6 +37,8 @@ if (-not $SkipVersionSync) {
     Invoke-CheckedScript -ScriptName 'Set-BuildVersion.ps1' -Parameters $versionParameters
 }
 
+Invoke-CheckedScript -ScriptName 'Validate-ObjectProviderRegistry.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot }
+
 # Studio-Exporte können lokalisierte Datenquellennamen und Connector-Schemata
 # erneut in eine ältere Schreibweise zurückführen. Vor jeder Validierung wird
 # deshalb ausschließlich die bekannte Office-365-Personenreferenz normalisiert.
