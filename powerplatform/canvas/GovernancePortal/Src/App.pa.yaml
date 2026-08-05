@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.3.6.0");
+      =Set(gblAppVersion, "1.0.0-alpha.4.0.0");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
