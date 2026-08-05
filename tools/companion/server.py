@@ -1,7 +1,9 @@
 #!/usr/bin/env python3
 from __future__ import annotations
 
+import argparse
 import json
+import os
 import subprocess
 from http.server import SimpleHTTPRequestHandler, ThreadingHTTPServer
 from pathlib import Path
@@ -9,6 +11,8 @@ from urllib.parse import urlparse
 
 ROOT = Path(__file__).resolve().parents[2]
 WEB = Path(__file__).resolve().parent
+DEFAULT_HOST = "127.0.0.1"
+DEFAULT_PORT = 8770
 
 ACTIONS: dict[str, list[str]] = {
     "status": ["git", "status", "--short", "--branch"],
@@ -67,8 +71,28 @@ class Handler(SimpleHTTPRequestHandler):
         self.wfile.write(payload)
 
 
+def parse_args() -> argparse.Namespace:
+    parser = argparse.ArgumentParser(description="Local Governance Companion")
+    parser.add_argument("--host", default=os.getenv("GOVERNANCE_COMPANION_HOST", DEFAULT_HOST))
+    parser.add_argument(
+        "--port",
+        type=int,
+        default=int(os.getenv("GOVERNANCE_COMPANION_PORT", str(DEFAULT_PORT))),
+    )
+    return parser.parse_args()
+
+
 if __name__ == "__main__":
-    address = ("127.0.0.1", 8765)
+    args = parse_args()
+    address = (args.host, args.port)
     print(f"Governance Companion: http://{address[0]}:{address[1]}")
     print(f"Repository: {ROOT}")
-    ThreadingHTTPServer(address, Handler).serve_forever()
+    try:
+        ThreadingHTTPServer(address, Handler).serve_forever()
+    except OSError as exc:
+        if exc.errno == 48:
+            raise SystemExit(
+                f"Port {address[1]} ist bereits belegt. Starte z. B. mit: "
+                f"./start-local.sh {address[1] + 1}"
+            ) from exc
+        raise
