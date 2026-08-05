@@ -94,39 +94,47 @@ if ($appContent.Contains($beginMarker)) {
 $shellContent = [System.IO.File]::ReadAllText($shellPath)
 $nextShell = $shellContent
 
-$oldDisplayMode = @"
-                                      =If(
-                                          IsBlank(gblSelectedObjectTypeKey),
-                                          DisplayMode.Disabled,
-                                          DisplayMode.Edit
-                                      )
-"@
-$newDisplayMode = @"
-                                      =If(
-                                          IsBlank(gblSelectedObjectTypeKey)
-                                              || IsBlank(gblActiveProvider)
-                                              || !Coalesce(gblActiveProvider.SupportsCreate, false),
-                                          DisplayMode.Disabled,
-                                          DisplayMode.Edit
-                                      )
-"@
-if ($nextShell.Contains($oldDisplayMode.TrimEnd())) {
-    $nextShell = $nextShell.Replace($oldDisplayMode.TrimEnd(), $newDisplayMode.TrimEnd())
+# Bind the global New command to the active provider capability. The regex is
+# intentionally whitespace-tolerant because Power Apps exports can vary line
+# indentation and newline style between Studio versions and operating systems.
+if (-not $nextShell.Contains('gblActiveProvider.SupportsCreate')) {
+    $displayModePattern = '(?ms)(?<indent>\s*)=If\(\s*IsBlank\(gblSelectedObjectTypeKey\),\s*DisplayMode\.Disabled,\s*DisplayMode\.Edit\s*\)'
+    $displayModeMatch = [regex]::Match($nextShell, $displayModePattern)
+    if (-not $displayModeMatch.Success) {
+        throw 'New-button DisplayMode formula not found in scrShell.pa.yaml.'
+    }
+    $indent = $displayModeMatch.Groups['indent'].Value
+    $replacement = @"
+${indent}=If(
+${indent}    IsBlank(gblSelectedObjectTypeKey)
+${indent}        || IsBlank(gblActiveProvider)
+${indent}        || !Coalesce(gblActiveProvider.SupportsCreate, false),
+${indent}    DisplayMode.Disabled,
+${indent}    DisplayMode.Edit
+${indent})
+"@.TrimEnd()
+    $nextShell = [regex]::Replace($nextShell, $displayModePattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $replacement }, 1)
 }
 
-$selectionAnchor = '                                      =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);' + "`n" +
-                   '                                      Set(gblObjectType, ThisItem.ObjectTypeKey);'
-$selectionReplacement = '                                      =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);' + "`n" +
-                        '                                      Set(gblObjectType, ThisItem.ObjectTypeKey);' + "`n" +
-                        '                                      Set(' + "`n" +
-                        '                                          gblActiveProvider,' + "`n" +
-                        '                                          LookUp(' + "`n" +
-                        '                                              colObjectProviderRegistry,' + "`n" +
-                        '                                              ObjectTypeKey = ThisItem.ObjectTypeKey' + "`n" +
-                        '                                          )' + "`n" +
-                        '                                      );'
-if ($nextShell.Contains($selectionAnchor) -and -not $nextShell.Contains('ObjectTypeKey = ThisItem.ObjectTypeKey' + "`n" + '                                          )')) {
-    $nextShell = $nextShell.Replace($selectionAnchor, $selectionReplacement)
+$selectionPattern = '(?ms)(?<indent>\s*)=Set\(gblSelectedObjectTypeKey, ThisItem\.ObjectTypeKey\);\s*Set\(gblObjectType, ThisItem\.ObjectTypeKey\);'
+if (-not $nextShell.Contains('ObjectTypeKey = ThisItem.ObjectTypeKey')) {
+    $selectionMatch = [regex]::Match($nextShell, $selectionPattern)
+    if (-not $selectionMatch.Success) {
+        throw 'Object-type selection formula not found in scrShell.pa.yaml.'
+    }
+    $indent = $selectionMatch.Groups['indent'].Value
+    $selectionReplacement = @"
+${indent}=Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
+${indent}Set(gblObjectType, ThisItem.ObjectTypeKey);
+${indent}Set(
+${indent}    gblActiveProvider,
+${indent}    LookUp(
+${indent}        colObjectProviderRegistry,
+${indent}        ObjectTypeKey = ThisItem.ObjectTypeKey
+${indent}    )
+${indent});
+"@.TrimEnd()
+    $nextShell = [regex]::Replace($nextShell, $selectionPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $selectionReplacement }, 1)
 }
 
 $requiredShellTokens = @(
