@@ -7,13 +7,13 @@ Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-alpha.3.4.1` | Stage 3.4.1 abgeschlossen; Stage 3.5 in Arbeit |
+| Canvas App | `1.0.0-alpha.3.6.0` | Stage 3.6 integriert; Person- und Choice-Provider im Test |
 
-Die beiden Versionsreihen sind bewusst getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-/Solution-Version.
+Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-/Solution-Version.
 
 ## Architektur in Kürze
 
-`architecture/*.yaml` ist die führende Quelle für das physische SharePoint-Schema und die Runtime-Metadaten. Das Provisioning kompiliert und validiert dieses Modell. Die Canvas-App verwendet die bereitgestellten Runtime-Listen für Navigation, Formulare, Felder, Choices, Lookups und Berechtigungen.
+`architecture/*.yaml` ist die führende Quelle für SharePoint-Schema und Runtime-Metadaten. Das Provisioning kompiliert und validiert dieses Modell. Die Canvas-App nutzt die bereitgestellten Runtime-Listen für Navigation, Formulare, Felder, Choices, Lookups und Berechtigungen.
 
 ```text
 architecture/*.yaml
@@ -34,28 +34,41 @@ architecture/*.yaml
 | `powerplatform/canvas/GovernancePortal/` | einziger gültiger Canvas-SourceTree |
 | `powerplatform/solution/` | entpackte Power-Platform-Solution |
 | `powerplatform/scripts/` | Build-, Pack- und Validierungsskripte |
-| `docs/` | aktuelle Architektur-, Entwicklungs- und Betriebsdokumentation |
+| `docs/development/` | aktuelle Entwicklungs- und Testdokumentation |
 | `docs/archive/` | historische, nicht mehr normative Dokumente |
 | `migration/` | aktive Migrationsregeln; ältere Regeln unter `migration/archive/` |
 | `tests/` | Pester- und Architekturtests |
-| `artifacts/`, `generated/`, `Logs/` | reproduzierbare beziehungsweise lokale Ausgaben |
+| `tools/companion/` | lokale, eingeschränkte Web-GUI für Git- und Testaktionen |
+| `artifacts/`, `generated/`, `Logs/` | lokale oder reproduzierbare Ausgaben |
 
 ## Voraussetzungen
 
+- Git
 - PowerShell 7
 - Power Platform CLI (`pac`)
 - PnP.PowerShell für Provisioning gegen SharePoint Online
+- Python 3 für den optionalen lokalen Companion
 - Berechtigungen für die Zielumgebung und die Governance-Portal-Site
 
-## Validierung und Build
+## Lokaler Testablauf
+
+Neue Änderungen werden in einem Remote-Branch bereitgestellt. Lokal wird nicht mehr per ZIP übernommen, sondern per Git aktualisiert:
+
+```bash
+git fetch origin
+git switch <branch>
+git pull --ff-only
+./start-local.sh
+```
+
+Im Companion stehen Status, Pull, Validierung und Build als feste Aktionen bereit. Der Server akzeptiert keine freien Shell-Kommandos.
+
+Ohne Companion:
 
 ```powershell
-# Architektur und Provisioning prüfen
 pwsh ./provisioning/Scripts/Test-PowerShellSyntax.ps1
 pwsh ./provisioning/Scripts/Test-Architecture.ps1
 pwsh ./provisioning/Scripts/Test-ArchitectureConsistency.ps1
-
-# Canvas SourceCode und Solution bauen
 pwsh ./powerplatform/scripts/Build.ps1
 ```
 
@@ -63,18 +76,16 @@ Build-Ausgaben entstehen unter `artifacts/` und gehören nicht in Git.
 
 ## Verbindliche Dokumente
 
-- [Architektur](docs/Architecture.md)
-- [Roadmap](docs/Roadmap.md)
-- [Entwicklungs- und Build-Prozeduren](docs/Development-Prozeduren.md)
-- [Coding Standards](docs/CodingStandards.md)
-- [Repository-Bereinigung und Archivregeln](docs/Repository-Cleanup.md)
+- [Canvas Stage 3.6](docs/development/Stage-3.6.md)
+- [Lokaler Git-/Test-Workflow](docs/development/Local-Companion-Workflow.md)
 - [Canvas-SourceCode-Migration](MIGRATION.md)
 - [Änderungshistorie](CHANGELOG.md)
 
 ## Arbeitsregeln
 
-1. Änderungen erfolgen in Feature-Branches und werden über Pull Requests nach `main` übernommen.
+1. Änderungen erfolgen in Feature- oder Fix-Branches und werden über Pull Requests nach `main` übernommen.
 2. Es gibt genau einen Canvas-SourceTree: `powerplatform/canvas/GovernancePortal`.
-3. Maker-Portal-Änderungen werden vor dem Merge exportiert, entpackt, validiert und gegen Git geprüft.
-4. Provisioning bleibt idempotent; produktive Bibliotheksinhalte dürfen durch Reset oder Migration nicht unbeabsichtigt gelöscht werden.
-5. Historische Pakete, Logs und Zwischenstände werden nicht im aktiven Quellbaum abgelegt.
+3. Maker-Portal-Änderungen werden exportiert, entpackt, validiert und gegen Git geprüft.
+4. Lokale Tests beginnen mit `git fetch` und `git pull --ff-only`; ZIP-basierte Quellcodeübernahmen entfallen.
+5. Provisioning bleibt idempotent; produktive Bibliotheksinhalte dürfen nicht unbeabsichtigt gelöscht werden.
+6. Historische Pakete, Logs und Zwischenstände werden nicht im aktiven Quellbaum abgelegt.
