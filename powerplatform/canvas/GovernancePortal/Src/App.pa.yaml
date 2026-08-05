@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.3.4.1");
+      =Set(gblAppVersion, "1.0.0-alpha.3.6.0");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -31,6 +31,7 @@ App:
       Set(gblSaveBusy, false);
       Set(gblSaveError, "");
       Set(gblSavedRecordId, 0);
+      Set(gblShowDiscardDialog, false);
 
       ClearCollect(
           colEditorValues,
@@ -65,6 +66,61 @@ App:
           }
       );
       Clear(colEditorValues);
+
+      /*
+          Stage 3.5.1: normalisierter Auswahlzustand für Lookup- und Personenfelder.
+          Die Collections unterstützen bestehende Einzelwerte und bereiten
+          Mehrfachauswahl vor, ohne die Stage-3.4-Save-Provider zu brechen.
+      */
+      ClearCollect(
+          colEditorLookupSelections,
+          {
+              EditorFieldKey: "",
+              LookupObjectTypeKey: "",
+              LookupId: If(false, 0, Blank()),
+              LookupKey: "",
+              DisplayText: "",
+              SecondaryText: ""
+          }
+      );
+      Clear(colEditorLookupSelections);
+
+      ClearCollect(
+          colEditorPersonSelections,
+          {
+              EditorFieldKey: "",
+              Id: "",
+              DisplayName: "",
+              GivenName: "",
+              Surname: "",
+              Mail: "",
+              UserPrincipalName: "",
+              Claims: "",
+              Department: "",
+              JobTitle: "",
+              City: "",
+              DisplayText: "",
+              SecondaryText: ""
+          }
+      );
+      Clear(colEditorPersonSelections);
+
+      /*
+          Stage 3.6: typisierter Choice-Provider pro Editorfeld.
+          Controls lesen nicht mehr direkt aus der globalen Choice-Metadatenmenge.
+      */
+      ClearCollect(
+          colEditorChoiceOptions,
+          {
+              EditorFieldKey: "",
+              ChoiceSetKey: "",
+              ChoiceKey: "",
+              DisplayNameDE: "",
+              SortOrder: 0,
+              IsDefault: false
+          }
+      );
+      Clear(colEditorChoiceOptions);
 
       ClearCollect(
           colChoiceValues,

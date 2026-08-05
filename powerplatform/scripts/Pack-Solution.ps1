@@ -21,11 +21,14 @@ if (-not (Test-Path -LiteralPath $versionFile -PathType Leaf)) {
 
 $version = (Get-Content -LiteralPath $versionFile -Raw).Trim()
 $safeVersion = $version -replace '[^0-9A-Za-z.-]', '-'
+$solutionXmlPath = Join-Path $solutionSource 'Other/Solution.xml'
+[xml]$solutionXml = Get-Content -LiteralPath $solutionXmlPath -Raw
+$solutionVersion = $solutionXml.SelectSingleNode('//ImportExportXml/SolutionManifest/Version').InnerText
 
 if ([string]::IsNullOrWhiteSpace($OutputPath)) {
     $artifactDirectory = Join-Path $RepositoryRoot 'artifacts/outbound'
     New-Item -ItemType Directory -Force -Path $artifactDirectory | Out-Null
-    $OutputPath = Join-Path $artifactDirectory "GovernancePortal_$safeVersion.zip"
+    $OutputPath = Join-Path $artifactDirectory "GovernancePortal_${solutionVersion}_${safeVersion}.zip"
 }
 else {
     $OutputPath = [System.IO.Path]::GetFullPath($OutputPath)

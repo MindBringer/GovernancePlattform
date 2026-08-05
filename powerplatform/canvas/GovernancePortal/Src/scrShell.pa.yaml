@@ -163,6 +163,9 @@ Screens:
                                       Set(gblPreviousPage, gblCurrentPage);
 
                                       Clear(colEditorValues);
+                                      Clear(colEditorLookupSelections);
+                                      Clear(colEditorPersonSelections);
+                                      Clear(colEditorChoiceOptions);
                                       ForAll(
                                           SortByColumns(
                                               Filter(
@@ -294,6 +297,39 @@ Screens:
                                       );
 
                                       /*
+                                          Stage 3.6: Choice Provider.
+                                          Die Gallery-Control-Instanzen erhalten eine feldbezogene,
+                                          stabile Optionsmenge mit eindeutigem EditorFieldKey.
+                                      */
+                                      Clear(colEditorChoiceOptions);
+                                      ForAll(
+                                          Filter(
+                                              colEditorValues,
+                                              ControlType = "Choice"
+                                                  && !IsBlank(ChoiceSetKey)
+                                          ) As choiceField,
+                                          Collect(
+                                              colEditorChoiceOptions,
+                                              AddColumns(
+                                                  ShowColumns(
+                                                      Filter(
+                                                          colChoiceValues As choiceValue,
+                                                          choiceValue.ChoiceSetKey = choiceField.ChoiceSetKey
+                                                              && choiceValue.IsActive = true
+                                                      ),
+                                                      ChoiceSetKey,
+                                                      ChoiceKey,
+                                                      DisplayNameDE,
+                                                      SortOrder,
+                                                      IsDefault
+                                                  ),
+                                                  EditorFieldKey,
+                                                  choiceField.EditorFieldKey
+                                              )
+                                          )
+                                      );
+
+                                      /*
                                           Stage 3.3: Lookup Registry + Cache + Provider.
 
                                           Power Fx kann Datenquellen nicht dynamisch anhand eines
@@ -400,7 +436,7 @@ Screens:
                                       );
 
                                       Set(gblEditorDirty, false);
-                                      Set(gblEditorCanSave, CountRows(colEditorValues) > 0);
+                                      Select(lblEditorRevalidate);
                                       Set(gblCurrentPage, "editor")
                                     Text: ="Neu"
                                     Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
@@ -749,13 +785,19 @@ Screens:
                                           Font: =Font.'Open Sans'
                                           Height: =34
                                           OnSelect: |-
-                                            =Clear(colEditorValues);
-                                            Set(gblEditorDirty, false);
-                                            Set(gblEditorCanSave, false);
-                                            Set(gblCurrentPage, gblPreviousPage);
-                                            Set(gblEditorMode, "");
-                                            Set(gblObjectType, "");
-                                            Set(gblSelectedRecordId, 0)
+                                            =If(
+                                                gblEditorDirty,
+                                                Set(gblShowDiscardDialog, true),
+                                                Clear(colEditorValues);
+                                                Clear(colEditorLookupSelections);
+                                                Clear(colEditorPersonSelections);
+                                                Set(gblEditorDirty, false);
+                                                Set(gblEditorCanSave, false);
+                                                Set(gblCurrentPage, gblPreviousPage);
+                                                Set(gblEditorMode, "");
+                                                Set(gblObjectType, "");
+                                                Set(gblSelectedRecordId, 0)
+                                            )
                                           Text: ="Abbrechen"
                                           Width: =100
                                           X: =Parent.Width - Self.Width - 16
@@ -999,8 +1041,12 @@ Screens:
                                                         NotificationType.Success
                                                     );
                                                     Clear(colEditorValues);
+                                                    Clear(colEditorLookupSelections);
+                                                    Clear(colEditorPersonSelections);
+                                                    Clear(colEditorChoiceOptions);
                                                     Set(gblEditorDirty, false);
                                                     Set(gblEditorCanSave, false);
+                                                    Set(gblShowDiscardDialog, false);
                                                     Set(gblCurrentPage, gblPreviousPage),
                                                     Notify(
                                                         Coalesce(gblSaveError, "Speichern fehlgeschlagen."),
@@ -1027,6 +1073,24 @@ Screens:
                                           Width: =220
                                           X: =lblEditorSave.X - Self.Width - 12
                                           Y: =12
+                                    - lblEditorRevalidate:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Height: =1
+                                          OnSelect: |-
+                                            =Set(
+                                                gblEditorDirty,
+                                                CountRows(Filter(colEditorValues, IsDirty = true)) > 0
+                                            );
+                                            Set(
+                                                gblEditorCanSave,
+                                                CountRows(colEditorValues) > 0
+                                                    && CountRows(Filter(colEditorValues, IsValid = false)) = 0
+                                                    && !gblSaveBusy
+                                            )
+                                          Text: =""
+                                          Visible: =false
+                                          Width: =1
                                     - galEditorFields:
                                         Control: Gallery@2.15.0
                                         Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -1100,11 +1164,9 @@ Screens:
                                                 Default: =ThisItem.ValueText
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 HintText: =ThisItem.DisplayNameDE
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
-                                                Mode: =TextMode.SingleLine
                                                 OnChange: |-
                                                   =Patch(
                                                       colEditorValues,
@@ -1120,8 +1182,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 Visible: =ThisItem.ControlType = "Text"
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1153,8 +1214,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 Visible: =ThisItem.ControlType in ["Note", "MultilineText"]
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1167,7 +1227,6 @@ Screens:
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
-                                                Height: =40
                                                 HintText: ="0"
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
@@ -1186,8 +1245,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 Visible: =ThisItem.ControlType = "Number"
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1199,7 +1257,6 @@ Screens:
                                                 DefaultDate: =ThisItem.ValueDate
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
                                                 OnChange: |-
@@ -1217,8 +1274,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 Visible: =ThisItem.ControlType in ["Date", "DateTime"]
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1243,8 +1299,7 @@ Screens:
                                                           ErrorMessage: ""
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, true);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 OnUncheck: |-
                                                   =Patch(
                                                       colEditorValues,
@@ -1256,8 +1311,7 @@ Screens:
                                                           ErrorMessage: ""
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, true);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 TrueFill: =gblTheme.ColorPrimary
                                                 TrueText: ="Ja"
                                                 Visible: =ThisItem.ControlType = "Boolean"
@@ -1273,14 +1327,12 @@ Screens:
                                                 Default: =ThisItem.ValueChoiceKey
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
                                                   =SortByColumns(
                                                       Filter(
-                                                          colChoiceValues As choiceValue,
-                                                          choiceValue.ChoiceSetKey = ThisItem.ChoiceSetKey
-                                                              && choiceValue.IsActive = true
+                                                          colEditorChoiceOptions As choiceOption,
+                                                          choiceOption.EditorFieldKey = ThisItem.EditorFieldKey
                                                       ),
                                                       "SortOrder",
                                                       SortOrder.Ascending
@@ -1302,8 +1354,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 SelectionFill: =gblTheme.ColorPrimary
                                                 Visible: =ThisItem.ControlType = "Choice"
                                                 Width: =Parent.TemplateWidth * 0.42
@@ -1315,12 +1366,34 @@ Screens:
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
+                                                DefaultSelectedItems: |-
+                                                  =If(
+                                                      ThisItem.AllowMultiple,
+                                                      Filter(
+                                                          colLookupValues As lookupValue,
+                                                          lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
+                                                              && lookupValue.LookupId in Filter(
+                                                                  colEditorLookupSelections,
+                                                                  EditorFieldKey = ThisItem.EditorFieldKey
+                                                              ).LookupId
+                                                      ),
+                                                      If(
+                                                          IsBlank(ThisItem.ValueLookupId),
+                                                          Filter(
+                                                              colLookupValues,
+                                                              false
+                                                          ),
+                                                          Filter(
+                                                              colLookupValues As lookupValue,
+                                                              lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
+                                                                  && lookupValue.LookupId = ThisItem.ValueLookupId
+                                                          )
+                                                      )
+                                                  )
                                                 DisplayFields: =["DisplayText"]
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 HoverFill: =gblTheme.ColorSelected
-                                                IsSearchable: =true
                                                 Items: |-
                                                   =Filter(
                                                       colLookupValues As lookupValue,
@@ -1328,7 +1401,25 @@ Screens:
                                                           && lookupValue.IsActiveValue = true
                                                   )
                                                 OnChange: |-
-                                                  =Patch(
+                                                  =RemoveIf(
+                                                      colEditorLookupSelections,
+                                                      EditorFieldKey = ThisItem.EditorFieldKey
+                                                  );
+                                                  ForAll(
+                                                      Self.SelectedItems As selectedLookup,
+                                                      Collect(
+                                                          colEditorLookupSelections,
+                                                          {
+                                                              EditorFieldKey: ThisItem.EditorFieldKey,
+                                                              LookupObjectTypeKey: ThisItem.LookupObjectTypeKey,
+                                                              LookupId: selectedLookup.LookupId,
+                                                              LookupKey: selectedLookup.LookupKey,
+                                                              DisplayText: selectedLookup.DisplayText,
+                                                              SecondaryText: selectedLookup.SecondaryText
+                                                          }
+                                                      )
+                                                  );
+                                                  Patch(
                                                       colEditorValues,
                                                       ThisItem,
                                                       {
@@ -1351,8 +1442,7 @@ Screens:
                                                           )
                                                       }
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
+                                                  Select(lblEditorRevalidate)
                                                 SearchFields: =["DisplayText", "SecondaryText"]
                                                 SelectMultiple: =ThisItem.AllowMultiple
                                                 Visible: =ThisItem.ControlType = "Lookup"
@@ -1365,85 +1455,148 @@ Screens:
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
-                                                DisplayFields: =["DisplayName", "Mail", "JobTitle"]
+                                                DefaultSelectedItems: |-
+                                                  =Filter(
+                                                      colEditorPersonSelections,
+                                                      EditorFieldKey = ThisItem.EditorFieldKey
+                                                  )
+                                                DisplayFields: =["DisplayText", "SecondaryText"]
                                                 DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 HoverFill: =gblTheme.ColorSelected
-                                                IsSearchable: =true
                                                 Items: |-
                                                   =With(
                                                       {
-                                                          searchValue: Trim(Self.SearchText)
+                                                          users:
+                                                              Office365Users.SearchUserV2(
+                                                                  {
+                                                                      searchTerm: Trim(Self.SearchText),
+                                                                      top: 50,
+                                                                      isSearchTermRequired: false
+                                                                  }
+                                                              ).value
                                                       },
-                                                      Office365Users.SearchUserV2(
-                                                          {
-                                                              searchTerm: If(
-                                                                  IsBlank(searchValue),
-                                                                  User().Email,
-                                                                  searchValue
-                                                              ),
-                                                              top: 25
-                                                          }
-                                                      ).value
-                                                  )
-                                                OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueText: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              First(Self.SelectedItems).DisplayName
+                                                      AddColumns(
+                                                          users,
+                                                          DisplayText,
+                                                          Coalesce(
+                                                              DisplayName,
+                                                              Mail,
+                                                              UserPrincipalName
                                                           ),
-                                                          ValuePersonEmail: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              Coalesce(
-                                                                  First(Self.SelectedItems).Mail,
-                                                                  First(Self.SelectedItems).UserPrincipalName
-                                                              )
-                                                          ),
-                                                          ValuePersonClaims: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              "i:0#.f|membership|" &
-                                                              Lower(
-                                                                  Coalesce(
-                                                                      First(Self.SelectedItems).Mail,
-                                                                      First(Self.SelectedItems).UserPrincipalName
-                                                                  )
-                                                              )
-                                                          ),
-                                                          ValuePersonDepartment: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              Coalesce(
-                                                                  First(Self.SelectedItems).Department,
-                                                                  ""
-                                                              )
-                                                          ),
-                                                          ValuePersonJobTitle: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              Coalesce(
-                                                                  First(Self.SelectedItems).JobTitle,
-                                                                  ""
-                                                              )
-                                                          ),
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
-                                                              "Pflichtfeld",
+                                                          SecondaryText,
+                                                          Coalesce(
+                                                              Mail,
+                                                              UserPrincipalName,
+                                                              JobTitle,
                                                               ""
                                                           )
-                                                      }
+                                                      )
+                                                  )
+                                                OnChange: |-
+                                                  =RemoveIf(
+                                                      colEditorPersonSelections,
+                                                      EditorFieldKey = ThisItem.EditorFieldKey
                                                   );
-                                                  Set(gblEditorDirty, CountRows(Filter(colEditorValues, IsDirty)) > 0);
-                                                  Set(gblEditorCanSave, CountRows(Filter(colEditorValues, !IsValid)) = 0)
-                                                SearchFields: =["DisplayName", "Mail", "UserPrincipalName"]
+                                                  ForAll(
+                                                      Self.SelectedItems As selectedPerson,
+                                                      With(
+                                                          {
+                                                              selectedMail:
+                                                                  Coalesce(
+                                                                      selectedPerson.Mail,
+                                                                      selectedPerson.UserPrincipalName
+                                                                  ),
+                                                              selectedDisplayName:
+                                                                  Coalesce(
+                                                                      selectedPerson.DisplayName,
+                                                                      selectedPerson.Mail,
+                                                                      selectedPerson.UserPrincipalName
+                                                                  )
+                                                          },
+                                                          Collect(
+                                                              colEditorPersonSelections,
+                                                              {
+                                                                  EditorFieldKey: ThisItem.EditorFieldKey,
+                                                                  Id: Coalesce(selectedPerson.Id, ""),
+                                                                  DisplayName: selectedDisplayName,
+                                                                  GivenName: Coalesce(selectedPerson.GivenName, ""),
+                                                                  Surname: Coalesce(selectedPerson.Surname, ""),
+                                                                  Mail: selectedMail,
+                                                                  UserPrincipalName:
+                                                                      Coalesce(
+                                                                          selectedPerson.UserPrincipalName,
+                                                                          selectedMail
+                                                                      ),
+                                                                  Claims:
+                                                                      If(
+                                                                          IsBlank(selectedMail),
+                                                                          "",
+                                                                          "i:0#.f|membership|" & Lower(selectedMail)
+                                                                      ),
+                                                                  Department: Coalesce(selectedPerson.Department, ""),
+                                                                  JobTitle: Coalesce(selectedPerson.JobTitle, ""),
+                                                                  City: Coalesce(selectedPerson.City, ""),
+                                                                  DisplayText: selectedDisplayName,
+                                                                  SecondaryText:
+                                                                      Coalesce(
+                                                                          selectedMail,
+                                                                          selectedPerson.JobTitle,
+                                                                          ""
+                                                                      )
+                                                              }
+                                                          )
+                                                      )
+                                                  );
+                                                  Patch(
+                                                      colEditorValues,
+                                                      ThisItem,
+                                                      With(
+                                                          {
+                                                              firstPerson:
+                                                                  First(
+                                                                      Filter(
+                                                                          colEditorPersonSelections,
+                                                                          EditorFieldKey = ThisItem.EditorFieldKey
+                                                                      )
+                                                                  )
+                                                          },
+                                                          {
+                                                              ValueText:
+                                                                  Coalesce(firstPerson.DisplayName, ""),
+                                                              ValuePersonEmail:
+                                                                  Coalesce(firstPerson.Mail, ""),
+                                                              ValuePersonClaims:
+                                                                  Coalesce(firstPerson.Claims, ""),
+                                                              ValuePersonDepartment:
+                                                                  Coalesce(firstPerson.Department, ""),
+                                                              ValuePersonJobTitle:
+                                                                  Coalesce(firstPerson.JobTitle, ""),
+                                                              IsDirty: true,
+                                                              IsValid:
+                                                                  !ThisItem.IsRequired
+                                                                      || CountRows(
+                                                                          Filter(
+                                                                              colEditorPersonSelections,
+                                                                              EditorFieldKey = ThisItem.EditorFieldKey
+                                                                          )
+                                                                      ) > 0,
+                                                              ErrorMessage:
+                                                                  If(
+                                                                      ThisItem.IsRequired
+                                                                          && CountRows(
+                                                                              Filter(
+                                                                                  colEditorPersonSelections,
+                                                                                  EditorFieldKey = ThisItem.EditorFieldKey
+                                                                              )
+                                                                          ) = 0,
+                                                                      "Pflichtfeld",
+                                                                      ""
+                                                                  )
+                                                          }
+                                                      )
+                                                  );
+                                                  Select(lblEditorRevalidate)
                                                 SelectMultiple: =ThisItem.AllowMultiple
                                                 Visible: =ThisItem.ControlType = "User"
                                                 Width: =Parent.TemplateWidth * 0.62
@@ -1456,7 +1609,6 @@ Screens:
                                                 BorderThickness: =1
                                                 Color: =gblTheme.ColorWarning
                                                 Font: =Font.'Open Sans'
-                                                Height: =40
                                                 PaddingLeft: =10
                                                 Text: |-
                                                   ="Noch nicht unterstützter Feldtyp: " & ThisItem.ControlType
@@ -1617,6 +1769,98 @@ Screens:
                           )
                         Width: =425
                         X: =366
+            - conDiscardOverlay:
+                Control: GroupContainer@1.5.0
+                Variant: ManualLayout
+                Properties:
+                  DropShadow: =DropShadow.None
+                  Fill: =RGBA(0, 0, 0, 0.28)
+                  Height: =Parent.Height
+                  RadiusBottomLeft: =0
+                  RadiusBottomRight: =0
+                  RadiusTopLeft: =0
+                  RadiusTopRight: =0
+                  Visible: =gblShowDiscardDialog
+                  Width: =Parent.Width
+                Children:
+                  - conDiscardDialog:
+                      Control: GroupContainer@1.5.0
+                      Variant: ManualLayout
+                      Properties:
+                        DropShadow: =DropShadow.Regular
+                        Fill: =gblTheme.ColorSurface
+                        Height: =190
+                        RadiusBottomLeft: =8
+                        RadiusBottomRight: =8
+                        RadiusTopLeft: =8
+                        RadiusTopRight: =8
+                        Width: =460
+                        X: =(Parent.Width - Self.Width) / 2
+                        Y: =(Parent.Height - Self.Height) / 2
+                      Children:
+                        - lblDiscardTitle:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =gblTheme.ColorText
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =42
+                              Size: =17
+                              Text: ="Ungespeicherte Änderungen"
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =18
+                        - lblDiscardMessage:
+                            Control: Label@2.5.1
+                            Properties:
+                              Color: =gblTheme.ColorTextMuted
+                              Font: =Font.'Open Sans'
+                              Height: =54
+                              Text: ="Die Änderungen wurden noch nicht gespeichert. Sollen sie verworfen werden?"
+                              Width: =Parent.Width - 48
+                              X: =24
+                              Y: =62
+                        - lblDiscardStay:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =gblTheme.ColorBorder
+                              BorderThickness: =1
+                              Color: =gblTheme.ColorPrimary
+                              Font: =Font.'Open Sans'
+                              Height: =36
+                              OnSelect: =Set(gblShowDiscardDialog, false)
+                              Text: ="Weiter bearbeiten"
+                              Width: =150
+                              X: =Parent.Width - 326
+                              Y: =132
+                        - lblDiscardConfirm:
+                            Control: Label@2.5.1
+                            Properties:
+                              Align: =Align.Center
+                              BorderColor: =gblTheme.ColorError
+                              BorderThickness: =1
+                              Color: =gblTheme.ColorTextInverse
+                              Fill: =gblTheme.ColorError
+                              Font: =Font.'Open Sans'
+                              FontWeight: =FontWeight.Semibold
+                              Height: =36
+                              OnSelect: |-
+                                =Clear(colEditorValues);
+                                Clear(colEditorLookupSelections);
+                                Clear(colEditorPersonSelections);
+                                Clear(colEditorChoiceOptions);
+                                Set(gblEditorDirty, false);
+                                Set(gblEditorCanSave, false);
+                                Set(gblShowDiscardDialog, false);
+                                Set(gblCurrentPage, gblPreviousPage);
+                                Set(gblEditorMode, "");
+                                Set(gblObjectType, "");
+                                Set(gblSelectedRecordId, 0)
+                              Text: ="Verwerfen"
+                              Width: =130
+                              X: =Parent.Width - 154
+                              Y: =132
             - conBusyOverlay:
                 Control: GroupContainer@1.5.0
                 Variant: ManualLayout
