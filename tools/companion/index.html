@@ -1,60 +1,27 @@
 <!doctype html>
 <html lang="de">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Governance Developer Companion</title>
   <style>
-    :root{font-family:Inter,system-ui,sans-serif;color:#172033;background:#eef2f7}*{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:28px auto;padding:0 20px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1e3a8a;font-size:.85rem;margin-right:6px}.dirty{background:#fef3c7;color:#92400e}.clean{background:#dcfce7;color:#166534}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}section{background:#fff;border:1px solid #d7deea;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(15,23,42,.05)}button{padding:11px 15px;margin:5px 5px 5px 0;border:1px solid #315ea8;border-radius:7px;background:#315ea8;color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#fff;color:#315ea8}button.warning{background:#fff7ed;color:#9a3412;border-color:#fdba74}button:disabled{opacity:.5;cursor:wait}pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;min-height:340px;overflow:auto}.hint{color:#58657a}.step{font-size:.92rem;color:#475569;margin:5px 0}h1{margin-bottom:6px}h2{margin-top:0}
+    :root{font-family:Inter,system-ui,sans-serif;color:#172033;background:#eef2f7}*{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:28px auto;padding:0 20px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1e3a8a;font-size:.85rem;margin-right:6px}.dirty{background:#fef3c7;color:#92400e}.clean{background:#dcfce7;color:#166534}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}section{background:#fff;border:1px solid #d7deea;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(15,23,42,.05)}button{padding:11px 15px;margin:5px 5px 5px 0;border:1px solid #315ea8;border-radius:7px;background:#315ea8;color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#fff;color:#315ea8}button.warning{background:#fff7ed;color:#9a3412;border-color:#fdba74}button.release{background:#991b1b;border-color:#991b1b}button:disabled{opacity:.5;cursor:wait}pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;min-height:340px;overflow:auto}.hint{color:#58657a}.step{font-size:.92rem;color:#475569;margin:5px 0}h1{margin-bottom:6px}h2{margin-top:0}
   </style>
 </head>
 <body><main>
-  <div class="top">
-    <div><h1>Governance Developer Companion</h1><p class="hint">Stage 3.7 · lokaler Git-, Audit-, Validierungs- und Build-Workflow.</p></div>
-    <div id="meta"><span class="badge">Lade Status …</span></div>
-  </div>
+  <div class="top"><div><h1>Governance Developer Companion</h1><p class="hint">Stage 3.7 · Git-, Audit-, Validierungs-, Build- und Release-Workflow.</p></div><div id="meta"><span class="badge">Lade Status …</span></div></div>
   <div class="grid">
-    <section>
-      <h2>1 · Repository</h2>
-      <button data-action="status">Status</button>
-      <button data-action="fetch" class="secondary">Fetch</button>
-      <button data-action="pull">Pull --ff-only</button>
-      <button data-action="audit" class="warning">Repository-Audit</button>
-      <p class="step">Pull wird nur bei sauberem Arbeitsverzeichnis ausgeführt.</p>
-    </section>
-    <section>
-      <h2>2 · Canvas</h2>
-      <button data-action="canvas-fix-check" class="secondary">Connector prüfen</button>
-      <button data-action="validate">Canvas validieren</button>
-      <p class="step">Prüft lokalisierte Office-365-Referenzen und den kanonischen SourceTree.</p>
-    </section>
-    <section>
-      <h2>3 · Build</h2>
-      <button data-action="build">Vollständigen Build starten</button>
-      <p class="step">Versionierung, Canvas-Pack, Referenzprüfung und Solution-Pack.</p>
-      <p class="step"><strong>Danach manuell:</strong> Solution in DEV importieren, veröffentlichen und Smoke-Test durchführen.</p>
-    </section>
+    <section><h2>1 · Repository</h2><button data-action="status">Status</button><button data-action="fetch" class="secondary">Fetch</button><button data-action="pull">Pull --ff-only</button><button data-action="audit" class="warning">Repository-Audit</button><p class="step">Pull wird nur bei sauberem Arbeitsverzeichnis ausgeführt.</p></section>
+    <section><h2>2 · Canvas</h2><button data-action="canvas-fix-check" class="secondary">Connector prüfen</button><button data-action="validate">Canvas validieren</button><p class="step">Prüft Office-365-Referenzen und den kanonischen SourceTree.</p></section>
+    <section><h2>3 · Build</h2><button data-action="build">Vollständigen Build starten</button><p class="step">Versionierung, Canvas-Pack, Referenzprüfung und Solution-Pack.</p></section>
+    <section><h2>4 · Vollständiger Release</h2><button id="release" class="release">Testen, committen, pushen und nach main mergen</button><p class="step">Benötigt GitHub CLI und <code>gh auth login</code>. Der Ablauf stoppt bei jedem Fehler.</p><p class="step"><strong>Power-Platform-Gate:</strong> Nur nach erfolgreichem DEV-Import und Smoke-Test verwenden.</p></section>
   </div>
   <section style="margin-top:16px"><h2>Ausgabe</h2><pre id="output">Bereit.</pre></section>
 </main>
 <script>
-const output=document.getElementById('output');
-const meta=document.getElementById('meta');
-async function loadInfo(){
-  try{const r=await fetch('/api/info',{cache:'no-store'});const i=await r.json();
-    meta.innerHTML=`<span class="badge">${i.branch||'kein Branch'}</span><span class="badge">Canvas ${i.version}</span><span class="badge ${i.dirty?'dirty':'clean'}">${i.dirty?'lokale Änderungen':'sauber'}</span>`;
-  }catch(e){meta.innerHTML='<span class="badge dirty">Status nicht verfügbar</span>';}
-}
-async function run(action){
-  document.querySelectorAll('button').forEach(b=>b.disabled=true);
-  output.textContent=`Starte ${action} …`;
-  try{
-    const response=await fetch(`/api/action/${action}`,{method:'POST'});
-    const data=await response.json();
-    output.textContent=`${data.ok?'OK':'FEHLER'} · Exit ${data.exitCode}\n${data.command||''}\n\n${data.output||''}`;
-  }catch(error){output.textContent=`FEHLER\n${error}`;}
-  finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);loadInfo();}
-}
+const output=document.getElementById('output'),meta=document.getElementById('meta');
+async function loadInfo(){try{const r=await fetch('/api/info',{cache:'no-store'}),i=await r.json();meta.innerHTML=`<span class="badge">${i.branch||'kein Branch'}</span><span class="badge">Canvas ${i.version}</span><span class="badge ${i.dirty?'dirty':'clean'}">${i.dirty?'lokale Änderungen':'sauber'}</span>`}catch(e){meta.innerHTML='<span class="badge dirty">Status nicht verfügbar</span>'}}
+async function run(action,body=null){document.querySelectorAll('button').forEach(b=>b.disabled=true);output.textContent=`Starte ${action} …`;try{const options={method:'POST',headers:{'Content-Type':'application/json'}};if(body)options.body=JSON.stringify(body);const response=await fetch(`/api/action/${action}`,options),data=await response.json();output.textContent=`${data.ok?'OK':'FEHLER'} · Exit ${data.exitCode}\n${data.command||''}\n\n${data.output||''}`}catch(error){output.textContent=`FEHLER\n${error}`}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);loadInfo()}}
 document.querySelectorAll('button[data-action]').forEach(b=>b.addEventListener('click',()=>run(b.dataset.action)));
+document.getElementById('release').addEventListener('click',()=>{const confirmation=prompt('Dieser Ablauf commitet, pusht, merged den PR und wechselt lokal auf main.\n\nZum Bestätigen exakt eingeben:\nRELEASE NACH MAIN');if(confirmation==='RELEASE NACH MAIN')run('release',{confirmation});else output.textContent='Release abgebrochen: Bestätigung stimmt nicht.'});
 loadInfo();
 </script></body></html>
