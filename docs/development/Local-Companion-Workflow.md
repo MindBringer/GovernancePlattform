@@ -2,24 +2,18 @@
 
 ## Ziel
 
-Entwicklungsstände werden nicht mehr als ZIP verteilt. Änderungen werden in GitHub-Branches bereitgestellt und lokal per Fast-Forward aktualisiert. Tests und Builds können über eine kleine lokale Weboberfläche gestartet werden.
+Entwicklungsstände werden nicht mehr als ZIP verteilt. Änderungen werden in GitHub-Branches bereitgestellt und lokal per Fast-Forward aktualisiert. Tests und Builds können über den Governance Developer Companion gestartet werden.
 
-## Erstmalige Einrichtung
+## Voraussetzungen
 
-```bash
-git clone https://github.com/MindBringer/GovernancePlattform.git
-cd GovernancePlattform
-chmod +x start-local.sh
-```
-
-Voraussetzungen: Git, Python 3, PowerShell 7 und Power Platform CLI.
+Git, Python 3, PowerShell 7 und Power Platform CLI.
 
 ## Branch testen
 
 ```bash
 git fetch origin
 git switch --track origin/<branch>
-./start-local.sh
+bash ./start-local.sh
 ```
 
 Bei bereits vorhandenem lokalen Branch:
@@ -27,45 +21,67 @@ Bei bereits vorhandenem lokalen Branch:
 ```bash
 git switch <branch>
 git pull --ff-only
-./start-local.sh
+bash ./start-local.sh
 ```
 
-Die Oberfläche ist standardmäßig unter `http://127.0.0.1:8770` erreichbar. Der Governance Companion verwendet bewusst einen anderen Standardport als andere lokale Companion-Anwendungen.
+`start-local.sh` wird bewusst über Bash gestartet. Ein vorheriges `chmod +x` ist nicht nötig und kann auf Systemen mit versioniertem Dateimodus eine lokale Änderung erzeugen, die den nächsten Pull blockiert.
 
-Ein abweichender Port kann beim Start übergeben werden:
+## Port und Browser
+
+Ohne Parameter sucht der Companion ab Port `8770` automatisch den nächsten freien Port und öffnet den Browser.
+
+Fester Port:
 
 ```bash
-./start-local.sh 8771
+bash ./start-local.sh 8780
 ```
 
-Alternativ über eine Umgebungsvariable:
+Ohne automatischen Browserstart:
 
 ```bash
-GOVERNANCE_COMPANION_PORT=8771 ./start-local.sh
+GOVERNANCE_COMPANION_NO_BROWSER=1 bash ./start-local.sh
 ```
 
 ## Aktionen
 
-- **Status:** aktueller Branch und lokale Änderungen
+- **Status:** Branch und lokale Änderungen
 - **Fetch:** Remote-Referenzen aktualisieren und gelöschte Referenzen entfernen
-- **Pull --ff-only:** nur bei sauberem Arbeitsverzeichnis; keine automatischen Merge-Commits
-- **Connector-Referenzen prüfen:** lokalisierte Office-365-Personenreferenzen prüfen
+- **Pull --ff-only:** nur bei sauberem Arbeitsverzeichnis
+- **Repository-Audit:** doppelte SourceTrees und versionierte Altlasten prüfen
+- **Connector prüfen:** lokalisierte Office-365-Personenreferenzen prüfen
 - **Canvas validieren:** SourceCode-Prüfung starten
-- **Vollständigen Build starten:** Version, Canvas-Pack, Referenzprüfung und Solution-Pack
+- **Vollständigen Build starten:** Versionierung, Canvas-Pack, Referenzprüfung und Solution-Pack
+
+## Lokale Änderung vor dem ersten Pull beseitigen
+
+Falls `start-local.sh` ausschließlich durch `chmod +x` verändert wurde:
+
+```bash
+git restore start-local.sh
+git pull --ff-only
+bash ./start-local.sh
+```
+
+Vor `git restore` kann die Änderung geprüft werden:
+
+```bash
+git diff --summary -- start-local.sh
+git diff -- start-local.sh
+```
 
 ## Sicherheitsgrenzen
 
-Der Companion bindet ausschließlich an `127.0.0.1`. Die API akzeptiert nur fest codierte Aktionen und keine freien Shell-Kommandos. `pull` wird bei lokalen Änderungen abgebrochen. Commit, Push, PR und Merge bleiben in der ersten Ausbaustufe bewusst manuelle Schritte.
+Der Companion bindet ausschließlich an `127.0.0.1`. Die API akzeptiert nur fest definierte Aktionen und keine freien Shell-Kommandos. Pull wird bei lokalen Änderungen abgebrochen. Repository-Audit, Commit, Push, PR, Merge und Power-Platform-Import verändern nicht ungefragt produktive Systeme; Audit ist rein lesend.
 
-## Empfohlener Freigabeablauf
+## Freigabeablauf
 
-1. Branch per Git aktualisieren.
-2. Status prüfen.
-3. Connector-Referenzen und Canvas validieren.
-4. Vollständigen Build ausführen.
+1. Branch aktualisieren.
+2. Repository-Audit ausführen.
+3. Connectorprüfung und Canvas-Validierung ausführen.
+4. vollständigen Build ausführen.
 5. Solution in DEV importieren und veröffentlichen.
 6. Smoke-Test gemäß Iterationsdokument durchführen.
 7. Testergebnis im Pull Request dokumentieren.
 8. Erst danach nach `main` mergen.
 
-Eine spätere Ausbaustufe kann analog zum Cashflow-Portfolio PR-Erstellung, Check-Überwachung und kontrolliertes Release ergänzen. Für Power-Platform-Artefakte bleibt der Import- und Studio-Smoke-Test jedoch ein verpflichtendes manuelles Gate.
+Die fachliche Spezifikation der Zwischenstufe steht unter [Stage 3.7 – Developer Companion](Stage-3.7-Developer-Companion.md).
