@@ -90,7 +90,6 @@ def pac_export() -> int:
         "pac", "solution", "export",
         "--name", settings["solutionUniqueName"],
         "--path", str(target),
-        "--managed", "false",
         "--overwrite",
         "--environment", settings["environmentUrl"],
     ]
@@ -112,8 +111,9 @@ def pac_unpack() -> int:
         "--zipfile", str(source),
         "--folder", str(SOLUTION_DIR),
         "--packagetype", "Unmanaged",
-        "--allowDelete", "true",
-        "--allowWrite", "true",
+        "--allowDelete",
+        "--allowWrite",
+        "--clobber",
     ]
     return run(command, 3600)
 
@@ -129,6 +129,7 @@ def canvas_sync() -> int:
         "--msapp", str(msapp),
         "--sources", str(CANVAS_DIR),
         "--layout", "SourceCode",
+        "--overwrite",
     ]
     code = run(command, 3600)
     if code == 0:
@@ -141,9 +142,10 @@ def canvas_sync() -> int:
 
 
 def git_diff() -> int:
-    return run(["git", "status", "--short", "--branch"], 60) or run(
-        ["git", "diff", "--stat"], 60
-    )
+    status_code = run(["git", "status", "--short", "--branch"], 60)
+    if status_code != 0:
+        return status_code
+    return run(["git", "diff", "--stat"], 60)
 
 
 def pac_import() -> int:
@@ -160,8 +162,13 @@ def pac_import() -> int:
         "--environment", settings["environmentUrl"],
         "--publish-changes",
         "--force-overwrite",
-        "--skip-dependency-check", "false",
     ]
+    settings_file = settings.get("deploymentSettingsFile", "").strip()
+    if settings_file:
+        resolved = ROOT / settings_file
+        if not resolved.exists():
+            raise RuntimeError(f"Deployment-Settings-Datei fehlt: {settings_file}")
+        command.extend(["--settings-file", str(resolved)])
     return run(command, 3600)
 
 
