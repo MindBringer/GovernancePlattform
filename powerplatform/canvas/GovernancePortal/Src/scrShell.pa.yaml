@@ -1468,7 +1468,7 @@ Screens:
                                                   =With(
                                                       {
                                                           users:
-                                                              Office365Users.SearchUserV2(
+                                                              'Office365-Benutzer'.SearchUserV2(
                                                                   {
                                                                       searchTerm: Trim(Self.SearchText),
                                                                       top: 50,
@@ -1480,15 +1480,15 @@ Screens:
                                                           users,
                                                           DisplayText,
                                                           Coalesce(
-                                                              DisplayName,
-                                                              Mail,
-                                                              UserPrincipalName
+                                                              displayName,
+                                                              mail,
+                                                              userPrincipalName
                                                           ),
                                                           SecondaryText,
                                                           Coalesce(
-                                                              Mail,
-                                                              UserPrincipalName,
-                                                              JobTitle,
+                                                              mail,
+                                                              userPrincipalName,
+                                                              jobTitle,
                                                               ""
                                                           )
                                                       )
@@ -1504,28 +1504,28 @@ Screens:
                                                           {
                                                               selectedMail:
                                                                   Coalesce(
-                                                                      selectedPerson.Mail,
-                                                                      selectedPerson.UserPrincipalName
+                                                                      selectedPerson.mail,
+                                                                      selectedPerson.userPrincipalName
                                                                   ),
                                                               selectedDisplayName:
                                                                   Coalesce(
-                                                                      selectedPerson.DisplayName,
-                                                                      selectedPerson.Mail,
-                                                                      selectedPerson.UserPrincipalName
+                                                                      selectedPerson.displayName,
+                                                                      selectedPerson.mail,
+                                                                      selectedPerson.userPrincipalName
                                                                   )
                                                           },
                                                           Collect(
                                                               colEditorPersonSelections,
                                                               {
                                                                   EditorFieldKey: ThisItem.EditorFieldKey,
-                                                                  Id: Coalesce(selectedPerson.Id, ""),
+                                                                  Id: Coalesce(selectedPerson.id, ""),
                                                                   DisplayName: selectedDisplayName,
-                                                                  GivenName: Coalesce(selectedPerson.GivenName, ""),
-                                                                  Surname: Coalesce(selectedPerson.Surname, ""),
+                                                                  GivenName: Coalesce(selectedPerson.givenName, ""),
+                                                                  Surname: Coalesce(selectedPerson.surname, ""),
                                                                   Mail: selectedMail,
                                                                   UserPrincipalName:
                                                                       Coalesce(
-                                                                          selectedPerson.UserPrincipalName,
+                                                                          selectedPerson.userPrincipalName,
                                                                           selectedMail
                                                                       ),
                                                                   Claims:
@@ -1534,14 +1534,14 @@ Screens:
                                                                           "",
                                                                           "i:0#.f|membership|" & Lower(selectedMail)
                                                                       ),
-                                                                  Department: Coalesce(selectedPerson.Department, ""),
-                                                                  JobTitle: Coalesce(selectedPerson.JobTitle, ""),
-                                                                  City: Coalesce(selectedPerson.City, ""),
+                                                                  Department: Coalesce(selectedPerson.department, ""),
+                                                                  JobTitle: Coalesce(selectedPerson.jobTitle, ""),
+                                                                  City: Coalesce(selectedPerson.city, ""),
                                                                   DisplayText: selectedDisplayName,
                                                                   SecondaryText:
                                                                       Coalesce(
                                                                           selectedMail,
-                                                                          selectedPerson.JobTitle,
+                                                                          selectedPerson.jobTitle,
                                                                           ""
                                                                       )
                                                               }
