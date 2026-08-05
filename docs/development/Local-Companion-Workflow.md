@@ -30,7 +30,19 @@ git pull --ff-only
 ./start-local.sh
 ```
 
-Die Oberfläche ist unter `http://127.0.0.1:8765` erreichbar.
+Die Oberfläche ist standardmäßig unter `http://127.0.0.1:8770` erreichbar. Der Governance Companion verwendet bewusst einen anderen Standardport als andere lokale Companion-Anwendungen.
+
+Ein abweichender Port kann beim Start übergeben werden:
+
+```bash
+./start-local.sh 8771
+```
+
+Alternativ über eine Umgebungsvariable:
+
+```bash
+GOVERNANCE_COMPANION_PORT=8771 ./start-local.sh
+```
 
 ## Aktionen
 
