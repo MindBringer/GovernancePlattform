@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <title>Governance Portal Companion</title>
+  <style>
+    body{font-family:system-ui,sans-serif;margin:0;background:#f5f7fa;color:#172033}main{max-width:1000px;margin:32px auto;padding:0 20px}section{background:#fff;border:1px solid #d9e0ea;border-radius:10px;padding:20px;margin-bottom:18px}button{padding:11px 16px;margin:5px;border:1px solid #315ea8;border-radius:7px;background:#315ea8;color:#fff;font-weight:600;cursor:pointer}button.secondary{background:#fff;color:#315ea8}button:disabled{opacity:.55;cursor:wait}pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;min-height:260px;overflow:auto}.hint{color:#58657a;font-size:.95rem}
+  </style>
+</head>
+<body><main>
+  <h1>Governance Portal Companion</h1>
+  <p class="hint">Lokale, eingeschränkte Oberfläche. Es werden nur fest definierte Git-, Prüf- und Build-Aktionen ausgeführt.</p>
+  <section>
+    <h2>Repository</h2>
+    <button data-action="status">Status</button>
+    <button data-action="fetch" class="secondary">Fetch</button>
+    <button data-action="pull">Pull --ff-only</button>
+  </section>
+  <section>
+    <h2>Canvas und Build</h2>
+    <button data-action="canvas-fix-check" class="secondary">Connector-Referenzen prüfen</button>
+    <button data-action="validate">Canvas validieren</button>
+    <button data-action="build">Vollständigen Build starten</button>
+  </section>
+  <section><h2>Ausgabe</h2><pre id="output">Bereit.</pre></section>
+</main>
+<script>
+const output=document.getElementById('output');
+document.querySelectorAll('button[data-action]').forEach(button=>button.addEventListener('click',async()=>{
+  const action=button.dataset.action;
+  document.querySelectorAll('button').forEach(b=>b.disabled=true);
+  output.textContent=`Starte ${action} …`;
+  try{
+    const response=await fetch(`/api/action/${action}`,{method:'POST'});
+    const data=await response.json();
+    output.textContent=`${data.ok?'OK':'FEHLER'} · Exit ${data.exitCode}\n${data.command||''}\n\n${data.output||''}`;
+  }catch(error){output.textContent=`FEHLER\n${error}`;}
+  finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);}
+}));
+</script></body></html>
