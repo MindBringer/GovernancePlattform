@@ -1,0 +1,14 @@
+{
+  "schemaVersion": 1,
+  "providers": [
+    {"objectTypeKey":"Asset","dataSource":"Assets","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":true,"supportsSave":true},
+    {"objectTypeKey":"System","dataSource":"Systems","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":true,"supportsSave":true},
+    {"objectTypeKey":"Contact","dataSource":"Contacts","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Incident","dataSource":"Incidents","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Problem","dataSource":"Problems","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Change","dataSource":"Changes","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Risk","dataSource":"Risks","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Control","dataSource":"Controls","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false},
+    {"objectTypeKey":"Measure","dataSource":"Measures","titleField":"Title","governanceIdField":"GovernanceID","activeField":"IsActive","supportsList":true,"supportsCreate":true,"supportsEdit":false,"supportsSave":false}
+  ]
+}
