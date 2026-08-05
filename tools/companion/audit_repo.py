@@ -24,6 +24,11 @@ FORBIDDEN_TRACKED_PREFIXES = (
     ".venv/",
 )
 
+ALLOWED_PLACEHOLDERS = {
+    "generated/.gitkeep",
+    "Logs/.gitkeep",
+}
+
 FORBIDDEN_PATTERNS = (
     re.compile(r"(^|/)canvas-editable(/|$)"),
     re.compile(r"(^|/)Other/Src(/|$)"),
@@ -53,7 +58,7 @@ def main() -> int:
 
     tracked = [line for line in git("ls-files").splitlines() if line]
     for path in tracked:
-        if path.startswith(FORBIDDEN_TRACKED_PREFIXES):
+        if path.startswith(FORBIDDEN_TRACKED_PREFIXES) and path not in ALLOWED_PLACEHOLDERS:
             findings.append(f"Lokales/erzeugtes Artefakt ist versioniert: {path}")
         if any(pattern.search(path) for pattern in FORBIDDEN_PATTERNS):
             findings.append(f"Veralteter oder lokaler Pfad ist versioniert: {path}")
