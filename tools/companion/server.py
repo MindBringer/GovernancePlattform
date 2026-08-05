@@ -4,6 +4,7 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import shutil
 import socket
 import subprocess
 import threading
@@ -17,6 +18,7 @@ WEB = Path(__file__).resolve().parent
 DEFAULT_HOST = "127.0.0.1"
 DEFAULT_PORT = 8770
 MAX_PORT_TRIES = 20
+RELEASE_CONFIRMATION = "RELEASE NACH MAIN"
 
 ACTIONS: dict[str, list[str]] = {
     "status": ["git", "status", "--short", "--branch"],
@@ -29,66 +31,104 @@ ACTIONS: dict[str, list[str]] = {
 }
 
 
-def run_process(command: list[str]) -> subprocess.CompletedProcess[str]:
-    return subprocess.run(
-        command,
-        cwd=ROOT,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-        timeout=3600,
-    )
+def run_process(command: list[str], timeout: int = 3600) -> subprocess.CompletedProcess[str]:
+    return subprocess.run(command, cwd=ROOT, text=True, stdout=subprocess.PIPE,
+                          stderr=subprocess.STDOUT, check=False, timeout=timeout)
+
+
+def checked(command: list[str], log: list[str], timeout: int = 3600) -> None:
+    log.append(f"\n$ {' '.join(command)}")
+    result = run_process(command, timeout)
+    if result.stdout:
+        log.append(result.stdout.rstrip())
+    if result.returncode != 0:
+        raise RuntimeError(f"Schritt fehlgeschlagen (Exit {result.returncode}): {' '.join(command)}")
+
+
+def run_release(payload: dict[str, object]) -> dict[str, object]:
+    log: list[str] = []
+    try:
+        if payload.get("confirmation") != RELEASE_CONFIRMATION:
+            raise RuntimeError(f"Bestätigung fehlt. Erwartet: {RELEASE_CONFIRMATION}")
+        if shutil.which("gh") is None:
+            raise RuntimeError("GitHub CLI fehlt. Installation und 'gh auth login' erforderlich.")
+        checked(["gh", "auth", "status"], log, 60)
+
+        branch = run_process(["git", "branch", "--show-current"], 30).stdout.strip()
+        if not branch or branch == "main":
+            raise RuntimeError("Release ist nur aus einem Feature-/Fix-Branch zulässig.")
+
+        checked(["python3", "./tools/companion/audit_repo.py"], log)
+        checked(["pwsh", "./powerplatform/scripts/Fix-LocalizedCanvasReferences.ps1", "-CheckOnly"], log)
+        checked(["pwsh", "./powerplatform/scripts/Validate-CanvasSource.ps1"], log)
+        checked(["pwsh", "./powerplatform/scripts/Build.ps1"], log)
+
+        status = run_process(["git", "status", "--porcelain"], 30).stdout.strip()
+        if status:
+            version_file = ROOT / "powerplatform" / "VERSION"
+            version = version_file.read_text(encoding="utf-8").strip() if version_file.exists() else "unbekannt"
+            checked(["git", "add", "-A"], log)
+            checked(["git", "commit", "-m", f"chore(release): finalize canvas {version}"], log)
+
+        checked(["git", "fetch", "--prune", "origin"], log)
+        checked(["git", "rebase", "origin/main"], log)
+        checked(["python3", "./tools/companion/audit_repo.py"], log)
+        checked(["pwsh", "./powerplatform/scripts/Validate-CanvasSource.ps1"], log)
+        checked(["git", "push", "--force-with-lease", "-u", "origin", branch], log)
+
+        pr_view = run_process(["gh", "pr", "view", "--json", "number", "--jq", ".number"], 60)
+        if pr_view.returncode != 0 or not pr_view.stdout.strip():
+            checked(["gh", "pr", "create", "--base", "main", "--head", branch,
+                     "--title", f"Release {branch}",
+                     "--body", "Automatisch durch den Governance Developer Companion erstellt."], log, 120)
+
+        checks = run_process(["gh", "pr", "checks", "--watch", "--fail-fast"], 1800)
+        log.append("\n$ gh pr checks --watch --fail-fast")
+        if checks.stdout:
+            log.append(checks.stdout.rstrip())
+        if checks.returncode not in (0, 1):
+            raise RuntimeError("PR-Checks konnten nicht zuverlässig ausgewertet werden.")
+        if checks.returncode == 1 and "no checks reported" not in checks.stdout.lower():
+            raise RuntimeError("Mindestens ein PR-Check ist fehlgeschlagen.")
+
+        checked(["gh", "pr", "merge", "--squash", "--delete-branch"], log, 300)
+        checked(["git", "switch", "main"], log)
+        checked(["git", "pull", "--ff-only", "origin", "main"], log)
+        return {"ok": True, "exitCode": 0, "command": "Full release", "output": "\n".join(log)}
+    except (RuntimeError, subprocess.TimeoutExpired) as exc:
+        log.append(f"\nABBRUCH: {exc}")
+        return {"ok": False, "exitCode": 1, "command": "Full release", "output": "\n".join(log)}
 
 
 def run_action(name: str) -> dict[str, object]:
     command = ACTIONS.get(name)
     if command is None:
         return {"ok": False, "exitCode": 404, "output": "Unbekannte Aktion."}
-
-    if name == "pull":
-        dirty = run_process(["git", "status", "--porcelain"])
-        if dirty.stdout.strip():
-            return {
-                "ok": False,
-                "exitCode": 409,
-                "command": "git pull --ff-only",
-                "output": "Pull abgebrochen: Arbeitsverzeichnis enthält lokale Änderungen.\n" + dirty.stdout,
-            }
-
+    if name == "pull" and run_process(["git", "status", "--porcelain"], 30).stdout.strip():
+        return {"ok": False, "exitCode": 409, "command": "git pull --ff-only",
+                "output": "Pull abgebrochen: Arbeitsverzeichnis enthält lokale Änderungen."}
     try:
         result = run_process(command)
     except subprocess.TimeoutExpired:
-        return {
-            "ok": False,
-            "exitCode": 408,
-            "command": " ".join(command),
-            "output": "Aktion nach 60 Minuten abgebrochen.",
-        }
-
-    return {
-        "ok": result.returncode == 0,
-        "exitCode": result.returncode,
-        "command": " ".join(command),
-        "output": result.stdout,
-    }
+        return {"ok": False, "exitCode": 408, "command": " ".join(command),
+                "output": "Aktion nach 60 Minuten abgebrochen."}
+    return {"ok": result.returncode == 0, "exitCode": result.returncode,
+            "command": " ".join(command), "output": result.stdout}
 
 
 def repository_info() -> dict[str, object]:
-    branch = run_process(["git", "branch", "--show-current"]).stdout.strip()
+    branch = run_process(["git", "branch", "--show-current"], 30).stdout.strip()
     version_file = ROOT / "powerplatform" / "VERSION"
     version = version_file.read_text(encoding="utf-8").strip() if version_file.exists() else "unbekannt"
-    dirty = bool(run_process(["git", "status", "--porcelain"]).stdout.strip())
+    dirty = bool(run_process(["git", "status", "--porcelain"], 30).stdout.strip())
     return {"branch": branch, "version": version, "dirty": dirty, "root": str(ROOT)}
 
 
 class Handler(SimpleHTTPRequestHandler):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, directory=str(WEB), **kwargs)
-
     def log_message(self, format: str, *args: object) -> None:
         return
-
     def send_json(self, payload: dict[str, object], status: int = 200) -> None:
         data = json.dumps(payload, ensure_ascii=False).encode("utf-8")
         self.send_response(status)
@@ -97,19 +137,24 @@ class Handler(SimpleHTTPRequestHandler):
         self.send_header("Cache-Control", "no-store")
         self.end_headers()
         self.wfile.write(data)
-
-    def do_GET(self) -> None:  # noqa: N802
+    def do_GET(self) -> None:
         if urlparse(self.path).path == "/api/info":
             self.send_json(repository_info())
             return
         super().do_GET()
-
-    def do_POST(self) -> None:  # noqa: N802
+    def do_POST(self) -> None:
         parsed = urlparse(self.path)
         if not parsed.path.startswith("/api/action/"):
-            self.send_error(404)
-            return
+            self.send_error(404); return
         action = parsed.path.rsplit("/", 1)[-1]
+        if action == "release":
+            length = int(self.headers.get("Content-Length", "0"))
+            body = self.rfile.read(length) if length else b"{}"
+            try:
+                payload = json.loads(body.decode("utf-8"))
+            except json.JSONDecodeError:
+                payload = {}
+            self.send_json(run_release(payload)); return
         self.send_json(run_action(action))
 
 
@@ -124,39 +169,27 @@ def parse_args() -> argparse.Namespace:
 def port_available(host: str, port: int) -> bool:
     with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as sock:
         sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-        try:
-            sock.bind((host, port))
-        except OSError:
-            return False
+        try: sock.bind((host, port))
+        except OSError: return False
     return True
 
 
 def choose_port(host: str, requested: int | None) -> int:
     if requested is not None:
-        if not port_available(host, requested):
-            raise SystemExit(f"Port {requested} ist bereits belegt.")
+        if not port_available(host, requested): raise SystemExit(f"Port {requested} ist bereits belegt.")
         return requested
-
     start = int(os.getenv("GOVERNANCE_COMPANION_PORT", str(DEFAULT_PORT)))
     for port in range(start, start + MAX_PORT_TRIES):
-        if port_available(host, port):
-            return port
+        if port_available(host, port): return port
     raise SystemExit(f"Kein freier Port im Bereich {start}-{start + MAX_PORT_TRIES - 1} gefunden.")
 
 
 if __name__ == "__main__":
-    args = parse_args()
-    port = choose_port(args.host, args.port)
-    address = (args.host, port)
-    url = f"http://{address[0]}:{address[1]}"
-    print(f"Governance Developer Companion: {url}")
-    print(f"Repository: {ROOT}")
+    args = parse_args(); port = choose_port(args.host, args.port)
+    address = (args.host, port); url = f"http://{address[0]}:{address[1]}"
+    print(f"Governance Developer Companion: {url}"); print(f"Repository: {ROOT}")
     server = ThreadingHTTPServer(address, Handler)
-    if not args.no_browser:
-        threading.Timer(0.5, lambda: webbrowser.open(url)).start()
-    try:
-        server.serve_forever()
-    except KeyboardInterrupt:
-        print("\nCompanion beendet.")
-    finally:
-        server.server_close()
+    if not args.no_browser: threading.Timer(0.5, lambda: webbrowser.open(url)).start()
+    try: server.serve_forever()
+    except KeyboardInterrupt: print("\nCompanion beendet.")
+    finally: server.server_close()
