@@ -2,54 +2,72 @@
 
 ## Ziel
 
-Stage 3.6 stabilisiert dynamische Controls in `galEditorFields`, ohne das
-Metadatenmodell oder die bestehenden Save-Provider zu verwerfen.
+Stage 3.6 stabilisiert dynamische Controls in `galEditorFields`, ohne das Metadatenmodell oder die bestehenden Save-Provider zu verwerfen.
 
-Die Controls verwenden jetzt feldbezogene, typisierte Provider-Collections:
+Verwendete Provider-Collections:
 
 - `colEditorChoiceOptions`
 - `colEditorPersonSelections`
-- bestehend: `colLookupValues` und `colEditorLookupSelections`
+- `colLookupValues`
+- `colEditorLookupSelections`
 
 ## Person-Provider
 
-`SearchUserV2` wird auf ein stabiles Anzeigeschema normalisiert:
+Der in der deutschen Power-Apps-Umgebung eingebundene Connector heißt in Formeln:
+
+```powerfx
+'Office365-Benutzer'
+```
+
+Die Suche erfolgt über:
+
+```powerfx
+'Office365-Benutzer'.SearchUserV2(...).value
+```
+
+Das V2-Ergebnis verwendet im aktuellen Connector-Schema camelCase-Felder, unter anderem:
+
+- `displayName`
+- `mail`
+- `userPrincipalName`
+- `jobTitle`
+- `department`
+- `givenName`
+- `surname`
+- `city`
+- `id`
+
+Für ComboBox und Auswahl-Collection wird das Ergebnis auf ein stabiles Schema normalisiert:
 
 - `DisplayText`
 - `SecondaryText`
 
-`Items` und `DefaultSelectedItems` besitzen dadurch dasselbe Schema. Eine
-Änderung in einem zweiten Personenfeld führt nicht mehr dazu, dass bereits
-gewählte Personen nach einem Gallery-Rerender verschwinden.
+`Items` und `DefaultSelectedItems` müssen kompatible Anzeigeattribute besitzen. Die eigentliche SharePoint-Personenstruktur wird erst beim Patch aus E-Mail, Claims, Anzeigename, Abteilung und Funktion aufgebaut.
 
-Die Rückgabefelder des vorhandenen Connectors werden in PascalCase verarbeitet,
-entsprechend dem per JSON geprüften Tenant-Schema.
+## Bekannter Fehler aus der 3.6.0-Baseline
+
+Die initiale Git-Baseline referenzierte noch `Office365Users` und PascalCase-Rückgabefelder. Das passt weder zum deutschen Datenquellennamen noch zum tatsächlich gebundenen V2-Schema. Folge: `cmbEditorPerson` lieferte keine verwertbaren Anzeigenamen oder E-Mail-Felder.
+
+Der Fix normalisiert deshalb den Connectornamen und die Rückgabefelder vor dem Build. Die statische Referenzprüfung muss künftig beide Fehlerbilder erkennen.
 
 ## Choice-Provider
 
-Choice-Controls lesen nicht mehr direkt aus `colChoiceValues`. Beim Öffnen des
-Editors wird je Feld eine Optionsmenge in `colEditorChoiceOptions`
-materialisiert. Die Zuordnung erfolgt eindeutig über `EditorFieldKey`.
-
-Damit werden Scope- und Schemafehler zwischen Choice-, Lookup- und
-Personencontrols reduziert.
+Choice-Controls lesen nicht direkt aus `colChoiceValues`. Beim Öffnen des Editors wird je Feld eine Optionsmenge in `colEditorChoiceOptions` materialisiert. Die Zuordnung erfolgt über `EditorFieldKey`.
 
 ## Test
 
-1. Asset öffnen.
-2. Verantwortlich auswählen.
-3. Stellvertretung mit einer anderen Person auswählen.
-4. Beide Werte müssen sichtbar bleiben.
-5. Einen Wert löschen; nur das betroffene Feld darf leer werden.
-6. Choice-Felder prüfen.
-7. Lookup-Felder prüfen.
-8. Abbrechen/Verwerfen prüfen.
-9. Speichern und erneutes Öffnen prüfen, soweit der Load-Provider bereits
-   verfügbar ist.
+1. Fix-Branch per Git aktualisieren.
+2. `pwsh ./powerplatform/scripts/Build.ps1` ausführen.
+3. erzeugte unmanaged Solution in DEV importieren und veröffentlichen.
+4. Asset öffnen.
+5. Verantwortlich auswählen.
+6. Stellvertretung mit einer anderen Person auswählen.
+7. Beide Werte müssen sichtbar bleiben.
+8. Einen Wert löschen; nur das betroffene Feld darf leer werden.
+9. Choice- und Lookup-Felder prüfen.
+10. Speichern und erneutes Öffnen prüfen.
+11. Power Apps App Checker ohne Connector- oder Formelbindungsfehler ausführen.
 
 ## Architekturhinweis
 
-Canvas Apps unterstützen keine dynamische Dereferenzierung beliebiger
-Datenquellen oder Controls aus Textmetadaten. Stage 3.6 verwendet daher
-typisierte Provider-Collections innerhalb des bestehenden Renderers statt
-unterschiedliche physische Datenquellen in einem gemeinsamen Controlschema.
+Canvas Apps unterstützen keine dynamische Dereferenzierung beliebiger Datenquellen aus Textmetadaten. Stage 3.6 verwendet daher typisierte Provider-Collections innerhalb des gemeinsamen Renderers. Lokalisierte Datenquellennamen gehören zur exportierten App-Bindung und müssen bei einem Studio-Rebind erneut gegen den SourceCode geprüft werden.
