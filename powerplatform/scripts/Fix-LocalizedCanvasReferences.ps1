@@ -13,30 +13,39 @@ $original = $content
 
 $replacements = [ordered]@{
     'Office365Users.SearchUserV2' = "'Office365-Benutzer'.SearchUserV2"
-    'selectedPerson.DisplayName' = 'selectedPerson.displayName'
-    'selectedPerson.Mail' = 'selectedPerson.mail'
-    'selectedPerson.UserPrincipalName' = 'selectedPerson.userPrincipalName'
-    'selectedPerson.Id' = 'selectedPerson.id'
-    'selectedPerson.GivenName' = 'selectedPerson.givenName'
-    'selectedPerson.Surname' = 'selectedPerson.surname'
-    'selectedPerson.Department' = 'selectedPerson.department'
-    'selectedPerson.JobTitle' = 'selectedPerson.jobTitle'
-    'selectedPerson.City' = 'selectedPerson.city'
+    'selectedPerson.displayName' = 'selectedPerson.DisplayName'
+    'selectedPerson.mail' = 'selectedPerson.Mail'
+    'selectedPerson.userPrincipalName' = 'selectedPerson.UserPrincipalName'
+    'selectedPerson.id' = 'selectedPerson.Id'
+    'selectedPerson.givenName' = 'selectedPerson.GivenName'
+    'selectedPerson.surname' = 'selectedPerson.Surname'
+    'selectedPerson.department' = 'selectedPerson.Department'
+    'selectedPerson.jobTitle' = 'selectedPerson.JobTitle'
+    'selectedPerson.city' = 'selectedPerson.City'
 }
 
 foreach ($entry in $replacements.GetEnumerator()) {
     $content = $content.Replace($entry.Key, $entry.Value)
 }
 
-# Items-Formel: unqualifizierte Connectorfelder auf das V2-camelCase-Schema umstellen.
-$content = $content.Replace("                                                              DisplayName,`n                                                              Mail,`n                                                              UserPrincipalName", "                                                              displayName,`n                                                              mail,`n                                                              userPrincipalName")
-$content = $content.Replace("                                                              Mail,`n                                                              UserPrincipalName,`n                                                              JobTitle", "                                                              mail,`n                                                              userPrincipalName,`n                                                              jobTitle")
+# Items formula: normalize unqualified SearchUserV2 fields to the schema exposed
+# by the localized connector in the current Power Apps tenant.
+$content = $content.Replace("                                                              displayName,`n                                                              mail,`n                                                              userPrincipalName", "                                                              DisplayName,`n                                                              Mail,`n                                                              UserPrincipalName")
+$content = $content.Replace("                                                              mail,`n                                                              userPrincipalName,`n                                                              jobTitle", "                                                              Mail,`n                                                              UserPrincipalName,`n                                                              JobTitle")
 
 $invalidPatterns = @(
     'Office365Users.SearchUserV2',
-    'selectedPerson.DisplayName',
-    'selectedPerson.Mail',
-    'selectedPerson.UserPrincipalName'
+    'selectedPerson.displayName',
+    'selectedPerson.mail',
+    'selectedPerson.userPrincipalName',
+    'selectedPerson.department',
+    'selectedPerson.jobTitle'
+)
+
+$requiredPatterns = @(
+    "'Office365-Benutzer'.SearchUserV2",
+    'SearchFields: =["DisplayText", "SecondaryText"]',
+    'selectedPeople: Self.SelectedItems'
 )
 
 if ($CheckOnly) {
@@ -44,7 +53,13 @@ if ($CheckOnly) {
     if ($invalid) {
         throw "Ungültige Canvas-Referenzen gefunden: $($invalid -join ', ')"
     }
-    Write-Host 'Lokalisierte Canvas-Referenzen sind konsistent.' -ForegroundColor Green
+
+    $missing = $requiredPatterns | Where-Object { -not $content.Contains($_) }
+    if ($missing) {
+        throw "Erforderliche Personenfeld-Referenzen fehlen: $($missing -join ', ')"
+    }
+
+    Write-Host 'Lokalisierte Canvas-Referenzen und Personenfeld-Bindung sind konsistent.' -ForegroundColor Green
     exit 0
 }
 
