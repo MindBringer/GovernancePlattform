@@ -75,7 +75,9 @@ def select_auth() -> int:
 
 def pac_check() -> int:
     require_command("pac")
-    code = run(["pac", "--version"], 60)
+    # PAC 2.9.x prints its version in the general help output, while
+    # `pac --version` is parsed as an invalid top-level command and exits 1.
+    code = run(["pac", "help"], 60)
     if code != 0:
         return code
     return run(["pac", "auth", "list"], 120)
