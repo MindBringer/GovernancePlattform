@@ -37,6 +37,8 @@ ACTIONS: dict[str, list[str]] = {
     "git-diff": ["python3", "./tools/companion/pac_workflow.py", "git-diff"],
     "pac-import": ["python3", "./tools/companion/pac_workflow.py", "import"],
     "pac-publish": ["python3", "./tools/companion/pac_workflow.py", "publish"],
+    "studio-sync": ["python3", "./tools/companion/pac_workflow.py", "studio-sync"],
+    "deploy-dev": ["python3", "./tools/companion/pac_workflow.py", "deploy-dev"],
 }
 
 
