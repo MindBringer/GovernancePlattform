@@ -4,23 +4,52 @@
   <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Governance Developer Companion</title>
   <style>
-    :root{font-family:Inter,system-ui,sans-serif;color:#172033;background:#eef2f7}*{box-sizing:border-box}body{margin:0}main{max-width:1180px;margin:28px auto;padding:0 20px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1e3a8a;font-size:.85rem;margin-right:6px}.dirty{background:#fef3c7;color:#92400e}.clean{background:#dcfce7;color:#166534}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}section{background:#fff;border:1px solid #d7deea;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(15,23,42,.05)}button{padding:11px 15px;margin:5px 5px 5px 0;border:1px solid #315ea8;border-radius:7px;background:#315ea8;color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#fff;color:#315ea8}button.warning{background:#fff7ed;color:#9a3412;border-color:#fdba74}button.release{background:#991b1b;border-color:#991b1b}button:disabled{opacity:.5;cursor:wait}pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;min-height:340px;overflow:auto}.hint{color:#58657a}.step{font-size:.92rem;color:#475569;margin:5px 0}h1{margin-bottom:6px}h2{margin-top:0}
+    :root{font-family:Inter,system-ui,sans-serif;color:#172033;background:#eef2f7}*{box-sizing:border-box}body{margin:0}main{max-width:1280px;margin:28px auto;padding:0 20px}.top{display:flex;justify-content:space-between;gap:20px;align-items:flex-start}.badge{display:inline-block;padding:5px 9px;border-radius:999px;background:#dbeafe;color:#1e3a8a;font-size:.85rem;margin:0 0 6px 6px}.dirty{background:#fef3c7;color:#92400e}.clean{background:#dcfce7;color:#166534}.error{background:#fee2e2;color:#991b1b}.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:16px}section{background:#fff;border:1px solid #d7deea;border-radius:12px;padding:20px;box-shadow:0 3px 12px rgba(15,23,42,.05)}button{padding:11px 15px;margin:5px 5px 5px 0;border:1px solid #315ea8;border-radius:7px;background:#315ea8;color:#fff;font-weight:650;cursor:pointer}button.secondary{background:#fff;color:#315ea8}button.warning{background:#fff7ed;color:#9a3412;border-color:#fdba74}button.success{background:#166534;border-color:#166534}button.release{background:#991b1b;border-color:#991b1b}button.large{padding:14px 20px;font-size:1rem}button:disabled{opacity:.5;cursor:wait}pre{white-space:pre-wrap;background:#111827;color:#e5e7eb;padding:16px;border-radius:8px;min-height:380px;overflow:auto}.hint{color:#58657a}.step{font-size:.92rem;color:#475569;margin:5px 0}h1{margin-bottom:6px}h2{margin-top:0}.wide{grid-column:1/-1}.button-row{display:flex;flex-wrap:wrap;gap:4px}.workflow{border-left:5px solid #315ea8}.deploy{border-left-color:#166534}details{margin-top:14px}summary{cursor:pointer;font-weight:650;color:#315ea8}
   </style>
 </head>
 <body><main>
-  <div class="top"><div><h1>Governance Developer Companion</h1><p class="hint">Stage 3.7 · Git-, Audit-, Validierungs-, Build- und Release-Workflow.</p></div><div id="meta"><span class="badge">Lade Status …</span></div></div>
+  <div class="top"><div><h1>Governance Developer Companion</h1><p class="hint">Git-, Power-Platform-, Build-, Deploy- und Release-Workflow.</p></div><div id="meta"><span class="badge">Lade Status …</span></div></div>
   <div class="grid">
-    <section><h2>1 · Repository</h2><button data-action="status">Status</button><button data-action="fetch" class="secondary">Fetch</button><button data-action="pull">Pull --ff-only</button><button data-action="audit" class="warning">Repository-Audit</button><p class="step">Pull wird nur bei sauberem Arbeitsverzeichnis ausgeführt.</p></section>
-    <section><h2>2 · Canvas</h2><button data-action="canvas-fix-check" class="secondary">Connector prüfen</button><button data-action="validate">Canvas validieren</button><p class="step">Prüft Office-365-Referenzen und den kanonischen SourceTree.</p></section>
-    <section><h2>3 · Build</h2><button data-action="build">Vollständigen Build starten</button><p class="step">Versionierung, Canvas-Pack, Referenzprüfung und Solution-Pack.</p></section>
-    <section><h2>4 · Vollständiger Release</h2><button id="release" class="release">Testen, committen, pushen und nach main mergen</button><p class="step">Benötigt GitHub CLI und <code>gh auth login</code>. Der Ablauf stoppt bei jedem Fehler.</p><p class="step"><strong>Power-Platform-Gate:</strong> Nur nach erfolgreichem DEV-Import und Smoke-Test verwenden.</p></section>
+    <section><h2>1 · Repository</h2><div class="button-row"><button data-action="status">Status</button><button data-action="fetch" class="secondary">Fetch</button><button data-action="pull">Pull --ff-only</button><button data-action="audit" class="warning">Repository-Audit</button></div><p class="step">Pull wird nur bei sauberem Arbeitsverzeichnis ausgeführt.</p></section>
+    <section><h2>2 · Prüfen</h2><div class="button-row"><button data-action="canvas-fix-check" class="secondary">Connector prüfen</button><button data-action="validate">Canvas validieren</button><button data-action="build">Vollständigen Build starten</button></div><p class="step">Provider-Sync, Canvas-Pack, Referenzprüfung und Solution-Pack.</p></section>
+
+    <section class="wide workflow"><h2>3 · Studio Sync · DEV → Git</h2>
+      <button data-action="studio-sync" class="large">Studio-Stand aus DEV übernehmen</button>
+      <p class="step">Führt PAC-Prüfung, DEV-Auswahl, Solution-Export, Unpack, Canvas-Sync und Git-Diff in einem kontrollierten Ablauf aus.</p>
+      <p class="step"><strong>Danach:</strong> Diff prüfen und anschließend Deploy to DEV ausführen.</p>
+    </section>
+
+    <section class="wide workflow deploy"><h2>4 · Deploy to DEV · Git → Power Apps</h2>
+      <button data-action="deploy-dev" class="success large">Builden, importieren und veröffentlichen</button>
+      <p class="step">Führt Repository-Audit, vollständigen Build, versionsgenaue Paketauswahl, Solution-Import und <code>--publish-changes</code> aus.</p>
+      <p class="step"><strong>Ergebnis:</strong> Die Canvas-App ist direkt in DEV testbar. Kein manueller Solution-Import und kein separates Publish All erforderlich.</p>
+    </section>
+
+    <section class="wide"><h2>5 · PAC-Einzelaktionen</h2>
+      <details><summary>Erweiterte Einzelaktionen anzeigen</summary>
+        <div class="button-row">
+          <button data-action="pac-check" class="secondary">PAC prüfen</button>
+          <button data-action="pac-auth-list" class="secondary">Authentifizierungen</button>
+          <button data-action="pac-select-dev">DEV auswählen</button>
+          <button data-action="pac-export">Solution exportieren</button>
+          <button data-action="pac-unpack">Solution entpacken</button>
+          <button data-action="pac-canvas-sync">Canvas synchronisieren</button>
+          <button data-action="git-diff" class="warning">Git-Diff</button>
+          <button data-action="pac-import" class="warning">Nur importieren + veröffentlichen</button>
+          <button data-action="pac-publish" class="warning">Publish All · umgebungsweit</button>
+        </div>
+        <p class="step">Publish All ist optional und veröffentlicht sämtliche ausstehenden Anpassungen der Zielumgebung.</p>
+      </details>
+    </section>
+
+    <section class="wide"><h2>6 · Vollständiger Release</h2><button id="release" class="release">Testen, committen, pushen und nach main mergen</button><p class="step">Erst nach erfolgreichem Deploy to DEV und manuellem Smoke-Test verwenden.</p></section>
   </div>
   <section style="margin-top:16px"><h2>Ausgabe</h2><pre id="output">Bereit.</pre></section>
 </main>
 <script>
 const output=document.getElementById('output'),meta=document.getElementById('meta');
-async function loadInfo(){try{const r=await fetch('/api/info',{cache:'no-store'}),i=await r.json();meta.innerHTML=`<span class="badge">${i.branch||'kein Branch'}</span><span class="badge">Canvas ${i.version}</span><span class="badge ${i.dirty?'dirty':'clean'}">${i.dirty?'lokale Änderungen':'sauber'}</span>`}catch(e){meta.innerHTML='<span class="badge dirty">Status nicht verfügbar</span>'}}
-async function run(action,body=null){document.querySelectorAll('button').forEach(b=>b.disabled=true);output.textContent=`Starte ${action} …`;try{const options={method:'POST',headers:{'Content-Type':'application/json'}};if(body)options.body=JSON.stringify(body);const response=await fetch(`/api/action/${action}`,options),data=await response.json();output.textContent=`${data.ok?'OK':'FEHLER'} · Exit ${data.exitCode}\n${data.command||''}\n\n${data.output||''}`}catch(error){output.textContent=`FEHLER\n${error}`}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);loadInfo()}}
+async function loadInfo(){try{const r=await fetch('/api/info',{cache:'no-store'}),i=await r.json();meta.innerHTML=`<span class="badge">${i.branch||'kein Branch'}</span><span class="badge">Canvas ${i.version}</span><span class="badge ${i.dirty?'dirty':'clean'}">${i.dirty?'lokale Änderungen':'sauber'}</span><span class="badge ${i.pacAvailable?'clean':'error'}">PAC ${i.pacAvailable?'verfügbar':'fehlt'}</span><span class="badge ${i.pacConfigured?'clean':'dirty'}">DEV ${i.pacConfigured?'konfiguriert':'nicht konfiguriert'}</span>`}catch(e){meta.innerHTML='<span class="badge error">Status nicht verfügbar</span>'}}
+async function run(action,body=null){document.querySelectorAll('button').forEach(b=>b.disabled=true);output.textContent=`Starte ${action} …\n\nDer Vorgang kann bei Power-Platform-Importen mehrere Minuten dauern.`;try{const options={method:'POST',headers:{'Content-Type':'application/json'}};if(body)options.body=JSON.stringify(body);const response=await fetch(`/api/action/${action}`,options),data=await response.json();output.textContent=`${data.ok?'OK':'FEHLER'} · Exit ${data.exitCode}\n${data.command||''}\n\n${data.output||''}`}catch(error){output.textContent=`FEHLER\n${error}`}finally{document.querySelectorAll('button').forEach(b=>b.disabled=false);loadInfo()}}
 document.querySelectorAll('button[data-action]').forEach(b=>b.addEventListener('click',()=>run(b.dataset.action)));
 document.getElementById('release').addEventListener('click',()=>{const confirmation=prompt('Dieser Ablauf commitet, pusht, merged den PR und wechselt lokal auf main.\n\nZum Bestätigen exakt eingeben:\nRELEASE NACH MAIN');if(confirmation==='RELEASE NACH MAIN')run('release',{confirmation});else output.textContent='Release abgebrochen: Bestätigung stimmt nicht.'});
 loadInfo();

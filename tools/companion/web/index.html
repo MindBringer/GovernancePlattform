@@ -1,0 +1,130 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+  <title>Engineering Companion</title>
+  <link rel="stylesheet" href="styles.css?framework=1.3.12">
+  <link rel="stylesheet" href="project-ui.css?framework=1.3.12">
+  <link rel="stylesheet" href="project-runtime.css?framework=1.3.12">
+</head>
+<body>
+  <div class="shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">EF</div>
+        <div><strong id="projectName">Engineering Framework</strong><span id="tagline">Lade Projekt …</span></div>
+      </div>
+      <nav id="nav"></nav>
+      <div class="sidebar-footer">
+        <span id="frameworkBadge" class="badge">Framework …</span>
+      </div>
+    </aside>
+
+    <main class="content">
+      <header class="topbar">
+        <div class="topbar-copy">
+          <p class="eyebrow">Project Engineering Companion</p>
+          <h1 id="pageTitle">Dashboard</h1>
+          <p id="pageDescription" class="page-description">Überblick über Entwicklungsstand, Runtimes, Release-Bereitschaft und den genau nächsten Arbeitsschritt.</p>
+        </div>
+        <div class="topbar-actions">
+          <button id="themeToggle" class="secondary small" type="button">☾ Dunkel</button>
+          <div id="repoBadges" class="badges"></div>
+        </div>
+      </header>
+
+      <section id="dashboard" class="view active">
+        <details class="card guide-card">
+          <summary>Orientierung: Was zeigt der Companion?</summary>
+          <div class="guide-grid">
+            <div><strong>Dashboard</strong><span>Stand, nächster Schritt, Runtimes und häufige Prüfungen.</span></div>
+            <div><strong>Entwicklung</strong><span>Alle freigegebenen Build-, Qualitäts-, Pflege- und Release-Aktionen.</span></div>
+            <div><strong>Konsole</strong><span>Kompakte Ergebnisse und Fehlerursachen; das vollständige Detail-Log bleibt separat aufklappbar.</span></div>
+          </div>
+        </details>
+        <section id="firstRunCard" class="card" hidden>
+          <div class="section-head">
+            <div><p class="eyebrow">First Run</p><h2>Neues Projekt initialisieren</h2></div>
+            <span class="badge">Template</span>
+          </div>
+          <p class="muted">Erzeugt Projekt-Config, State, Roadmap, Release-Historie, ADR-Basis, Agent-Handoff und den ersten Next Step. Framework-Core und managed Agent Contract bleiben erhalten.</p>
+          <form id="firstRunForm" class="wizard-grid">
+            <label>Projektname<input id="initName" required placeholder="Mein Projekt"></label>
+            <label>Projekt-Key<input id="initKey" required pattern="[A-Za-z0-9._-]+" placeholder="mein-projekt"></label>
+            <label>Startversion<input id="initVersion" required value="0.1.0" pattern="[0-9]+\.[0-9]+\.[0-9]+"></label>
+            <label>Companion-Port<input id="initPort" required type="number" min="1024" max="65535" value="8765"></label>
+            <label class="wide">Beschreibung<input id="initDescription" placeholder="Kurze Projektbeschreibung"></label>
+            <label class="check"><input id="initPowerPlatform" type="checkbox"> Power Platform / PAC aktivieren</label>
+            <label class="check"><input id="initProvisioning" type="checkbox"> Provisioning aktivieren</label>
+            <div class="wide"><button type="submit">Projekt initialisieren</button></div>
+          </form>
+        </section>
+
+        <div class="hero card">
+          <div>
+            <p class="eyebrow">Aktueller Entwicklungsstand</p>
+            <h2 id="currentStage">–</h2>
+            <p id="nextStep" class="muted">–</p>
+          </div>
+          <button id="refresh" class="secondary">Status aktualisieren</button>
+        </div>
+        <div id="statusCards" class="metric-grid"></div>
+        <section id="verificationEvidenceCard" class="card" hidden>
+          <div class="section-head"><div><p class="eyebrow">Verification Evidence</p><h2>Getrennte Nachweisklassen</h2></div></div>
+          <p class="section-description">Repository-/CI-Erfolg ist kein Ersatz für Runtime-, Write-, Deployment- oder Hardware-Acceptance. Deferred/Waived bleibt sichtbar und wird nur gemäß expliziter Release-Policy akzeptiert.</p>
+          <div id="verificationEvidenceList" class="guide-grid"></div>
+        </section>
+        <div id="projectRuntimeLinks" class="runtime-links" hidden></div>
+        <div id="projectDashboardExtensions" class="project-dashboard-extensions" hidden></div>
+        <div class="two-col">
+          <section class="card">
+            <div class="section-head"><div><p class="eyebrow">Schnellzugriff</p><h2>Engineering</h2></div></div>
+            <p class="section-description">Häufige sichere Prüfungen sowie der vollständige Release. Schaltflächen zeigen beim Überfahren ihren Zweck; Ausgaben öffnen automatisch die Konsole.</p>
+            <div id="quickActions" class="action-list"></div>
+          </section>
+          <section class="card">
+            <div class="section-head"><div><p class="eyebrow">Repository Memory</p><h2>Projektgedächtnis</h2></div><button id="loadMemory" class="secondary small">Laden</button></div>
+            <p class="section-description">Verbindliche Übergabe mit aktuellem Ziel, Grenzen, Prüfbelegen und genau einem nächsten Schritt.</p>
+            <pre id="memoryPreview" class="memory">Noch nicht geladen.</pre>
+          </section>
+        </div>
+      </section>
+
+      <section id="actionsView" class="view">
+        <section class="card view-intro">
+          <strong>So arbeitest du hier</strong>
+          <p>Aktionen sind nach Fähigkeit gruppiert. Beschreibungen erklären Wirkung und Scope. Schreibende oder riskante Schritte verlangen eine Bestätigung; die Konsole öffnet für die nachvollziehbare Ausgabe.</p>
+        </section>
+        <div id="actionGroups"></div>
+      </section>
+
+      <section id="consoleView" class="view">
+        <section class="card view-intro">
+          <strong>Live überwachen</strong>
+          <p>Erfolgreiche Aktionen werden kompakt zusammengefasst. Bei Fehlern bleibt der Root Cause im abschließenden Fehlerblock sichtbar; das vollständige Command-Log ist darunter separat aufklappbar. Laufende Releases behalten ihren Live-Fortschritt und die Refresh-Recovery.</p>
+        </section>
+        <section class="card console-card">
+          <div class="section-head"><div><p class="eyebrow">Ergebnis</p><h2>Companion-Konsole</h2></div><button id="clearConsole" class="secondary small">Leeren</button></div>
+          <div id="consoleActivity" class="console-activity" aria-live="polite">
+            <span id="consoleState" class="badge">Bereit</span>
+            <progress id="releaseProgress" max="10" value="0" hidden></progress>
+            <span id="releaseProgressText" class="muted"></span>
+          </div>
+          <pre id="output" class="console">Bereit.</pre>
+          <details id="consoleDetailPanel" class="console-details" hidden>
+            <summary>Vollständiges Detail-Log</summary>
+            <pre id="outputDetails" class="console"></pre>
+          </details>
+        </section>
+      </section>
+
+      <div id="projectViews"></div>
+    </main>
+  </div>
+  <script src="app.js?framework=1.3.12"></script>
+  <script src="input-actions.js?framework=1.3.12"></script>
+  <script src="verification-evidence.js?framework=1.3.12"></script>
+</body>
+</html>
