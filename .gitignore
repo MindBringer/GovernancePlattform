@@ -48,3 +48,4 @@ artifacts/outbound/*
 *.log
 *.tmp
 .vscode/settings.json
+.framework-adoption-backup/

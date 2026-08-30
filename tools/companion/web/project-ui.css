@@ -1,0 +1,44 @@
+.nav-section-label { margin: 18px 12px 4px; color: var(--sidebar-muted); font-size: .68rem; font-weight: 800; letter-spacing: .1em; text-transform: uppercase; }
+.project-dashboard-extensions { display: grid; grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)); gap: 16px; margin-bottom: 16px; }
+.project-dashboard-card { padding: 20px; }
+.project-view-root { display: block; }
+.project-view-head { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; margin-bottom: 14px; }
+.project-view-head h2 { font-size: 1.2rem; margin: 0 0 4px; }
+.project-status-detail { margin: 0 0 14px; color: var(--muted); }
+.project-metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 10px; margin: 14px 0; }
+.project-metric-grid .metric { box-shadow: none; background: var(--panel-soft); }
+.project-metric-grid small { display: block; color: var(--muted); margin-top: 5px; }
+.project-actions { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0; }
+.project-section { border-top: 1px solid var(--line); padding-top: 14px; margin-top: 14px; }
+.project-section h3 { font-size: .98rem; margin: 0 0 7px; }
+.project-section p { margin: 7px 0; }
+.project-list { display: flex; flex-direction: column; border: 1px solid var(--line); border-radius: 10px; overflow: hidden; margin-top: 10px; }
+.project-list-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; padding: 10px 12px; background: var(--panel); border-bottom: 1px solid var(--line); }
+.project-list-row:last-child { border-bottom: 0; }
+.project-list-row span { display: block; color: var(--muted); font-size: .78rem; margin-top: 2px; }
+.table-wrap { overflow: auto; border: 1px solid var(--line); border-radius: 10px; margin-top: 10px; }
+.table-wrap table { border-collapse: collapse; width: 100%; font-size: .84rem; }
+.table-wrap th, .table-wrap td { text-align: left; padding: 9px 11px; border-bottom: 1px solid var(--line); vertical-align: top; }
+.table-wrap th { background: var(--panel-soft); color: var(--muted); font-size: .75rem; text-transform: uppercase; letter-spacing: .04em; }
+.table-wrap tr:last-child td { border-bottom: 0; }
+.project-error { border-color: var(--danger); background: var(--danger-bg); color: var(--danger); box-shadow: none; }
+.project-error p { margin: 7px 0 0; }
+.project-view > .project-view-root > .project-view-head,
+.project-view > .project-view-root > .project-metric-grid,
+.project-view > .project-view-root > .project-actions,
+.project-view > .project-view-root > .project-section,
+.project-view > .project-view-root > .project-status-detail { max-width: 1500px; }
+.dashboard-extension .project-view-head h2 { font-size: 1.08rem; }
+.dashboard-extension .project-view-head { margin-bottom: 10px; }
+.dashboard-extension .project-metric-grid { grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); }
+.badge.info { background: var(--accent-soft); color: var(--accent); }
+
+@media (max-width: 700px) {
+  .project-dashboard-extensions { grid-template-columns: 1fr; }
+  .project-view-head, .project-list-row { align-items: flex-start; flex-direction: column; }
+  .project-metric-grid { grid-template-columns: 1fr 1fr; }
+}
+
+@media (max-width: 480px) {
+  .project-metric-grid { grid-template-columns: 1fr; }
+}

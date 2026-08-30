@@ -1,0 +1,91 @@
+{
+  "schemaVersion": 2,
+  "frameworkVersion": "1.3.12",
+  "projectVersion": "6.2.5",
+  "developmentMode": "framework-conformance",
+  "currentStage": "Stage 4.1 Runtime Provider Engine + ALM Companion · Framework 1.3.12 Conformance",
+  "iteration": {
+    "goal": "GovernancePlattform als Existing-Repo-Consumer kontrolliert auf Engineering Framework 1.3.12 adoptieren und die vorhandenen PAC-/ALM-Companion-Funktionen in project-owned Adapter migrieren.",
+    "status": "active",
+    "nonGoals": [
+      "Kein pac solution import",
+      "Kein Publish All",
+      "Keine DEV-Mutation",
+      "Kein Studio DEV→Git Sync während der Framework-Conformance",
+      "Keine fachliche Änderung am Stage-4.1-Provider-Engine-Stand"
+    ],
+    "dataRisk": "repository-only-no-tenant-write"
+  },
+  "verification": {
+    "releaseGates": {
+      "status": "pending",
+      "passed": [],
+      "verifiedAt": null
+    }
+  },
+  "documentation": {
+    "roadmap": "current",
+    "runbooks": "current",
+    "architecture": "current",
+    "knownIssues": "current",
+    "releaseHistory": "current"
+  },
+  "technicalDebt": {
+    "status": "reviewed",
+    "scannerVersion": "1.1",
+    "findings": 0,
+    "blockers": 0,
+    "warnings": 0,
+    "reviewedAt": "2026-08-30T16:58:07.619712+00:00",
+    "sample": []
+  },
+  "nextStep": {
+    "id": "governance-framework-1.3.12-conformance",
+    "description": "Repository-only Framework-, Canvas-, Provider- und Provisioning-Gates non-mutating verifizieren und anschließend einen separaten Draft-Conformance-PR für Remote-CI öffnen."
+  },
+  "lastBuild": {
+    "status": "not-run-for-framework-conformance",
+    "timestamp": null
+  },
+  "lastRelease": {
+    "status": "not-run-for-framework-adoption",
+    "timestamp": null
+  },
+  "releaseProvenance": null,
+  "knownIssues": 0,
+  "updatedAt": "2026-08-30T16:58:07.619712+00:00",
+  "verificationEvidence": [
+    {
+      "id": "governance-framework-repository-ci",
+      "class": "repository/ci",
+      "status": "pending",
+      "releasePolicy": "required-pass",
+      "detail": "Existing-Repo-Adoption und repository-only Governance-CI werden auf dem isolierten Conformance-Branch verifiziert.",
+      "verifiedAt": null
+    },
+    {
+      "id": "governance-companion-readonly",
+      "class": "runtime-readonly",
+      "status": "pending",
+      "releasePolicy": "informational",
+      "detail": "Framework-Companion mit migrierten Governance-Actions wird lokal ohne DEV-Write geprüft.",
+      "verifiedAt": null
+    },
+    {
+      "id": "governance-dev-write",
+      "class": "runtime-write-smoke",
+      "status": "deferred",
+      "releasePolicy": "allow-deferred",
+      "detail": "PAC Import, Publish und Deploy-to-DEV bleiben außerhalb der Framework-Conformance.",
+      "verifiedAt": null
+    },
+    {
+      "id": "governance-powerplatform-deployment",
+      "class": "deployment/hardware",
+      "status": "deferred",
+      "releasePolicy": "allow-deferred",
+      "detail": "DEV-Import/Publish-Acceptance bleibt Consumer-Fachevidenz und wird nicht durch Framework-CI ersetzt.",
+      "verifiedAt": null
+    }
+  ]
+}

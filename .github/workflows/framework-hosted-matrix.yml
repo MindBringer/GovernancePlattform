@@ -1,0 +1,64 @@
+name: Hosted Compatibility Matrix
+
+on:
+  workflow_dispatch:
+    inputs:
+      reason:
+        description: Optionaler Anlass für den manuellen Cross-Platform-Lauf
+        required: false
+        default: manual compatibility check
+
+concurrency:
+  group: hosted-compatibility-${{ github.repository }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ matrix.name }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - name: Ubuntu · Python 3.12 · full
+            os: ubuntu-latest
+            python: '3.12'
+            bootstrap: true
+          - name: macOS · Python 3.12
+            os: macos-latest
+            python: '3.12'
+            bootstrap: false
+          - name: Windows · Python 3.12
+            os: windows-latest
+            python: '3.12'
+            bootstrap: false
+          - name: Ubuntu · Python 3.14
+            os: ubuntu-latest
+            python: '3.14'
+            bootstrap: false
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python }}
+      - name: Runtime
+        run: python --version
+      - name: Repository audit
+        run: python tools/framework/audit_repo.py
+      - name: Python syntax check
+        run: python -m compileall -q tools tests
+      - name: Technical debt check
+        run: python tools/framework/technical_debt.py
+      - name: Project memory contract
+        run: python tools/framework/project_memory.py
+      - name: Validate framework
+        run: python tools/framework/validate.py
+      - name: Framework tests
+        run: python -m unittest discover -s tests/framework -p "test_*.py"
+      - name: Template bootstrap smoke
+        if: matrix.bootstrap
+        run: python tools/framework/bootstrap_smoke.py
+      - name: Verify framework lock
+        run: python tools/framework/sync.py verify-lock
