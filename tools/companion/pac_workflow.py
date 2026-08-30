@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import shutil
 import subprocess
@@ -148,6 +149,18 @@ def git_diff() -> int:
     return code if code != 0 else run(["git", "diff", "--stat"], 60)
 
 
+def canvas_binary() -> Path:
+    return SOLUTION_DIR / "CanvasApps" / MSAPP_NAME
+
+
+def file_sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
 def current_package() -> Path:
     candidates = sorted(OUTBOUND_DIR.glob("*.zip"), key=lambda p: p.stat().st_mtime, reverse=True)
     if not candidates:
@@ -222,7 +235,30 @@ def deploy_dev() -> int:
     print("=== Deploy to DEV: Validate -> Build -> Import -> Publish ===")
     print(f"Zielumgebung: {settings['environmentUrl']}")
     checked(["python3", "./tools/companion/audit_repo.py"])
-    checked(["pwsh", "./powerplatform/scripts/Build.ps1"])
+
+    msapp = canvas_binary()
+    if not msapp.exists():
+        raise RuntimeError(
+            f"Deploybares Studio-Binary fehlt: {msapp.relative_to(ROOT)}"
+        )
+
+    canvas_hash_before = file_sha256(msapp)
+    print(f"Canvas SHA256 vor Build:  {canvas_hash_before}")
+
+    checked([
+        "pwsh",
+        "./powerplatform/scripts/Build.ps1",
+        "-SkipCanvasPack",
+    ])
+
+    canvas_hash_after = file_sha256(msapp)
+    print(f"Canvas SHA256 nach Build: {canvas_hash_after}")
+
+    if canvas_hash_before != canvas_hash_after:
+        raise RuntimeError(
+            "Canvas-Binary wurde während des geschützten DEV-Builds verändert."
+        )
+
     package = current_package()
     print_package(package)
     checked(["python3", "./tools/companion/pac_workflow.py", "import"])

@@ -44,8 +44,13 @@ $invalidPatterns = @(
 
 $requiredPatterns = @(
     "'Office365-Benutzer'.SearchUserV2",
-    'SearchFields: =["DisplayText", "SecondaryText"]',
-    'selectedPeople: Self.SelectedItems'
+    'DisplayFields: =["DisplayName"]',
+    'SearchFields: =["DisplayName"]',
+    'UserPrincipalName: usr.UserPrincipalName',
+    'UserPrincipalName: ThisItem.ValuePersonEmail',
+    'selectedPerson: First(Self.SelectedItems)',
+    'selectedPerson.UserPrincipalName',
+    'SelectMultiple: =false'
 )
 
 if ($CheckOnly) {
