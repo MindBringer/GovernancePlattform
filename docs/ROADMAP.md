@@ -23,6 +23,7 @@ Das NIS2-Dokumentationsprojekt nutzt das Governance Portal langfristig als opera
 - Maßnahmen,
 - Incidents,
 - Reviews,
+- Findings/Abweichungen,
 - Evidence,
 - später freigegebene Governance-Dokumente.
 
@@ -78,6 +79,33 @@ Für den späteren NIS2-Betrieb sollen Auswertungen möglich sein, z. B.:
 
 Die Kennzahlen sollen aus dem vorhandenen Objektmodell abgeleitet werden, nicht in einem separaten NIS2-Datenbestand.
 
+### GP-NIS2-05 – Generisches Finding-/Abweichungsmodell
+
+Für Schwachstellenmanagement, Audits, Reviews, technische Ist-Abgleiche und andere Governance-Abweichungen wird ein generisches steuerbares Objekt benötigt.
+
+Der aktuelle Architekturstand enthält keinen offensichtlichen eigenen `Finding`-Objekttyp. Vor einer Umsetzung ist deshalb fachlich zu entscheiden, ob:
+
+- ein eigener generischer `Finding`-Objekttyp eingeführt wird, oder
+- eine vorhandene Objektart bewusst und generisch für Abweichungen erweitert wird.
+
+Mindestens erforderlich sind langfristig:
+
+- stabile Governance-ID,
+- Finding-/Quelltyp,
+- Beschreibung,
+- Priorität/Severity,
+- Owner,
+- Status/Lifecycle,
+- Erkannt-am / Zieltermin,
+- betroffene Assets/Systeme/Controls/Risiken/Lieferanten/Incidents,
+- Maßnahme bzw. Remediation,
+- Ausnahme-/Risikoakzeptanz mit Ablauf,
+- Verifikationsstatus,
+- Evidence-Verknüpfung,
+- Review-/Eskalationsfähigkeit.
+
+Das Modell soll nicht NIS2-spezifisch sein, sondern ebenso Auditfeststellungen, Review-Abweichungen, technische Reconciliation-Findings und weitere Compliance-Themen tragen können.
+
 ## 4. Architektur-/Netzmodell – spätere Roadmap
 
 Das NIS2-Dokument `ARCH-NET-001` beschreibt langfristig Bedarf für:
@@ -124,8 +152,11 @@ NIS2-relevante Änderungen werden in dieser Reihenfolge eingeplant:
 3. Schutzbedarfsbegründungen,
 4. Rechtsträger-Modell,
 5. Qualitätsmetriken für Assets/Systeme,
-6. danach Architektur-/Netz-/Flow-Modell,
-7. danach Business-Service-/BIA-Modell.
+6. generisches Finding-/Abweichungsmodell,
+7. danach Architektur-/Netz-/Flow-Modell,
+8. danach Business-Service-/BIA-Modell.
+
+Die konkrete Reihenfolge der Punkte 2–6 darf im Governance-Portal-Projekt neu priorisiert werden, wenn Abhängigkeiten oder der generische Plattformnutzen dies sinnvoll machen.
 
 ## 7. Abgrenzung zum NIS2-Dokumentationsrepo
 
