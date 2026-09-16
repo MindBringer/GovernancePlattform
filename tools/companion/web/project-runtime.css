@@ -1,0 +1,22 @@
+.runtime-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin: 0 0 16px;
+}
+
+.runtime-link {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  text-decoration: none;
+  color: var(--text);
+  border: 1px solid var(--line);
+  background: var(--panel);
+  padding: 10px 14px;
+  border-radius: 12px;
+}
+
+.runtime-link.good { border-color: #2f855a; }
+.runtime-link.warn { border-color: #b7791f; }
+.runtime-link span { color: var(--muted); font-size: .86rem; }

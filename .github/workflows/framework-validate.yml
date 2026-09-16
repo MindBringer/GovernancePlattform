@@ -1,0 +1,69 @@
+name: Engineering Contract
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+
+concurrency:
+  group: engineering-contract-${{ github.repository }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: Local CI · required
+    runs-on: [self-hosted, local-ci]
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          clean: true
+          persist-credentials: false
+      - name: Runtime
+        shell: bash
+        run: |
+          command -v python3
+          python3 --version
+          python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 12) else "Python >= 3.12 ist für Local CI erforderlich")'
+      - name: Self-hosted CI hermeticity
+        run: python3 tools/framework/ci_hermeticity.py
+      - name: Repository audit
+        run: python3 tools/framework/audit_repo.py
+      - name: Python syntax check
+        run: python3 -m compileall -q tools tests
+      - name: Technical debt check
+        run: python3 tools/framework/technical_debt.py
+      - name: Project memory contract
+        run: python3 tools/framework/project_memory.py
+      - name: Validate framework
+        run: python3 tools/framework/validate.py
+      - name: Framework tests
+        run: python3 -m unittest discover -s tests/framework -p "test_*.py"
+      - name: Template bootstrap smoke
+        run: python3 tools/framework/bootstrap_smoke.py
+      - name: Verify framework lock
+        shell: bash
+        run: |
+          if python3 tools/framework/sync.py verify-lock; then
+            exit 0
+          fi
+          echo "Current normalized SHA-256 for managed files that differ from the lock:"
+          python3 - <<'PY'
+          import json
+          from pathlib import Path
+          from tools.framework.sync import digest, expand, load_manifest, portable_key
+
+          root = Path.cwd()
+          manifest = load_manifest(root)
+          current = {rel: digest(path) for rel, path in expand(root, manifest.get("managed", [])).items()}
+          lock = json.loads((root / ".project/framework.lock.json").read_text(encoding="utf-8"))
+          expected = {
+              portable_key(str(rel)): value
+              for rel, value in (lock.get("files", {}) or {}).items()
+          }
+          for rel in sorted(current):
+              if expected.get(rel) != current[rel]:
+                  print(f"{rel} {current[rel]}")
+          PY
+          exit 1

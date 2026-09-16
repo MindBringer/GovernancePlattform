@@ -149,9 +149,17 @@ Screens:
                                     Color: =gblTheme.ColorTextInverse
                                     DisplayMode: |-
                                       =If(
-                                          IsBlank(gblSelectedObjectTypeKey),
+
+                                          IsBlank(gblSelectedObjectTypeKey)
+
+                                              || IsBlank(gblActiveProvider)
+
+                                              || !Coalesce(gblActiveProvider.SupportsCreate, false),
+
                                           DisplayMode.Disabled,
+
                                           DisplayMode.Edit
+
                                       )
                                     Fill: =gblTheme.ColorPrimary
                                     Font: =Font.'Open Sans'
@@ -547,6 +555,13 @@ Screens:
                                     OnSelect: |-
                                       =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
                                       Set(gblObjectType, ThisItem.ObjectTypeKey);
+                                      Set(
+                                          gblActiveProvider,
+                                          LookUp(
+                                              colObjectProviderRegistry,
+                                              ObjectTypeKey = ThisItem.ObjectTypeKey
+                                          )
+                                      );
                                       Set(gblSelectedRecordId, 0)
                                     TemplateFill: |-
                                       =If(
@@ -853,11 +868,32 @@ Screens:
                                                                     Defaults(Assets)
                                                                 ),
                                                                 {
-                                                                    Title: LookUp(colEditorValues, FieldInternalName = "Title", ValueText),
-                                                                    Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
-                                                                    GovernanceStatus: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus", ValueChoiceKey)
-                                                                    },
+                                                                    Title:
+                                                                        With(
+                                                                            {
+                                                                                editorTitle:
+                                                                                    LookUp(
+                                                                                        colEditorValues,
+                                                                                        FieldInternalName = "Title",
+                                                                                        ValueText
+                                                                                    ),
+                                                                                storedTitle:
+                                                                                    If(
+                                                                                        gblEditorMode = "Edit" && gblSelectedRecordId > 0,
+                                                                                        LookUp(
+                                                                                            Assets,
+                                                                                            ID = gblSelectedRecordId,
+                                                                                            Title
+                                                                                        ),
+                                                                                        Blank()
+                                                                                    )
+                                                                            },
+                                                                            Coalesce(
+                                                                                Trim(editorTitle),
+                                                                                storedTitle,
+                                                                                "Asset"
+                                                                            )
+                                                                        ),
                                                                     Owner: With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
@@ -1449,159 +1485,6 @@ Screens:
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
                                                 Y: =12
-                                          - cmbEditorPerson:
-                                              Control: Classic/ComboBox@2.4.0
-                                              Properties:
-                                                BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
-                                                ChevronBackground: =gblTheme.ColorPrimary
-                                                ChevronFill: =gblTheme.ColorTextInverse
-                                                DefaultSelectedItems: |-
-                                                  =Filter(
-                                                      colEditorPersonSelections,
-                                                      EditorFieldKey = ThisItem.EditorFieldKey
-                                                  )
-                                                DisplayFields: =["DisplayText", "SecondaryText"]
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
-                                                Font: =Font.'Open Sans'
-                                                HoverFill: =gblTheme.ColorSelected
-                                                Items: |-
-                                                  =With(
-                                                      {
-                                                          users:
-                                                              'Office365-Benutzer'.SearchUserV2(
-                                                                  {
-                                                                      searchTerm: Trim(Self.SearchText),
-                                                                      top: 50,
-                                                                      isSearchTermRequired: false
-                                                                  }
-                                                              ).value
-                                                      },
-                                                      AddColumns(
-                                                          users,
-                                                          DisplayText,
-                                                          Coalesce(
-                                                              displayName,
-                                                              mail,
-                                                              userPrincipalName
-                                                          ),
-                                                          SecondaryText,
-                                                          Coalesce(
-                                                              mail,
-                                                              userPrincipalName,
-                                                              jobTitle,
-                                                              ""
-                                                          )
-                                                      )
-                                                  )
-                                                OnChange: |-
-                                                  =RemoveIf(
-                                                      colEditorPersonSelections,
-                                                      EditorFieldKey = ThisItem.EditorFieldKey
-                                                  );
-                                                  ForAll(
-                                                      Self.SelectedItems As selectedPerson,
-                                                      With(
-                                                          {
-                                                              selectedMail:
-                                                                  Coalesce(
-                                                                      selectedPerson.mail,
-                                                                      selectedPerson.userPrincipalName
-                                                                  ),
-                                                              selectedDisplayName:
-                                                                  Coalesce(
-                                                                      selectedPerson.displayName,
-                                                                      selectedPerson.mail,
-                                                                      selectedPerson.userPrincipalName
-                                                                  )
-                                                          },
-                                                          Collect(
-                                                              colEditorPersonSelections,
-                                                              {
-                                                                  EditorFieldKey: ThisItem.EditorFieldKey,
-                                                                  Id: Coalesce(selectedPerson.id, ""),
-                                                                  DisplayName: selectedDisplayName,
-                                                                  GivenName: Coalesce(selectedPerson.givenName, ""),
-                                                                  Surname: Coalesce(selectedPerson.surname, ""),
-                                                                  Mail: selectedMail,
-                                                                  UserPrincipalName:
-                                                                      Coalesce(
-                                                                          selectedPerson.userPrincipalName,
-                                                                          selectedMail
-                                                                      ),
-                                                                  Claims:
-                                                                      If(
-                                                                          IsBlank(selectedMail),
-                                                                          "",
-                                                                          "i:0#.f|membership|" & Lower(selectedMail)
-                                                                      ),
-                                                                  Department: Coalesce(selectedPerson.department, ""),
-                                                                  JobTitle: Coalesce(selectedPerson.jobTitle, ""),
-                                                                  City: Coalesce(selectedPerson.city, ""),
-                                                                  DisplayText: selectedDisplayName,
-                                                                  SecondaryText:
-                                                                      Coalesce(
-                                                                          selectedMail,
-                                                                          selectedPerson.jobTitle,
-                                                                          ""
-                                                                      )
-                                                              }
-                                                          )
-                                                      )
-                                                  );
-                                                  Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      With(
-                                                          {
-                                                              firstPerson:
-                                                                  First(
-                                                                      Filter(
-                                                                          colEditorPersonSelections,
-                                                                          EditorFieldKey = ThisItem.EditorFieldKey
-                                                                      )
-                                                                  )
-                                                          },
-                                                          {
-                                                              ValueText:
-                                                                  Coalesce(firstPerson.DisplayName, ""),
-                                                              ValuePersonEmail:
-                                                                  Coalesce(firstPerson.Mail, ""),
-                                                              ValuePersonClaims:
-                                                                  Coalesce(firstPerson.Claims, ""),
-                                                              ValuePersonDepartment:
-                                                                  Coalesce(firstPerson.Department, ""),
-                                                              ValuePersonJobTitle:
-                                                                  Coalesce(firstPerson.JobTitle, ""),
-                                                              IsDirty: true,
-                                                              IsValid:
-                                                                  !ThisItem.IsRequired
-                                                                      || CountRows(
-                                                                          Filter(
-                                                                              colEditorPersonSelections,
-                                                                              EditorFieldKey = ThisItem.EditorFieldKey
-                                                                          )
-                                                                      ) > 0,
-                                                              ErrorMessage:
-                                                                  If(
-                                                                      ThisItem.IsRequired
-                                                                          && CountRows(
-                                                                              Filter(
-                                                                                  colEditorPersonSelections,
-                                                                                  EditorFieldKey = ThisItem.EditorFieldKey
-                                                                              )
-                                                                          ) = 0,
-                                                                      "Pflichtfeld",
-                                                                      ""
-                                                                  )
-                                                          }
-                                                      )
-                                                  );
-                                                  Select(lblEditorRevalidate)
-                                                SelectMultiple: =ThisItem.AllowMultiple
-                                                Visible: =ThisItem.ControlType = "User"
-                                                Width: =Parent.TemplateWidth * 0.62
-                                                X: =Parent.TemplateWidth * 0.36
-                                                Y: =12
                                           - lblEditorUnsupported:
                                               Control: Label@2.5.1
                                               Properties:
@@ -1645,6 +1528,102 @@ Screens:
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
                                                 Y: =84
+                                          - cmbEditorPerson:
+                                              Control: Classic/ComboBox@2.4.0
+                                              Properties:
+                                                BorderColor: =RGBA(0, 18, 107, 1)
+                                                ChevronBackground: =RGBA(56, 96, 178, 1)
+                                                ChevronFill: =RGBA(255, 255, 255, 1)
+                                                ChevronHoverBackground: =ColorFade(RGBA(56, 96, 178, 1), -20%)
+                                                ChevronHoverFill: =RGBA(255, 255, 255, 1)
+                                                DefaultSelectedItems: |-
+                                                  =If(
+                                                      IsBlank(ThisItem.ValuePersonEmail),
+                                                      Blank(),
+                                                      Table(
+                                                          {
+                                                              DisplayName: ThisItem.ValueText,
+                                                              UserPrincipalName: ThisItem.ValuePersonEmail
+                                                          }
+                                                      )
+                                                  )
+                                                DisplayFields: =["DisplayName"]
+                                                Font: =Font.'Open Sans'
+                                                HoverFill: =RGBA(186, 202, 226, 1)
+                                                Items: |-
+                                                  =ForAll(
+                                                      'Office365-Benutzer'.SearchUserV2(
+                                                          {
+                                                              searchTerm: Self.SearchText,
+                                                              top: 20,
+                                                              isSearchTermRequired: true
+                                                          }
+                                                      ).value As usr,
+                                                      {
+                                                          DisplayName: usr.DisplayName,
+                                                          UserPrincipalName: usr.UserPrincipalName
+                                                      }
+                                                  )
+                                                OnChange: |-
+                                                  =If(
+                                                      IsEmpty(Self.SelectedItems),
+
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueText: "",
+                                                              ValuePersonEmail: "",
+                                                              ValuePersonClaims: "",
+                                                              ValuePersonDepartment: "",
+                                                              ValuePersonJobTitle: "",
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired,
+                                                              ErrorMessage:
+                                                                  If(
+                                                                      ThisItem.IsRequired,
+                                                                      "Pflichtfeld",
+                                                                      ""
+                                                                  )
+                                                          }
+                                                      ),
+
+                                                      With(
+                                                          {
+                                                              selectedPerson: First(Self.SelectedItems)
+                                                          },
+                                                          Patch(
+                                                              colEditorValues,
+                                                              ThisItem,
+                                                              {
+                                                                  ValueText:
+                                                                      selectedPerson.DisplayName,
+                                                                  ValuePersonEmail:
+                                                                      selectedPerson.UserPrincipalName,
+                                                                  ValuePersonClaims:
+                                                                      "i:0#.f|membership|" &
+                                                                      Lower(selectedPerson.UserPrincipalName),
+                                                                  ValuePersonDepartment: "",
+                                                                  ValuePersonJobTitle: "",
+                                                                  IsDirty: true,
+                                                                  IsValid: true,
+                                                                  ErrorMessage: ""
+                                                              }
+                                                          )
+                                                      )
+                                                  )
+                                                  ;
+                                                  Select(lblEditorRevalidate)
+                                                PressedColor: =RGBA(255, 255, 255, 1)
+                                                PressedFill: =RGBA(0, 18, 107, 1)
+                                                SearchFields: =["DisplayName"]
+                                                SelectMultiple: =false
+                                                SelectionColor: =RGBA(255, 255, 255, 1)
+                                                SelectionFill: =RGBA(56, 96, 178, 1)
+                                                Visible: =ThisItem.ControlType = "User"
+                                                Width: =Parent.TemplateWidth * 0.42
+                                                X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
                   - conNavigation:
                       Control: GroupContainer@1.5.0
                       Variant: ManualLayout
@@ -1762,10 +1741,13 @@ Screens:
                         Height: =Parent.Height
                         Text: |-
                           =CountRows(
-                              Filter(
-                                  colFieldDefinitions,
-                                  ObjectTypeKey = gblObjectType
-                              )
+                              'Office365-Benutzer'.SearchUserV2(
+                                  {
+                                      searchTerm: "Jansen",
+                                      top: 20,
+                                      isSearchTermRequired: true
+                                  }
+                              ).value
                           )
                         Width: =425
                         X: =366
@@ -1831,7 +1813,6 @@ Screens:
                               Height: =36
                               OnSelect: =Set(gblShowDiscardDialog, false)
                               Text: ="Weiter bearbeiten"
-                              Width: =150
                               X: =Parent.Width - 326
                               Y: =132
                         - lblDiscardConfirm:

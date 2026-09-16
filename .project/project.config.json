@@ -1,0 +1,118 @@
+{
+  "schemaVersion": 1,
+  "frameworkVersion": "1.3.12",
+  "project": {
+    "key": "governance-platform",
+    "name": "GovernancePlattform",
+    "description": "IT Governance Portal auf Microsoft Power Platform",
+    "locale": "de-DE",
+    "versionFile": "VERSION"
+  },
+  "companion": {
+    "host": "127.0.0.1",
+    "port": 8770,
+    "openBrowser": true
+  },
+  "ui": {
+    "tagline": "Engineering · Quality · Power Platform · ALM · Governance Portal",
+    "showProjectMemory": true,
+    "showRoadmap": true,
+    "showRunbooks": true,
+    "firstRunWizard": true,
+    "projectUI": {
+      "enabled": true,
+      "allowCustomAssets": true
+    }
+  },
+  "modules": {
+    "git": true,
+    "audit": true,
+    "build": true,
+    "release": true,
+    "docs": true,
+    "memory": true,
+    "powerPlatform": true,
+    "provisioning": false
+  },
+  "quality": {
+    "projectMemoryContract": true,
+    "technicalDebtReview": true,
+    "verificationEvidence": true,
+    "requiredDocumentationStatus": [
+      "roadmap",
+      "runbooks",
+      "architecture",
+      "knownIssues",
+      "releaseHistory"
+    ],
+    "supportedPython": [
+      "3.12",
+      "3.14"
+    ],
+    "ciPlatforms": [
+      "ubuntu",
+      "macos",
+      "windows"
+    ]
+  },
+  "repositoryPolicy": {
+    "requireProtectedBaseBranch": false
+  },
+  "release": {
+    "enabled": true,
+    "confirmation": "RELEASE NACH MAIN",
+    "baseBranch": "main",
+    "mergeMethod": "squash",
+    "commitDirty": true,
+    "allowNoChecks": false,
+    "createTag": true,
+    "tagPrefix": "v",
+    "createGitHubRelease": true,
+    "gates": [
+      "engineering-contract",
+      "build",
+      "verification-evidence"
+    ]
+  },
+  "powerPlatform": {
+    "enabled": true,
+    "environmentUrl": "",
+    "versionFile": "powerplatform/VERSION",
+    "scripts": {
+      "validate": "powerplatform/scripts/Validate-CanvasSource.ps1",
+      "build": "powerplatform/scripts/Build.ps1",
+      "canvasFixCheck": "powerplatform/scripts/Fix-LocalizedCanvasReferences.ps1",
+      "studioExport": "",
+      "studioImport": ""
+    },
+    "scriptArgs": {
+      "validate": [],
+      "build": [],
+      "canvasFixCheck": [
+        "-CheckOnly"
+      ],
+      "studioExport": [],
+      "studioImport": []
+    }
+  },
+  "provisioning": {
+    "enabled": false,
+    "settingsFile": "Provisioning/settings.local.psd1",
+    "modeScript": "Provisioning/Invoke-ProvisioningLocal.ps1",
+    "applyConfirmation": "APPLY SCHEMA",
+    "resetScript": "",
+    "resetTokenArgument": "-ConfirmationToken",
+    "resetInputLabel": "Reset-Token aus dem Dry Run",
+    "resetInputPlaceholder": "RESET|https://...|schemaVersion",
+    "seedScript": "",
+    "seedApplyConfirmation": "APPLY SEED"
+  },
+  "documentation": {
+    "projectState": "PROJECT_STATE.md",
+    "roadmap": "docs/project/Roadmap.md",
+    "knownIssues": "docs/project/Known-Issues.md",
+    "releaseHistory": "docs/project/Release-History.md",
+    "architectureDecisions": "docs/project/Architecture-Decisions.md",
+    "runbooksRoot": "docs/runbooks"
+  }
+}

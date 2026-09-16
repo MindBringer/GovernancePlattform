@@ -27,6 +27,7 @@ powerplatform/**/*.bak
 powerplatform/deployment/settings.dev.json
 powerplatform/deployment/settings.test.json
 powerplatform/deployment/settings.prod.json
+tools/companion/local.settings.json
 
 # PowerShell
 *.user.ps1
@@ -47,3 +48,4 @@ artifacts/outbound/*
 *.log
 *.tmp
 .vscode/settings.json
+.framework-adoption-backup/

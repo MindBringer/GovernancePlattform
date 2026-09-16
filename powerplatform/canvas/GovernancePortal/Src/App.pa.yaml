@@ -9,7 +9,7 @@
 App:
   Properties:
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.4.0.0");
+      =Set(gblAppVersion, "1.0.0-alpha.4.1.0");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -32,6 +32,127 @@ App:
       Set(gblSaveError, "");
       Set(gblSavedRecordId, 0);
       Set(gblShowDiscardDialog, false);
+
+      /* BEGIN GENERATED OBJECT PROVIDER RUNTIME - DO NOT EDIT */
+      ClearCollect(
+          colObjectProviderRegistry,
+          {
+              ObjectTypeKey: "",
+              DataSourceKey: "",
+              TitleField: "",
+              GovernanceIdField: "",
+              ActiveField: "",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          }
+      );
+      Clear(colObjectProviderRegistry);
+      Collect(
+          colObjectProviderRegistry,
+          {
+              ObjectTypeKey: "Asset",
+              DataSourceKey: "Assets",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "System",
+              DataSourceKey: "Systems",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "Contact",
+              DataSourceKey: "Contacts",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Incident",
+              DataSourceKey: "Incidents",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Problem",
+              DataSourceKey: "Problems",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Change",
+              DataSourceKey: "Changes",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Risk",
+              DataSourceKey: "Risks",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Control",
+              DataSourceKey: "Controls",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Measure",
+              DataSourceKey: "Measures",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: false,
+              SupportsSave: false
+          }
+      );
+      Set(gblActiveProvider, Blank());
+      /* END GENERATED OBJECT PROVIDER RUNTIME */
 
       ClearCollect(
           colEditorValues,

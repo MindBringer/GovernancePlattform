@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ImportExportXml version="9.2.26064.166" SolutionPackageVersion="9.2" languagecode="1031" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26064.166" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26064.00166">
+<ImportExportXml version="9.2.26074.157" SolutionPackageVersion="9.2" languagecode="1031" generatedBy="CrmLive" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" OrganizationVersion="9.2.26074.157" OrganizationSchemaType="Standard" CRMServerServiceabilityVersion="9.2.26074.00160">
   <SolutionManifest>
     <UniqueName>GovernancePortal</UniqueName>
     <LocalizedNames>
       <LocalizedName description="Governance Portal" languagecode="1031" />
     </LocalizedNames>
     <Descriptions />
-    <Version>1.0.0.30409</Version>
+    <Version>1.0.0.30428</Version>
     <Managed>0</Managed>
     <Publisher>
       <UniqueName>Steinicke_IT</UniqueName>
