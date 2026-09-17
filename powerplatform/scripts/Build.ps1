@@ -38,12 +38,12 @@ if (-not $SkipVersionSync) {
 }
 
 Invoke-CheckedScript -ScriptName 'Validate-ObjectProviderRegistry.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot }
+Invoke-CheckedScript -ScriptName 'Sync-ObjectProviderRuntime.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot }
 
-# Studio-Exporte können lokalisierte Datenquellennamen und Connector-Schemata
-# erneut in eine ältere Schreibweise zurückführen. Vor jeder Validierung wird
-# deshalb ausschließlich die bekannte Office-365-Personenreferenz normalisiert.
+# Studio exports can restore localized data-source names or older connector field casing.
 Invoke-CheckedScript -ScriptName 'Fix-LocalizedCanvasReferences.ps1'
 Invoke-CheckedScript -ScriptName 'Validate-CanvasSource.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot }
+Invoke-CheckedScript -ScriptName 'Sync-ObjectProviderRuntime.ps1' -Parameters @{ RepositoryRoot = $repositoryRoot; CheckOnly = $true }
 
 if (-not $SkipCanvasPack) {
     Invoke-CheckedScript -ScriptName 'Pack-Canvas.ps1' -Parameters @{

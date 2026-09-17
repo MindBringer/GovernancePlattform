@@ -28,6 +28,17 @@ ACTIONS: dict[str, list[str]] = {
     "canvas-fix-check": ["pwsh", "./powerplatform/scripts/Fix-LocalizedCanvasReferences.ps1", "-CheckOnly"],
     "validate": ["pwsh", "./powerplatform/scripts/Validate-CanvasSource.ps1"],
     "build": ["pwsh", "./powerplatform/scripts/Build.ps1"],
+    "pac-check": ["python3", "./tools/companion/pac_workflow.py", "check"],
+    "pac-auth-list": ["python3", "./tools/companion/pac_workflow.py", "auth-list"],
+    "pac-select-dev": ["python3", "./tools/companion/pac_workflow.py", "select-dev"],
+    "pac-export": ["python3", "./tools/companion/pac_workflow.py", "export"],
+    "pac-unpack": ["python3", "./tools/companion/pac_workflow.py", "unpack"],
+    "pac-canvas-sync": ["python3", "./tools/companion/pac_workflow.py", "canvas-sync"],
+    "git-diff": ["python3", "./tools/companion/pac_workflow.py", "git-diff"],
+    "pac-import": ["python3", "./tools/companion/pac_workflow.py", "import"],
+    "pac-publish": ["python3", "./tools/companion/pac_workflow.py", "publish"],
+    "studio-sync": ["python3", "./tools/companion/pac_workflow.py", "studio-sync"],
+    "deploy-dev": ["python3", "./tools/companion/pac_workflow.py", "deploy-dev"],
 }
 
 
@@ -121,7 +132,9 @@ def repository_info() -> dict[str, object]:
     version_file = ROOT / "powerplatform" / "VERSION"
     version = version_file.read_text(encoding="utf-8").strip() if version_file.exists() else "unbekannt"
     dirty = bool(run_process(["git", "status", "--porcelain"], 30).stdout.strip())
-    return {"branch": branch, "version": version, "dirty": dirty, "root": str(ROOT)}
+    settings = ROOT / "tools" / "companion" / "local.settings.json"
+    return {"branch": branch, "version": version, "dirty": dirty, "root": str(ROOT),
+            "pacConfigured": settings.exists(), "pacAvailable": shutil.which("pac") is not None}
 
 
 class Handler(SimpleHTTPRequestHandler):
