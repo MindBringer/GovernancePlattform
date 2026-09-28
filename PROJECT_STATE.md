@@ -1,22 +1,26 @@
 # Projektübergabe – GovernancePlattform
 
-Stand: 2026-09-28 · Produktzweig: `feature/canvas-stage-4.1-provider-engine` · Ausgangs-HEAD: `ff74201a6ac6039942e0f6915702531f0ff1db57`
+Stand: 2026-09-28 · Arbeitszweig: `codex/stage-4.1-dev-baseline` auf `codex/stage-4.1-sync` (`0f0070d`); fachlicher Zielzweig: `feature/canvas-stage-4.1-provider-engine`
 
 ## Aktueller Kandidat
 
-- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; Solution-Manifest `1.0.0.30409`.
+- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; Solution-Manifest `1.0.0.30430`. Dieses Paket ist mit Freigabe in DEV importiert; Canvas-Version 165 ist laut Power-Apps-Versionsliste `Live`. Ein anschließendes Öffnen im Studio erzeugte eine gespeicherte, nicht veröffentlichte Version 166; sie wurde nicht live geschaltet. Version 164 aus dem vorherigen Import blieb ebenfalls gespeichert, aber nicht live. DEV-Exportbasis vor dem ersten Import war `1.0.0.30428`.
 - Stage 4.1 synchronisiert die neun registrierten Provider in `App.pa.yaml` und bindet `gblActiveProvider` an die Objektauswahl. Asset und System haben Edit/Save; die sieben übrigen Provider melden dafür weiterhin `false`.
 - Das Companion-Profil 1.2.0 stammt aus dem Engineering-Template. Ein vollständiger Framework-Consumer-Vertrag ist noch nicht integriert; PR #6 bleibt isolierter Konformitätsnachweis.
-- Die NIS2-Roadmap von `main` ist in diesem Zweig enthalten und um Stage 4.1/4.2 und die spätere Framework-Adoption ergänzt.
+- Ein read-only PAC-Export aus DEV bestätigte am 2026-09-28: Die vier Canvas-YAMLs stimmen mit dem fachlichen Reconciliation-Commit `dec366c` im isolierten Conformance-Branch überein. Die DEV-Solution trägt Version `1.0.0.30428`.
+- Der neuere DEV-Stand für Personenfelder und Asset-Speichern wurde übernommen. Das diagnostische Label wurde aus dem SourceTree und der Pack-Baseline entfernt; im Kandidaten `30430` fehlen auch die internen Control- und App-Checker-Referenzen. Ein konstantes, warnendes Filter-Prädikat wurde durch eine leere Tabellen-Auswahl ersetzt. Die übrigen umgebungsspezifischen Solution-Dateien wurden nicht pauschal übernommen.
+- Die NIS2-Roadmap von `main` ist enthalten und um Stage 4.1/4.2 und die spätere Framework-Adoption ergänzt.
 
 ## Verifikation dieses Arbeitspakets
 
-- PowerShell-Syntax, Architekturcompiler und Architektur-Konsistenz: erfolgreich.
+- PowerShell-Syntax, Architekturcompiler und Architektur-Konsistenz: erfolgreich. Die Pester-Suite konnte lokal mangels installiertem Pester-Modul nicht ausgeführt werden; der direkte Skriptaufruf ist kein gültiger Pester-Lauf.
 - Canvas-Version/Quellen, Provider-Registry und synchronisierte Runtime: erfolgreich.
-- Lokaler vollständiger PAC-Build mit `-SkipVersionSync -SkipSolutionIncrement`: erfolgreich; Canvas- und Solution-Pakete erzeugt.
-- Repository-Audit: erfolgreich. Die GitHub-CI enthält nun nicht mutierende Canvas-/Provider-Prüfungen; der neue CI-Kandidat braucht nach Push einen erfolgreichen Lauf.
-- Power Apps Studio, DEV-Smoke, Tenant-Import und Provisioning-Apply: nicht ausgeführt. PAC weist darauf hin, dass die gepackte YAML-Canvas-App vor der Verwendung in Power Apps Studio geöffnet und validiert werden muss.
+- Lokaler vollständiger PAC-Build mit Solution-Inkrement auf `1.0.0.30430`: erfolgreich; Canvas- und Solution-Pakete erzeugt. Der SourceCode-Round-Trip und der Vergleich der vier YAMLs im gepackten `.msapp` waren erfolgreich. Der diagnostische Control-Name und veraltete Literal-Prädikat-Warnungen sind in allen Archivteilen des Kandidaten entfernt.
+- Repository-Audit: erfolgreich. `pac canvas validate` ist in PAC `2.9.3` nicht mehr unterstützt; die Projekt-Canvas-Validierung und der vollständige PAC-Pack liefen erfolgreich. Die drei CI-Prüfungen von PR #14 waren am Kandidaten-Head `a73560b` erfolgreich.
+- DEV-Import des Pakets `GovernancePortal_1.0.0.30429_1.0.0-alpha.4.1.0.zip` mit `--publish-changes`: erfolgreich. Der anschließende read-only DEV-Export bestätigt Solution `1.0.0.30429`; das exportierte `.msapp` ist bytegleich mit dem importierten Artefakt (SHA-256 `c9261924e0c01fdd351da6c4759510cd45fb2888c917fea4334731fdd6fd6183`). Die Power-Apps-Versionsliste zeigt jedoch Canvas-Version 164 nur als gespeichert und Version 163 als `Live`: `--publish-changes` hat die Canvas-App nicht live geschaltet.
+- Nach separater Freigabe wurde `GovernancePortal_1.0.0.30430_1.0.0-alpha.4.1.0.zip` mit `--publish-changes` erfolgreich nach DEV importiert. Der anschließende read-only DEV-Export bestätigt Solution `1.0.0.30430` und ein bytegleiches `.msapp` (SHA-256 `2edcdb3de5942a5fcd0022c372162143866dcd453d9b6798fa6106c3a36c75b1`). Die Versionsliste markiert die neue Canvas-Version 165 als `Live`; eine weitere Studio-Veröffentlichung war daher nicht nötig.
+- Power Apps Studio öffnet die DEV-App nach dem Import im Bearbeitungsmodus. Die App-Überprüfung zeigt eine Formelwarnung: `CountRows(Assets)` in `App.OnStart` ist für den SharePoint-Connector nicht delegierbar; die frühere Literal-Prädikat-Warnung erscheint nicht mehr. Außerdem werden 79 Barrierefreiheits-, 12 Leistungs- und 2 Datenquellenhinweise angezeigt; diese Kategorien wurden nicht einzeln bewertet. Der gepackte Kandidat enthält keine Referenz auf das entfernte diagnostische Control. Die laufende Version 165 startet, lädt Navigation, 16 Objekttypen und 12 Seiten. Im Bereich Governance öffnet das Asset-Neuanlageformular; das Personenfeld `Verantwortlich` findet und übernimmt das bestehende DEV-Dienstkonto. Das ungespeicherte Testformular wurde verworfen. Der direkte Zugriff auf die SharePoint-Asset-Liste endete mit `Access denied`; ein Testdatensatz wurde deshalb mangels verlässlicher Bereinigung nicht angelegt. Provisioning-Apply wurde nicht ausgeführt.
 
 ## Primäres nächstes Arbeitspaket
 
-**Stage-4.1-DEV-Baseline und Abnahme:** aktuellen Studio-/DEV-Stand mit dem Git-Kandidaten abgleichen, Änderungen als überprüften Diff übernehmen, vollständigen Build und Studio-/DEV-Smoke dokumentieren. Erst danach die fachliche Stage-4.1-Integration von PR #5 entscheiden. Framework-Adoption gemäß Issue #7 folgt separat.
+**Stage-4.1-DEV-Funktionsabnahme:** Für die verbleibende `CountRows(Assets)`-Delegierungswarnung und die übrigen App-Checker-Kategorien eine fachliche Entscheidung treffen. Die Asset-Speicherung mit einem kontrollierten DEV-Testdatensatz erst testen, wenn ein Bereinigungsweg gesichert ist. PR #14 bleibt bis dahin Draft; erst nach fachlicher Abnahme die Stage-4.1-Integration von PR #5 entscheiden. Framework-Adoption gemäß Issue #7 folgt separat.
