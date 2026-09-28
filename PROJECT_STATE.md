@@ -16,7 +16,7 @@ Stand: 2026-09-28 · Arbeitszweig: `codex/stage-4.1-dev-baseline` auf `codex/sta
 - PowerShell-Syntax, Architekturcompiler und Architektur-Konsistenz: erfolgreich.
 - Canvas-Version/Quellen, Provider-Registry und synchronisierte Runtime: erfolgreich.
 - Lokaler vollständiger PAC-Build mit `-SkipVersionSync -SkipSolutionIncrement`: erfolgreich; Canvas- und Solution-Pakete erzeugt. Der SourceCode-Round-Trip und der Vergleich der vier YAMLs im gepackten `.msapp` waren erfolgreich.
-- Repository-Audit und PR-#13-CI: erfolgreich. Der neue DEV-Baseline-Kandidat benötigt nach Push eigenen CI-Nachweis.
+- Repository-Audit sowie die CI von PR #13 und PR #14: erfolgreich am 2026-09-28. Nach weiteren Änderungen ist der aktuelle PR-Head erneut zu prüfen.
 - Power Apps Studio, DEV-Smoke, Tenant-Import und Provisioning-Apply: nicht ausgeführt. PAC weist darauf hin, dass die gepackte YAML-Canvas-App in Power Apps Studio geöffnet und validiert werden muss. Der PAC-Pack kann ältere interne Steuerdaten aus `.msapr` behalten; nur die YAML-Gleichheit belegt noch keine Studio-Abnahme.
 
 ## Primäres nächstes Arbeitspaket
