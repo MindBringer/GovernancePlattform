@@ -22,3 +22,5 @@ jobs:
       - name: Check generated provider runtime
         shell: pwsh
         run: ./powerplatform/scripts/Sync-ObjectProviderRuntime.ps1 -CheckOnly
+      - name: Verify packed Canvas source
+        run: python3 tools/companion/verify_canvas_artifact.py
