@@ -1415,10 +1415,7 @@ Screens:
                                                       ),
                                                       If(
                                                           IsBlank(ThisItem.ValueLookupId),
-                                                          Filter(
-                                                              colLookupValues,
-                                                              false
-                                                          ),
+                                                          FirstN(colLookupValues, 0),
                                                           Filter(
                                                               colLookupValues As lookupValue,
                                                               lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
