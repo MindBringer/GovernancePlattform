@@ -10,6 +10,7 @@ Stand: 2026-09-28 · Arbeitszweig: `codex/stage-4.1-dev-baseline` auf `codex/sta
 - Ein read-only PAC-Export aus DEV bestätigte am 2026-09-28: Die vier Canvas-YAMLs stimmen mit dem fachlichen Reconciliation-Commit `dec366c` im isolierten Conformance-Branch überein. Die DEV-Solution trägt Version `1.0.0.30428`.
 - Der neuere DEV-Stand für Personenfelder und Asset-Speichern wurde übernommen. Das diagnostische Label wurde aus dem SourceTree und der Pack-Baseline entfernt; im Kandidaten `30430` fehlen auch die internen Control- und App-Checker-Referenzen. Ein konstantes, warnendes Filter-Prädikat wurde durch eine leere Tabellen-Auswahl ersetzt. Die übrigen umgebungsspezifischen Solution-Dateien wurden nicht pauschal übernommen.
 - Die NIS2-Roadmap von `main` ist enthalten und um Stage 4.1/4.2 und die spätere Framework-Adoption ergänzt.
+- Die Roadmap priorisiert nun einen begrenzten Asset-Pilot und danach den ersten produktiven App-Umfang mit Asset, Change, Risk, Evidence, Verantwortlichen und Reviews. Incident/Problem und weitere Listen folgen. Die Pakete P0–P7 enthalten messbare Abnahmen und eine neu zu prüfende Modell-Empfehlung je Paket.
 
 ## Verifikation dieses Arbeitspakets
 
@@ -23,4 +24,4 @@ Stand: 2026-09-28 · Arbeitszweig: `codex/stage-4.1-dev-baseline` auf `codex/sta
 
 ## Primäres nächstes Arbeitspaket
 
-**Stage-4.1-DEV-Funktionsabnahme:** Für die verbleibende `CountRows(Assets)`-Delegierungswarnung und die übrigen App-Checker-Kategorien eine fachliche Entscheidung treffen. Die Asset-Speicherung mit einem kontrollierten DEV-Testdatensatz erst testen, wenn ein Bereinigungsweg gesichert ist. PR #14 bleibt bis dahin Draft; erst nach fachlicher Abnahme die Stage-4.1-Integration von PR #5 entscheiden. Framework-Adoption gemäß Issue #7 folgt separat.
+**P0 · Stage 4.1 schließen:** Für die verbleibende `CountRows(Assets)`-Delegierungswarnung und die übrigen App-Checker-Kategorien eine Entscheidung treffen. Einen sicheren Bereinigungsweg für DEV-Testdaten herstellen und die Asset-Speicherung samt Wiederfinden prüfen. Nicht speicherbare Provider dürfen keinen scheinbar funktionierenden Save-Pfad anbieten. PR #14 bleibt bis zur fachlichen Abnahme Draft; die Integration von PR #5 wird danach entschieden. Framework-Adoption gemäß Issue #7 folgt separat.
