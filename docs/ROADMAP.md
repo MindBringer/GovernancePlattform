@@ -1,180 +1,49 @@
 # Governance Portal Roadmap
 
-Stand: 2026-09-28
+Stand: 2026-09-28 · Ziel: erste relevante Anwendungsfälle zügig und belastbar in der Power App nutzen
 
-## 1. Aktueller Entwicklungsstrang
+## Zielbild und Ausgangslage
 
-Die aktuelle technische Basis folgt weiterhin dem bestehenden Produktpfad:
+Der **erste produktive Umfang** umfasst Assets, Changes, Risks und Evidence in der Power App. Verantwortliche können zugeordnet und nach erneutem Öffnen wieder angezeigt werden. Für diese Objekte lassen sich Reviews planen, durchführen und nachvollziehen. Ein Datensatz ist erst unterstützt, wenn Anlegen, Wiederfinden, Öffnen, Ändern und Speichern mit echten Nutzerrollen geprüft sind. Nicht benötigte Objektarten und Komfortfunktionen folgen später.
 
-1. Stage 3.6 – dynamischer Editor / Choice-, Lookup- und Personenprovider
-2. Stage 3.7 – Developer Companion / lokaler Git- und Audit-Workflow
-3. Stage 4.0 – Object Provider Foundation
-4. Stage 4.1 – Provider-Runtime und PAC-Companion: technischer Kandidat auf dem Entwicklungsbranch, DEV-/Studio-Abnahme vor Integration ausstehend
-5. Stage 4.2 – normalisierter Record-Cache und ListProvider für Incident, Problem und Change
-6. danach schrittweise vollständige Load-/Edit-/Save-Unterstützung der registrierten Kernobjekte
+Die Architektur definiert bereits die Listen und Bibliotheken, Felder, Statusmodelle, Relationen und Review-Metadaten. Das ist noch keine fertige App-Funktion. Der Stage-4.1-Kandidat `1.0.0-alpha.4.1.0` wurde als Solution `1.0.0.30430` in DEV importiert; Canvas-Version 165 ist dort live. Ein Asset-Formular und die Personensuche wurden ohne Datensatz-Speicherung geprüft. Die App hat Patch-Zweige für Asset und System, aber keinen belegten Weg, bestehende Datensätze wieder zu öffnen. Für Change und Risk meldet die Registry `SupportsCreate`, jedoch `SupportsSave = false`; ein geöffnetes Formular kann nicht erfolgreich speichern. Evidence ist eine modellierte SharePoint-Bibliothek ohne Canvas-Upload-/Verknüpfungsablauf. Reviews sind als Modell und Workflow-Definition vorhanden, nicht als abgenommener End-to-End-Prozess.
 
-NIS2 ändert diese Reihenfolge nicht und darf keine parallele Implementierungsschiene erzeugen.
+**Schnitt der Einführung:** Nur die vier genannten Anwendungsfälle und die nötigen Querschnittsfunktionen werden vorgezogen. Ein begrenzter Asset-Pilot ist ein Zwischenziel; er ersetzt die Abnahme des gesamten ersten Produktivumfangs nicht. Weitere Listen bleiben im Schema, werden aber nicht durch eine bloß sichtbare Kachel als produktiv freigegeben.
 
-Die technische Stage-4.1-Prüfung umfasst Canvas-Version, Provider-Registry und synchronisierte Runtime in CI sowie einen vollständigen lokalen Build. DEV-/Studio-Abgleich und Smoke-Test sind gesonderte Abnahmen. Der Engineering-Framework-Consumer-Vertrag und die Aufteilung der CI nach [Issue #7](https://github.com/MindBringer/GovernancePlattform/issues/7) folgen als eigenes Arbeitspaket nach der fachlichen Stage-4.1-Baseline. Der isolierte Conformance-PR #6 ist kein Integrationszweig.
+## Arbeitspakete bis zum ersten produktiven Einsatz
 
-## 2. NIS2 als fachlicher Verbraucher der Plattform
+Die Modellwahl beschreibt die **Codex-Arbeit am Paket**, kein KI-Modell im Portal. `standard-reasoning` und `deep-reasoning` sind die Klassen des [lokalen Arbeitsprofils](project/Local-Agent-Workflow.md). Konkrete Empfehlungen beziehen sich auf die [aktuelle offizielle OpenAI-Modellauswahl](https://developers.openai.com/api/docs/guides/model-selection) und werden beim Paketstart gegen die dann verfügbaren Modelle geprüft. Für deterministische Teilaufgaben innerhalb eines Pakets genügt `fast`/GPT-6 Luna (low); die fachliche Abnahme bleibt menschlich.
 
-Das NIS2-Dokumentationsprojekt nutzt das Governance Portal langfristig als operative Source of Truth für:
+| Paket | Ergebnis und Abnahme | Abhängigkeit | Modellklasse / Empfehlung |
+|---|---|---|---|
+| **P0 · Stage 4.1 schließen** | DEV-Testdaten können sicher bereinigt werden; Asset-Neuanlage wird gespeichert und wiedergefunden. App-Checker-Hinweise werden nach Auswirkung bewertet; nicht speicherbare Provider führen nicht in einen scheinbar nutzbaren Speicherdialog. PR #14 bleibt bis zur Abnahme Draft. | aktueller DEV-Kandidat | `standard-reasoning` · **GPT-6 Sol, medium**: begrenzte Validierung und Korrektur |
+| **P1 · Datensatzkern** | Echte Datensatzliste mit Suche/Seitenführung, Laden nach ID, Bearbeiten und Speichern für unterstützte Typen. Provider-Capabilities und UI entsprechen den ausführbaren Pfaden. Fehler, leere Werte und parallele Änderungen werden sichtbar behandelt. Ein Round-Trip mit bestehendem Datensatz besteht. | P0 | `deep-reasoning` · **GPT-6 Astra, high**: Canvas, SharePoint, Provider und Datenintegrität greifen ineinander |
+| **P2 · Asset und Verantwortliche** | Asset anlegen, laden und ändern; Owner, Stellvertretung sowie fachlich/technisch Verantwortliche bleiben nach erneutem Öffnen korrekt. Status, Kritikalität und nächster Reviewtermin sind nutzbar. Nicht unterstützte Feldtypen werden implementiert oder bewusst aus dem Pilotformular entfernt. | P1 | `standard-reasoning` · **GPT-6 Sol, high**: begrenzter Fachtyp mit mehreren Feld- und Personenverträgen |
+| **P3 · Change** | Change anlegen, finden und ändern; verantwortliche Person, Genehmiger, Planung, Risiko, Umsetzungs- und Rollback-Plan sowie Status werden gespeichert. Der fachliche Genehmigungsschritt ist eindeutig und nachvollziehbar; automatische Freigabe-Flows sind für den Start nicht nötig. | P1; P2 als Muster | `deep-reasoning` · **GPT-6 Astra, medium**: Lifecycle und Genehmigungssemantik |
+| **P4 · Risk** | Risiko anlegen, finden und ändern; Owner, Szenario, Eintritt/Auswirkung, Bewertung, Behandlung und befristete Akzeptanz funktionieren. Bewertungsregel und zulässige Statuswechsel sind dokumentiert und getestet. Verknüpfung zum betroffenen Asset ist nutzbar. | P1; parallel zu P3 möglich | `deep-reasoning` · **GPT-6 Astra, medium**: Bewertungs- und Akzeptanzregeln |
+| **P5 · Evidence** | Datei aus der App in die Evidence-Bibliothek hochladen, wiederfinden, öffnen und mit Asset/Change/Risk verbinden. Metadaten, Owner, Version und Zugriffsrechte bleiben beim Wiederöffnen korrekt. | P1; parallel zu P3/P4 möglich | `deep-reasoning` · **GPT-6 Astra, high**: Dateitransfer, Bibliothek, Relationen und Berechtigungen |
+| **P6 · Reviews** | Fällige Reviews für den ersten Umfang sind sichtbar. Reviewer kann Objekt und Evidence öffnen, Ergebnis dokumentieren, nächsten Termin setzen und Historie nachvollziehen. Owner-/Reviewer-Rechte werden geprüft. Erinnerungen werden erst automatisiert, wenn der manuelle Ablauf stabil ist. | P2–P5 | `deep-reasoning` · **GPT-6 Astra, high**: objektübergreifender Prozess und Termin-/Statuslogik |
+| **P7 · Produktivfreigabe** | End-to-End-Tests mit realen Rollen in einer Vorproduktionsumgebung; Berechtigungen, Audit/Fehlerbehandlung, Datenqualität, Backup/Rückweg, Deployment und Supportweg sind nachgewiesen. Alle vier Objektarten bestehen den Round-Trip, Reviews und Evidence die Verknüpfungstests. Erst danach Produktivimport und Canvas-Veröffentlichung. | P0–P6 | `standard-reasoning` · **GPT-6 Sol, high** für Abnahme/ALM; gezielte Sicherheits- und Datenintegritätsprüfung mit `deep-reasoning`/Astra |
 
-- Assets und Systeme,
-- Risiken,
-- Controls,
-- Maßnahmen,
-- Incidents,
-- Reviews,
-- Findings/Abweichungen,
-- Evidence,
-- später freigegebene Governance-Dokumente.
+P3, P4 und P5 können nach dem stabilen Datensatzkern in getrennten Branches/Worktrees parallel entstehen. Entscheidungen und Tests bleiben je Paket getrennt. P6 integriert nur tatsächlich abgenommene Objektarten. Ein stärkeres Modell ersetzt weder Maker-/PAC-Prüfung noch Tenant- oder Produktivfreigabe.
 
-Die fachlichen NIS2-Anforderungen werden im Repository `MindBringer/NIS2` dokumentiert. Dieses Projekt übernimmt daraus nur Anforderungen, die ohnehin sinnvoll in das generische Governance-Modell passen.
+### Meilensteine
 
-## 3. NIS2-relevante Roadmap-Erweiterungen – nach aktuellem Provider-Ausbau
+1. **Asset-Pilot nach P0–P2:** kleine benannte Nutzergruppe, kontrollierte Daten, Owner- und Reviewtermin-Pflege. Change/Risk/Evidence/Review gelten dadurch noch nicht als unterstützt.
+2. **Erster produktiver Umfang nach P0–P7:** Asset, Change, Risk, Evidence, Verantwortliche und Reviews in der App. Die Freigabe beruht auf beobachteten Round-Trips, nicht nur auf Schema, CI oder sichtbaren Formularen.
 
-### GP-NIS2-01 – Schutzbedarf fachlich von Kritikalität trennen
+## Ausbau nach der ersten Einführung
 
-Ziel:
+**Nächste Provider:** System, Incident und Problem werden über denselben Datensatzkern vollständig eingebunden; danach Control, Measure und Contact. Die frühere Stage-4.2-Planung für Incident/Problem/Change wird geteilt: Datensatzkern und Change gehören zum ersten Umfang, Incident und Problem folgen. Weitere Objektarten werden erst mit funktionsfähigem Load-/Save-Mapping als unterstützt markiert. Für begrenzte Provider-Implementierung ist `standard-reasoning`/GPT-6 Sol (medium) passend; reine Metadaten- und Testanpassungen können `fast`/GPT-6 Luna (low) übernehmen. Neue generische Verträge oder unklare Datenmigrationen gehen an `deep-reasoning`/GPT-6 Astra.
 
-- eigenes ChoiceSet für Schutzbedarf mit `Normal / Hoch / Sehr hoch`,
-- `ConfidentialityRequirement`, `IntegrityRequirement`, `AvailabilityRequirement` darauf ausrichten,
-- vorhandenes `Criticality`-Modell unverändert für betriebliche Kritikalität weiterverwenden.
+**Komfort und Automatisierung:** erweiterte Dashboards, automatische Erinnerungen und Eskalationen, Benachrichtigungen, Massenpflege, persönliche Ansichten und zusätzliche Dokumentbibliotheken folgen den abgenommenen Kernabläufen. Das Engineering-Framework-Consumer-Paket gemäß [Issue #7](https://github.com/MindBringer/GovernancePlattform/issues/7) ist ein separates technisches Arbeitspaket; der isolierte Conformance-PR #6 wird nicht nebenbei integriert.
 
-Wichtig:
+**NIS2-Fachausbau:** Das Repository `MindBringer/NIS2` beschreibt Anforderungen, dieses Repository implementiert generische Portal-Funktionen. Nach dem ersten Einsatz folgen in fachlich bestätigter Reihenfolge:
 
-- keine stille Umdeutung bestehender Werte,
-- Migration vorhandener Daten vor Änderung prüfen.
+1. Schutzbedarf (`Normal / Hoch / Sehr hoch`) von betrieblicher `Criticality` trennen; bestehende Werte vor Migration prüfen.
+2. C/I/A-Begründungen für Assets ergänzen, ohne Reviewdaten zu duplizieren.
+3. Rechtsträger-Zuordnung für Asset, System, Risk und Control als eigenes `Organization`-/`LegalEntity`-Modell klären.
+4. Qualitätskennzahlen aus dem Objektmodell ableiten: fehlender Owner/Rechtsträger/Reviewtermin/Schutzbedarf, kritische Assets ohne Systembezug und Systeme ohne Betriebsstatus.
+5. Ein generisches Finding-/Abweichungsmodell für Audit, Schwachstellen, Reviews und technische Ist-Abgleiche entscheiden; mindestens mit ID, Quelle, Severity, Owner, Status, Frist, betroffenen Objekten, Maßnahme, Verifikation und Evidence.
 
-### GP-NIS2-02 – Schutzbedarfsbegründungen ergänzen
-
-Für Assets sollen Begründungen getrennt je C/I/A erfassbar sein:
-
-- Vertraulichkeit,
-- Integrität,
-- Verfügbarkeit.
-
-Optional später getrennte Review-Metadaten nur dann ergänzen, wenn der normale Asset-Review dafür nicht ausreicht.
-
-### GP-NIS2-03 – Rechtsträger-Zuordnung generisch modellieren
-
-Für Assets, Systeme, Risiken und Controls muss langfristig erkennbar sein, welcher Rechtsträger betroffen ist bzw. ob ein Objekt gruppenweit gilt.
-
-Bevorzugte Zielarchitektur:
-
-- eigener `Organization`-/`LegalEntity`-Objekttyp,
-- Relation von Governance-Objekten auf Rechtsträger,
-- keine zweckentfremdete Nutzung von `ComplianceScope`.
-
-Eine kurzfristige Choice-Lösung ist nur als Übergang sinnvoll.
-
-### GP-NIS2-04 – Asset-/System-Qualitätsmetriken
-
-Für den späteren NIS2-Betrieb sollen Auswertungen möglich sein, z. B.:
-
-- Assets ohne Owner,
-- Assets ohne Rechtsträger,
-- Assets ohne aktuelle C/I/A-Bewertung,
-- Assets ohne Reviewtermin,
-- kritische Assets ohne verknüpfte Systeme,
-- Systeme ohne Monitoring-/Backup-/Authentifizierungsstatus.
-
-Die Kennzahlen sollen aus dem vorhandenen Objektmodell abgeleitet werden, nicht in einem separaten NIS2-Datenbestand.
-
-### GP-NIS2-05 – Generisches Finding-/Abweichungsmodell
-
-Für Schwachstellenmanagement, Audits, Reviews, technische Ist-Abgleiche und andere Governance-Abweichungen wird ein generisches steuerbares Objekt benötigt.
-
-Der aktuelle Architekturstand enthält keinen offensichtlichen eigenen `Finding`-Objekttyp. Vor einer Umsetzung ist deshalb fachlich zu entscheiden, ob:
-
-- ein eigener generischer `Finding`-Objekttyp eingeführt wird, oder
-- eine vorhandene Objektart bewusst und generisch für Abweichungen erweitert wird.
-
-Mindestens erforderlich sind langfristig:
-
-- stabile Governance-ID,
-- Finding-/Quelltyp,
-- Beschreibung,
-- Priorität/Severity,
-- Owner,
-- Status/Lifecycle,
-- Erkannt-am / Zieltermin,
-- betroffene Assets/Systeme/Controls/Risiken/Lieferanten/Incidents,
-- Maßnahme bzw. Remediation,
-- Ausnahme-/Risikoakzeptanz mit Ablauf,
-- Verifikationsstatus,
-- Evidence-Verknüpfung,
-- Review-/Eskalationsfähigkeit.
-
-Das Modell soll nicht NIS2-spezifisch sein, sondern ebenso Auditfeststellungen, Review-Abweichungen, technische Reconciliation-Findings und weitere Compliance-Themen tragen können.
-
-## 4. Architektur-/Netzmodell – spätere Roadmap
-
-Das NIS2-Dokument `ARCH-NET-001` beschreibt langfristig Bedarf für:
-
-- Standorte,
-- Sicherheitszonen,
-- Netzsegmente,
-- Kommunikationsbeziehungen,
-- Datenflüsse.
-
-Diese Objekte werden **nicht** vorschnell als Freitextfelder auf `Asset` oder `System` ergänzt.
-
-Vor einer Implementierung ist ein eigener Architektur-Slice erforderlich, der entscheidet:
-
-1. welche Objekte eigene Governance-IDs benötigen,
-2. welche Relationen erforderlich sind,
-3. welche Details im Portal und welche in technischen Fachsystemen verbleiben,
-4. wie sensible Netz-/Flow-Daten geschützt werden.
-
-## 5. BIA / Business Service – spätere Roadmap
-
-Für NIS2/BCM wird perspektivisch ein belastbarer Bezug zwischen:
-
-```text
-Business Service / Prozess
-        ↓
-Asset
-        ↓
-System
-        ↓
-Risk / Control / Evidence
-```
-
-benötigt.
-
-Ein dediziertes Business-Service-/BIA-Modell wird erst eingeführt, wenn der generische Nutzen für Governance Portal geklärt ist. RTO/RPO sollen nicht redundant als Freitext in mehreren Objekten gepflegt werden.
-
-## 6. Priorisierung
-
-NIS2-relevante Änderungen werden in dieser Reihenfolge eingeplant:
-
-1. Stage 4.1 abnehmen, Stage 4.2 und den bestehenden Object-Provider-Ausbau stabil abschließen,
-2. Schutzbedarf/Kritikalität sauber trennen,
-3. Schutzbedarfsbegründungen,
-4. Rechtsträger-Modell,
-5. Qualitätsmetriken für Assets/Systeme,
-6. generisches Finding-/Abweichungsmodell,
-7. danach Architektur-/Netz-/Flow-Modell,
-8. danach Business-Service-/BIA-Modell.
-
-Die konkrete Reihenfolge der Punkte 2–6 darf im Governance-Portal-Projekt neu priorisiert werden, wenn Abhängigkeiten oder der generische Plattformnutzen dies sinnvoll machen.
-
-## 7. Abgrenzung zum NIS2-Dokumentationsrepo
-
-`MindBringer/NIS2` darf:
-
-- Anforderungen und Sollmodell dokumentieren,
-- Mapping-Lücken benennen,
-- diese Roadmap als Zielprojekt referenzieren.
-
-`MindBringer/NIS2` darf **nicht**:
-
-- Architektur-YAMLs dieses Repos verändern,
-- Canvas oder Provisioning anpassen,
-- technische Implementierung über fremde Feature-Branches steuern,
-- operative Portalobjekte erzeugen.
-
-Die Umsetzung bleibt vollständig in der Governance-Portal-Produktentwicklung.
+Netz-/Architekturmodell (Standorte, Zonen, Segmente, Beziehungen, Datenflüsse) und Business-Service-/BIA-Modell folgen erst nach eigenem Architektur-Slice. Sensible Netzdaten erhalten eine bewusste Schutzentscheidung; RTO/RPO werden nicht redundant gepflegt. NIS2 verändert weder die führende Quelle `architecture/*.yaml` noch die Freigabegrenzen des Portalprojekts.
