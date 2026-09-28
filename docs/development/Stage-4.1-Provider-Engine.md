@@ -53,6 +53,7 @@ Der Build führt in dieser Reihenfolge aus:
 7. Canvas- und Solution-Pack
 
 Der Synchronisierer ist idempotent. Bei unveränderter Registry entstehen keine zusätzlichen Änderungen.
+Die Repository-CI führt Canvas-Validierung, Registry-Validierung und Runtime-Prüfung im Check-Only-Modus aus. Eine fehlende Synchronisierung stoppt die CI, statt dort automatisch Quellcode zu verändern.
 
 ## Sicherheitsgrenzen
 

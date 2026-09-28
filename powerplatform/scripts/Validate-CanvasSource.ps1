@@ -89,6 +89,21 @@ if ($canvasVersion -ne $configuredVersion) {
     throw "Version mismatch: powerplatform/VERSION='$configuredVersion'; App.pa.yaml='$canvasVersion'. Run Set-BuildVersion.ps1."
 }
 
+$solutionVersionFile = Join-Path $RepositoryRoot 'powerplatform/solution/VERSION'
+if (-not (Test-Path -LiteralPath $solutionVersionFile -PathType Leaf)) {
+    throw "Solution Canvas version mirror is missing: $solutionVersionFile"
+}
+$solutionCanvasVersion = (Get-Content -LiteralPath $solutionVersionFile -Raw).Trim()
+if ($solutionCanvasVersion -ne $configuredVersion) {
+    throw "Version mismatch: powerplatform/VERSION='$configuredVersion'; powerplatform/solution/VERSION='$solutionCanvasVersion'. Run Set-BuildVersion.ps1."
+}
+
+$configPath = Join-Path $RepositoryRoot 'powerplatform/scripts/DeveloperPlatform.psd1'
+$developerConfig = Import-PowerShellDataFile -LiteralPath $configPath
+if ($developerConfig.Version -ne $configuredVersion) {
+    throw "Version mismatch: powerplatform/VERSION='$configuredVersion'; DeveloperPlatform.psd1='$($developerConfig.Version)'. Run Set-BuildVersion.ps1."
+}
+
 # Guard against accidentally checking in generated platform noise.
 $noiseNames = @(
     '.DS_Store',

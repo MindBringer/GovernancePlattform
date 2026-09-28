@@ -13,3 +13,12 @@ jobs:
         run: |
           git diff --check HEAD~1 HEAD 2>/dev/null || git diff --check
           Get-ChildItem powerplatform/scripts -Filter *.ps1 -Recurse | ForEach-Object { [void][scriptblock]::Create((Get-Content $_.FullName -Raw)) }
+      - name: Validate Canvas version and source
+        shell: pwsh
+        run: ./powerplatform/scripts/Validate-CanvasSource.ps1
+      - name: Validate object provider registry
+        shell: pwsh
+        run: ./powerplatform/scripts/Validate-ObjectProviderRegistry.ps1
+      - name: Check generated provider runtime
+        shell: pwsh
+        run: ./powerplatform/scripts/Sync-ObjectProviderRuntime.ps1 -CheckOnly
