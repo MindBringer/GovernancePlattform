@@ -7,10 +7,10 @@ Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-alpha.3.6.0` | Stage 3.6 integriert; Person- und Choice-Provider im Test |
-| Developer Workflow | `Stage 3.7` | Companion-, Audit- und Git-Pull-Zwischenstufe |
+| Canvas App | `1.0.0-alpha.4.1.0` | Stage 4.1 auf dem Entwicklungsbranch; DEV-Abnahme ausstehend |
+| Developer Workflow | `Stage 4.1` | Companion mit PAC-Round-Trip; Framework-Adoption ausstehend |
 
-Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-/Solution-Version. Stage 3.7 verändert den Entwicklungsworkflow, nicht die Canvas-Laufzeitversion.
+Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-Version. `powerplatform/solution/VERSION` spiegelt die Canvas-Version; die vierteilige Solution-Paketversion steht im Solution-Manifest. Die Stage-4.1-Änderungen sind noch nicht nach `main` integriert; `main` enthält Canvas `1.0.0-alpha.4.0.0`.
 
 ## Architektur in Kürze
 
@@ -23,6 +23,7 @@ architecture/*.yaml
         └── powerplatform/
              ├── canvas/             kanonischer Canvas-SourceCode
              ├── solution/           entpackte unmanaged Solution
+             ├── config/             Object-Provider-Registry
              └── scripts/            Validierung, Versionierung und Build
 ```
 
@@ -79,6 +80,10 @@ Build-Ausgaben entstehen unter `artifacts/` und gehören nicht in Git.
 
 - [Canvas Stage 3.6](docs/development/Stage-3.6.md)
 - [Developer Companion Stage 3.7](docs/development/Stage-3.7-Developer-Companion.md)
+- [Runtime Provider Engine Stage 4.1](docs/development/Stage-4.1-Provider-Engine.md)
+- [PAC-Workflow](docs/development/PAC-Companion-Workflow.md)
+- [Roadmap](docs/ROADMAP.md)
+- [Aktuelle Projektübergabe](PROJECT_STATE.md)
 - [Lokaler Git-/Test-Workflow](docs/development/Local-Companion-Workflow.md)
 - [Canvas-SourceCode-Migration](MIGRATION.md)
 - [Änderungshistorie](CHANGELOG.md)

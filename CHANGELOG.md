@@ -4,14 +4,21 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 
 ## Unreleased
 
+### Canvas Stage 4.1 – Entwicklungsbranch
+
+- Canvas-Version `1.0.0-alpha.4.1.0` zwischen Versionsdatei, App und Entwicklerkonfiguration abgeglichen.
+- Object-Provider-Registry in der Canvas-Runtime synchronisiert; Auswahl bindet den aktiven Provider und der Neu-Befehl prüft dessen Create-Fähigkeit.
+- Synchronisierer gegen eine fälschlich erkannte Provider-Bindung korrigiert; CI prüft Canvas-Version, Registry und Runtime ohne automatische Reparatur.
+- DEV-/Studio-Abgleich und Live-Smoke-Test stehen vor der Stage-4.1-Integration noch aus.
+
 ### Documentation and repository
 
-- Root-README auf das Gesamtprojekt ausgerichtet.
-- Architektur und Roadmap auf Provisioning 6.2.5 sowie Canvas Stage 3.4.1 aktualisiert.
+- Root-README auf das Gesamtprojekt und den Stage-4.1-Entwicklungsstand ausgerichtet.
+- Architektur und Roadmap auf Provisioning 6.2.5 sowie den aktuellen Provider-Ausbau aktualisiert.
 - Entwicklungs- und Build-Prozeduren vereinheitlicht.
 - konkurrierende Dokumente und den zweiten Canvas-SourceTree entfernt.
 - historische Iterations- und Migrationsunterlagen archiviert.
-- `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
+- `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.4.1.0` synchronisiert.
 
 ## Canvas 1.0.0-alpha.3.4.1
 

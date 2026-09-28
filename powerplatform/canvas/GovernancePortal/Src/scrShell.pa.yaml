@@ -149,7 +149,9 @@ Screens:
                                     Color: =gblTheme.ColorTextInverse
                                     DisplayMode: |-
                                       =If(
-                                          IsBlank(gblSelectedObjectTypeKey),
+                                          IsBlank(gblSelectedObjectTypeKey)
+                                              || IsBlank(gblActiveProvider)
+                                              || !Coalesce(gblActiveProvider.SupportsCreate, false),
                                           DisplayMode.Disabled,
                                           DisplayMode.Edit
                                       )
@@ -547,6 +549,13 @@ Screens:
                                     OnSelect: |-
                                       =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
                                       Set(gblObjectType, ThisItem.ObjectTypeKey);
+                                      Set(
+                                          gblActiveProvider,
+                                          LookUp(
+                                              colObjectProviderRegistry,
+                                              ObjectTypeKey = ThisItem.ObjectTypeKey
+                                          )
+                                      );
                                       Set(gblSelectedRecordId, 0)
                                     TemplateFill: |-
                                       =If(

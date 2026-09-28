@@ -69,6 +69,7 @@ $($records -join ",`n")
       Set(gblActiveProvider, Blank());
       /* END GENERATED OBJECT PROVIDER RUNTIME */
 "@
+$runtimeBlock = $runtimeBlock.Replace("`r`n", "`n")
 
 $generatedContent = @"
 // Generated from powerplatform/config/ObjectProviderRegistry.json
@@ -98,7 +99,7 @@ $nextShell = $shellContent
 # intentionally whitespace-tolerant because Power Apps exports can vary line
 # indentation and newline style between Studio versions and operating systems.
 if (-not $nextShell.Contains('gblActiveProvider.SupportsCreate')) {
-    $displayModePattern = '(?ms)(?<indent>\s*)=If\(\s*IsBlank\(gblSelectedObjectTypeKey\),\s*DisplayMode\.Disabled,\s*DisplayMode\.Edit\s*\)'
+    $displayModePattern = '(?ms)(?<indent>[ \t]*)=If\(\s*IsBlank\(gblSelectedObjectTypeKey\),\s*DisplayMode\.Disabled,\s*DisplayMode\.Edit\s*\)'
     $displayModeMatch = [regex]::Match($nextShell, $displayModePattern)
     if (-not $displayModeMatch.Success) {
         throw 'New-button DisplayMode formula not found in scrShell.pa.yaml.'
@@ -112,12 +113,12 @@ ${indent}        || !Coalesce(gblActiveProvider.SupportsCreate, false),
 ${indent}    DisplayMode.Disabled,
 ${indent}    DisplayMode.Edit
 ${indent})
-"@.TrimEnd()
+"@.TrimEnd().Replace("`r`n", "`n")
     $nextShell = [regex]::Replace($nextShell, $displayModePattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $replacement }, 1)
 }
 
-$selectionPattern = '(?ms)(?<indent>\s*)=Set\(gblSelectedObjectTypeKey, ThisItem\.ObjectTypeKey\);\s*Set\(gblObjectType, ThisItem\.ObjectTypeKey\);'
-if (-not $nextShell.Contains('ObjectTypeKey = ThisItem.ObjectTypeKey')) {
+$selectionPattern = '(?ms)(?<indent>[ \t]*)=Set\(gblSelectedObjectTypeKey, ThisItem\.ObjectTypeKey\);\s*Set\(gblObjectType, ThisItem\.ObjectTypeKey\);'
+if ($nextShell -notmatch 'Set\(\s*gblActiveProvider\s*,\s*LookUp\(\s*colObjectProviderRegistry') {
     $selectionMatch = [regex]::Match($nextShell, $selectionPattern)
     if (-not $selectionMatch.Success) {
         throw 'Object-type selection formula not found in scrShell.pa.yaml.'
@@ -133,7 +134,7 @@ ${indent}        colObjectProviderRegistry,
 ${indent}        ObjectTypeKey = ThisItem.ObjectTypeKey
 ${indent}    )
 ${indent});
-"@.TrimEnd()
+"@.TrimEnd().Replace("`r`n", "`n")
     $nextShell = [regex]::Replace($nextShell, $selectionPattern, [System.Text.RegularExpressions.MatchEvaluator]{ param($m) $selectionReplacement }, 1)
 }
 
@@ -151,6 +152,9 @@ if ($CheckOnly) {
         if (-not $shellContent.Contains($token)) {
             throw "Provider runtime token missing in scrShell.pa.yaml: $token"
         }
+    }
+    if ($shellContent -notmatch 'Set\(\s*gblActiveProvider\s*,\s*LookUp\(\s*colObjectProviderRegistry') {
+        throw 'Active provider selection is missing in scrShell.pa.yaml.'
     }
     Write-Host 'Object provider runtime is synchronized.' -ForegroundColor Green
     exit 0
