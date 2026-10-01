@@ -141,4 +141,49 @@ $engine.UpdateVariable('gblShowDiscardDialog', $false)
 $engine.UpdateVariable('gblActiveProvider', $engine.Eval('If(false, {ObjectTypeKey: "Asset", SupportsCreate: true, SupportsEdit: true, SupportsSave: true})', $null, $options))
 Assert-Formula $newFormula 'Disabled' 'Missing provider'
 Assert-Formula $saveFormula 'Disabled' 'Missing save provider'
+# Hidden input instances share a gallery record but must never mutate it.
+# Evaluate every real handler's guard independently of Canvas event simulation.
+foreach ($control in 'txtEditorText', 'txtEditorMultiline', 'txtEditorNumber', 'datEditorDate', 'togEditorBoolean', 'drpEditorChoice', 'cmbEditorLookup', 'cmbEditorPerson') {
+    $events = if ($control -eq 'togEditorBoolean') { @('OnCheck', 'OnUncheck') } else { @('OnChange') }
+    foreach ($event in $events) {
+        $handler = Get-ControlProperty $control $event
+        $guard = [regex]::Match($handler, '^If\(\s*(?<guard>[^\r\n]+),').Groups['guard'].Value
+        if (-not $guard) { throw "$control.$event must guard before any mutations." }
+        $guard = $guard.Replace('Self.', 'testEditorControl.').Replace('DisplayMode.Edit', '"Edit"')
+        foreach ($case in @(
+            @{Visible=$true; Mode='Edit'; Expected=$true},
+            @{Visible=$false; Mode='Edit'; Expected=$false},
+            @{Visible=$true; Mode='Disabled'; Expected=$false},
+            @{Visible=$true; Mode='View'; Expected=$false}
+        )) {
+            $visibleLiteral = ([string]$case.Visible).ToLowerInvariant()
+            $engine.UpdateVariable('testEditorControl', $engine.Eval('{Visible: ' + $visibleLiteral + ', DisplayMode: "' + $case.Mode + '"}', $null, $options))
+            Assert-Formula $guard $case.Expected "$control.$event visibility/editability guard"
+        }
+    }
+}
+# Evaluate the actual text-input update record before the gallery mutation.
+# Canvas host event/collection behavior still requires the DEV acceptance.
+$textChange = Get-ControlProperty 'txtEditorText' 'OnChange'
+$capturedInput = [regex]::Match($textChange, '(?s)With\(\s*(?<input>\{.*?\})\s*,\s*Patch\(').Groups['input'].Value.Replace('Self.Text', 'testTextInput.Text')
+if (-not $capturedInput -or $textChange -notmatch 'LookUp\(colEditorValues, EditorFieldKey = editorKey\)') {
+    throw 'Text input must capture its update record before patching the stable editor field key.'
+}
+$engine.UpdateVariable('ThisItem', $engine.Eval('{EditorFieldKey: "Asset:Title", IsRequired: true}', $null, $options))
+foreach ($entry in @(
+    @{Text=''; Valid=$false; Error='Pflichtfeld'},
+    @{Text='   '; Valid=$false; Error='Pflichtfeld'},
+    @{Text='DIAG'; Valid=$true; Error=''},
+    @{Text='  P0-SMOKE  '; Valid=$true; Error=''}
+)) {
+    $engine.UpdateVariable('testTextInput', $engine.Eval('{Text: "' + $entry.Text + '"}', $null, $options))
+    $inputFormula = 'With(' + $capturedInput + ', editorInput)'
+    Assert-Formula ('(' + $inputFormula + ').ValueText') $entry.Text 'Text event preserves entered value'
+    Assert-Formula ('(' + $inputFormula + ').IsValid') $entry.Valid 'Text event computes required validity'
+    Assert-Formula ('(' + $inputFormula + ').ErrorMessage') $entry.Error 'Text event clears or sets required error'
+    Assert-Formula ('(' + $inputFormula + ').IsDirty') $true 'Text event marks field dirty'
+}
+$engine.UpdateVariable('ThisItem', $engine.Eval('{EditorFieldKey: "Asset:AssetType", IsRequired: false}', $null, $options))
+$engine.UpdateVariable('testTextInput', $engine.Eval('{Text: ""}', $null, $options))
+Assert-Formula ('With(' + $capturedInput + ', editorInput.IsValid)') $true 'Optional text stays valid when empty'
 Write-Host "Canvas capability expressions passed: $checks assertions; no tenant access."

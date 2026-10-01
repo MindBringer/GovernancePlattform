@@ -13,6 +13,8 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 
 - P0-DEV-Freigabe: zwei Title-Metadaten angelegt, 30432 importiert/exportiert; Studio blockiert mit acht PA2108. Technischer Korrekturstand 30433 entfernt unzulässige Classic-Button-AccessibleLabel-Properties und ergänzt im Gate die tatsächliche Text-Namensregel/negative Fixture; keine Asset-Writes vor Maker-Abnahme.
 
+- P0-Host-Befund: Titeltext erreicht die Sammlung, Pflichtmarker bleibt ungültig. Kandidat 30435 erfasst Text-Update vor Patch und sperrt neun Änderungsereignisse unsichtbarer/nicht bearbeitbarer Inputs; 129 Offline-Assertions, Host-Abnahme noch offen. 30433 ist Studio-verarbeitet/Canvas 171 Live; null Asset-Save-Versuche.
+
 - Read-only-DEV-Export mit dem lokalen Stage-4.1-Reconciliation-Stand abgeglichen; Personenfeld- und Asset-Speicherlogik in den kanonischen Canvas-Quellcode übernommen.
 - Diagnostisches Suchlabel aus dem Quellcode entfernt; Solution-Manifest auf die DEV-Baseline `1.0.0.30428` ausgerichtet und Canvas-/Solution-Paket lokal neu erstellt.
 - CI prüft nun auch, ob das versionierte `.msapp` die vier aktuellen Canvas-YAMLs enthält. Studio-Validierung und DEV-Smoke bleiben für die fachliche Abnahme erforderlich.

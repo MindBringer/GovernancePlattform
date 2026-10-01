@@ -2,6 +2,20 @@
 
 Stand: 2026-10-01, nach freigegebener DEV-Veröffentlichung · Modellklasse: `standard-reasoning` · P0 bleibt offen
 
+## Aktuelle Host-Ereignis-Reparatur 30435
+
+30433: Import/Export Exit 0, Export-msapp bytegleich `6d9a0d850c17052cad92f07bb120078951a645457704fda273b28d769eb09bec`. Studio öffnet, speichert und veröffentlicht Canvas 171; Maker bestätigt Publish successful. Lesender Studio-Export msapp `17ae3455b40d47e45edf0574c7ce0adfcb685480fcfa23779937cf5af1cc39e1`; tatsächliche interne Controls tragen Classic-Buttons, Title-MaxLength, Save-Guards und Eingabe-Labels. Kein DEV→Git-Source-Takeover. Player über aktuellen Maker-Wiedergabelink getestet, ältere Tabs zeigten zuvor alte Controls.
+
+Checker 171: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen (TextResources/StatusPresentation). 56 Accessibility-Fehler: 19 Fokus, 25 Tabstopp, zwölf Labels; aktive Eingabe- und Button-Namen sind vorhanden, viele Treffer betreffen statische Labels/Galerie-Container/Templatecontrols. Zwölf Leistungswarnungen: zehn nur initialisierte Collections, zwei ForAll-Mutationshinweise (lblNew/cmbEditorLookup). Restbefunde gehen vor Pilot in P2 bzw. Collection-/Lookup-Optimierung in P1; keine allgemeine Accessibility-Freigabe.
+
+Enter/Space/Tab/Shift-Tab: Navigation, Asset-Auswahl, Neu, Pflicht-Titel, Abbrechen, Weiter bearbeiten und Verwerfen erreichbar. Dialog sperrt Hintergrundbefehle/Eingaben und fokussiert Weiter bearbeiten; Weiter bearbeiten gibt an Abbrechen zurück. Nach endgültigem Verwerfen ist Neu-Fokus nicht belegt (Tab landet bei Start). Asset/System-Neu frei, Contact gesperrt; vorherige 168-Evidenz für Incident/Problem/Change bleibt historisch, keine neue Vollprüfung aller Provider behauptet.
+
+**Blocker vor Save:** leer/Leerzeichen-Titel sperren korrekt. Nach nicht leerer Eingabe bleibt aber IsValid=false/ErrorMessage=Pflichtfeld. Reproduziert mit einzelnen Tasten in Studio-Vorschau; Variablen-Tabelle zeigt ValueText=DIAG und IsDirty=true, Validierungsmarker unverändert, 31 Galeriezeilen. Kein Asset-Save-Versuch/Write. Personenpicker-Suche nach freigegebenem Testkonto ohne auswählbaren Treffer; nicht als Rechtefehler oder funktionierender Personenvertrag ausgegeben.
+
+30434 erfasst Text/Dirty/Validierung vor Patch und adressiert EditorFieldKey; Import Exit 0/Canvas 172 Live, keine Studio-Abnahme des Zwischenstands. 30435 ergänzt Sichtbarkeits-/Edit-Guards vor neun Ereignissen von acht Inputs; unsichtbare Controls teilen dieselbe ThisItem-Zeile und können sonst fremde Feldtyp-Validierungen patchen. Begründeter Reparaturansatz, abschließende Host-Wirksamkeit noch offen. Personen-/Choice-/Providerverträge erhalten.
+
+30435 ZIP SHA-256 `d170fd2c19177b7204bdc98aaa58103cc15e9d8bcf20b6a5fe7c60fe8dad907d`; msapp `f88d11f37a1e52bedd308c6b09fafb60d1a6d4ccf0ed2c29892517ac9de6d411`. 129 Offline-Assertions, Titel-/Metadatendelta, Accessibility, Syntax/Architektur/Konsistenz, vollständiger Build/Registry/Runtime/Referenzen/Artefakt/Audit/Diff: Exit 0. SourceCode-Unpack erfolgreich; Experimental-Layout scheitert mit PAC NullReferenceException und ersetzt kein Gate. Pester nicht installiert, canvas validate in PAC 2.9.3 nicht verfügbar. Technische Reparatur innerhalb der konkreten DEV-Freigabe; keine neue Metadatenübernahme, Provisionierung/Seed/Reset oder Source-Übernahme.
+
 ## Technische Reparaturschleife nach DEV-Freigabe
 
 Die ausdrückliche Freigabe für das P0-Paket wurde ausgeführt: beide Title-Metadatenschlüssel waren vorher leer, wurden einzeln neu angelegt und ihre gespeicherten Werte geprüft. Sicherung vor Import: Solution 30431, msapp `5c7ff36d4c93417b8c962b6e6561c5bb7c4a48b8e447cdcdc78ba711054a1d77` (bekannte Studio-168-Baseline). Import/Export von 30432: Exit 0, msapp bytegleich `a256590415ca31b4ee471c941a7731a72cecaa2199f1905ab213da0733513150`; Canvas 169 wurde durch PAC Live.
@@ -104,4 +118,4 @@ Screenshots, Logs und vollständige Exporte bleiben lokal/ignoriert. Die Nachwei
 
 ## Primäres nächstes Arbeitspaket
 
-**P0-DEV-Abnahme von Reparaturkandidat 30432:** konkrete Freigabe für die gezielte Zwei-Zeilen-Title-Metadatenübernahme sowie Import/Studio-Verarbeitung/Veröffentlichung; dann Tastatur-/Checker-Abnahme und genau ein synthetischer Save-/Quellen-/Bereinigungstest. Kein weiteres Featurepaket parallel. Risiko-Navigation bleibt separater P1-Befund. P1 folgt nach belegter P0-Abnahme.
+**P0-Ereignis- und DEV-Speicherabnahme von 30435:** Studio verarbeiten/prüfen/veröffentlichen, Titel-/Personen-/Tastaturpfad belegen, erst dann genau ein synthetischer Save-/Quellen-/Bereinigungstest im bereits freigegebenen Umfang. Keine neue Feature-Erweiterung, P1 folgt erst nach belegter P0-Abnahme. Wegen mehrerer Host-/Galerie-Befunde Modellklasse `deep-reasoning` für diese Reparaturschleife.

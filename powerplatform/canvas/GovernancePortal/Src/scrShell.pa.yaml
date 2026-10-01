@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -1235,21 +1235,30 @@ Screens:
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueText: Self.Text,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
-                                                              "Pflichtfeld",
-                                                              ""
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      With(
+                                                          {
+                                                              editorKey: ThisItem.EditorFieldKey,
+                                                              editorInput: {
+                                                                  ValueText: Self.Text,
+                                                                  IsDirty: true,
+                                                                  IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                                  ErrorMessage: If(
+                                                                      ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                                      "Pflichtfeld",
+                                                                      ""
+                                                                  )
+                                                              }
+                                                          },
+                                                          Patch(
+                                                              colEditorValues,
+                                                              LookUp(colEditorValues, EditorFieldKey = editorKey),
+                                                              editorInput
                                                           )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType = "Text"
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1271,21 +1280,24 @@ Screens:
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Mode: =TextMode.MultiLine
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueText: Self.Text,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueText: Self.Text,
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType in ["Note", "MultilineText"]
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1306,21 +1318,24 @@ Screens:
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.Text),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Self.Text),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType = "Number"
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1339,21 +1354,24 @@ Screens:
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueDate: Self.SelectedDate,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.SelectedDate),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueDate: Self.SelectedDate,
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Self.SelectedDate),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType in ["Date", "DateTime"]
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1372,29 +1390,35 @@ Screens:
                                                 Font: =Font.'Open Sans'
                                                 Height: =40
                                                 OnCheck: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueBoolean: true,
-                                                          IsDirty: true,
-                                                          IsValid: true,
-                                                          ErrorMessage: ""
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueBoolean: true,
+                                                              IsDirty: true,
+                                                              IsValid: true,
+                                                              ErrorMessage: ""
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 OnUncheck: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueBoolean: false,
-                                                          IsDirty: true,
-                                                          IsValid: true,
-                                                          ErrorMessage: ""
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueBoolean: false,
+                                                              IsDirty: true,
+                                                              IsValid: true,
+                                                              ErrorMessage: ""
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 TrueFill: =gblTheme.ColorPrimary
                                                 TrueText: ="Ja"
                                                 Visible: =ThisItem.ControlType = "Boolean"
@@ -1426,22 +1450,25 @@ Screens:
                                                   )
                                                 Items.Value: =DisplayNameDE
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueChoiceKey: Self.Selected.ChoiceKey,
-                                                          ValueText: Self.Selected.DisplayNameDE,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueChoiceKey: Self.Selected.ChoiceKey,
+                                                              ValueText: Self.Selected.DisplayNameDE,
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 SelectionFill: =gblTheme.ColorPrimary
                                                 Visible: =ThisItem.ControlType = "Choice"
                                                 Width: =Parent.TemplateWidth * 0.42
@@ -1489,48 +1516,51 @@ Screens:
                                                           && lookupValue.IsActiveValue = true
                                                   )
                                                 OnChange: |-
-                                                  =RemoveIf(
-                                                      colEditorLookupSelections,
-                                                      EditorFieldKey = ThisItem.EditorFieldKey
-                                                  );
-                                                  ForAll(
-                                                      Self.SelectedItems As selectedLookup,
-                                                      Collect(
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      RemoveIf(
                                                           colEditorLookupSelections,
-                                                          {
-                                                              EditorFieldKey: ThisItem.EditorFieldKey,
-                                                              LookupObjectTypeKey: ThisItem.LookupObjectTypeKey,
-                                                              LookupId: selectedLookup.LookupId,
-                                                              LookupKey: selectedLookup.LookupKey,
-                                                              DisplayText: selectedLookup.DisplayText,
-                                                              SecondaryText: selectedLookup.SecondaryText
-                                                          }
-                                                      )
-                                                  );
-                                                  Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueLookupId: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              Blank(),
-                                                              First(Self.SelectedItems).LookupId
-                                                          ),
-                                                          ValueLookupText: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              First(Self.SelectedItems).DisplayText
-                                                          ),
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
-                                                              "Pflichtfeld",
-                                                              ""
+                                                          EditorFieldKey = ThisItem.EditorFieldKey
+                                                      );
+                                                      ForAll(
+                                                          Self.SelectedItems As selectedLookup,
+                                                          Collect(
+                                                              colEditorLookupSelections,
+                                                              {
+                                                                  EditorFieldKey: ThisItem.EditorFieldKey,
+                                                                  LookupObjectTypeKey: ThisItem.LookupObjectTypeKey,
+                                                                  LookupId: selectedLookup.LookupId,
+                                                                  LookupKey: selectedLookup.LookupKey,
+                                                                  DisplayText: selectedLookup.DisplayText,
+                                                                  SecondaryText: selectedLookup.SecondaryText
+                                                              }
                                                           )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                      );
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueLookupId: If(
+                                                                  IsEmpty(Self.SelectedItems),
+                                                                  Blank(),
+                                                                  First(Self.SelectedItems).LookupId
+                                                              ),
+                                                              ValueLookupText: If(
+                                                                  IsEmpty(Self.SelectedItems),
+                                                                  "",
+                                                                  First(Self.SelectedItems).DisplayText
+                                                              ),
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 SearchFields: =["DisplayText", "SecondaryText"]
                                                 SelectMultiple: =ThisItem.AllowMultiple
                                                 Visible: =ThisItem.ControlType = "Lookup"
@@ -1624,54 +1654,57 @@ Screens:
                                                   )
                                                 OnChange: |-
                                                   =If(
-                                                      IsEmpty(Self.SelectedItems),
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      If(
+                                                          IsEmpty(Self.SelectedItems),
 
-                                                      Patch(
-                                                          colEditorValues,
-                                                          ThisItem,
-                                                          {
-                                                              ValueText: "",
-                                                              ValuePersonEmail: "",
-                                                              ValuePersonClaims: "",
-                                                              ValuePersonDepartment: "",
-                                                              ValuePersonJobTitle: "",
-                                                              IsDirty: true,
-                                                              IsValid: !ThisItem.IsRequired,
-                                                              ErrorMessage:
-                                                                  If(
-                                                                      ThisItem.IsRequired,
-                                                                      "Pflichtfeld",
-                                                                      ""
-                                                                  )
-                                                          }
-                                                      ),
-
-                                                      With(
-                                                          {
-                                                              selectedPerson: First(Self.SelectedItems)
-                                                          },
                                                           Patch(
                                                               colEditorValues,
                                                               ThisItem,
                                                               {
-                                                                  ValueText:
-                                                                      selectedPerson.DisplayName,
-                                                                  ValuePersonEmail:
-                                                                      selectedPerson.UserPrincipalName,
-                                                                  ValuePersonClaims:
-                                                                      "i:0#.f|membership|" &
-                                                                      Lower(selectedPerson.UserPrincipalName),
+                                                                  ValueText: "",
+                                                                  ValuePersonEmail: "",
+                                                                  ValuePersonClaims: "",
                                                                   ValuePersonDepartment: "",
                                                                   ValuePersonJobTitle: "",
                                                                   IsDirty: true,
-                                                                  IsValid: true,
-                                                                  ErrorMessage: ""
+                                                                  IsValid: !ThisItem.IsRequired,
+                                                                  ErrorMessage:
+                                                                      If(
+                                                                          ThisItem.IsRequired,
+                                                                          "Pflichtfeld",
+                                                                          ""
+                                                                      )
                                                               }
+                                                          ),
+
+                                                          With(
+                                                              {
+                                                                  selectedPerson: First(Self.SelectedItems)
+                                                              },
+                                                              Patch(
+                                                                  colEditorValues,
+                                                                  ThisItem,
+                                                                  {
+                                                                      ValueText:
+                                                                          selectedPerson.DisplayName,
+                                                                      ValuePersonEmail:
+                                                                          selectedPerson.UserPrincipalName,
+                                                                      ValuePersonClaims:
+                                                                          "i:0#.f|membership|" &
+                                                                          Lower(selectedPerson.UserPrincipalName),
+                                                                      ValuePersonDepartment: "",
+                                                                      ValuePersonJobTitle: "",
+                                                                      IsDirty: true,
+                                                                      IsValid: true,
+                                                                      ErrorMessage: ""
+                                                                  }
+                                                              )
                                                           )
                                                       )
+                                                      ;
+                                                      Select(lblEditorRevalidate)
                                                   )
-                                                  ;
-                                                  Select(lblEditorRevalidate)
                                                 PressedColor: =RGBA(255, 255, 255, 1)
                                                 PressedFill: =RGBA(0, 18, 107, 1)
                                                 SearchFields: =["DisplayName"]

@@ -78,8 +78,8 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `colObjectProviderRegistry` ist in `App.pa.yaml` vorhanden.
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
 - **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
-- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (76 Assertions am Reparaturkandidaten 30432). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
-- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Der Build ist belegt; die Live-Speicherabnahme von 30432 steht noch aus.
+- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (129 Assertions am Reparaturkandidaten 30435). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
+- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Der Build ist belegt; die Live-Speicherabnahme von 30435 steht noch aus.
 
 ## P0-Kandidat vom 01.10.2026
 
@@ -88,3 +88,7 @@ Solution `1.0.0.30431` wurde nach ausdrücklicher Freigabe am 01.10.2026 in DEV 
 ## P0-Reparaturkandidat 30432 (lokal)
 
 Asset-Title wird aus der führenden Architektur als verpflichtender Text erzeugt; zwei zusätzliche Title-Metadatenzeilen erhalten SortOrder 0, vorhandene Zeilen bleiben unverändert. Initialisierung liest auch FieldDefinitions.IsRequired. Save und Revalidierung verlangen für Asset einen nicht leeren, maximal 255 Zeichen langen Titel; der Patch trimmt ohne generischen Fallback. Acht Aktionen/Auswahlen sind Classic-Buttons, Eingaben/Galerien haben expliziten Tastatur-/Fokus-/Labelvertrag und der Verwerfen-Dialog sperrt den Hintergrund. 76 Offline-Power-Fx-Assertions, neue Metadaten-/Accessibility-Gates und PAC-Build/Round-Trip bestehen. DEV bleibt 30431 / Canvas 168; neue Metadatenübernahme und Import/Studio-Veröffentlichung brauchen konkrete Freigabe. Nächstes Paket ist allein die P0-DEV-Abnahme von 30432 gemäß [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
+
+## P0-Host-Ereignis-Reparatur 30435
+
+30433 im Studio verarbeitet und Canvas 171 Live, ohne Formel-/Laufzeitbefunde. Der Player-/Studio-Titel aktualisiert ValueText, behält aber den ungültigen Pflichtmarker; daher null Save-Versuche. 30435 erfasst den Text-Update-Record vor der Mutation, adressiert EditorFieldKey und sperrt neun Ereignisse unsichtbarer/nicht bearbeitbarer Inputs in der geteilten Galeriezeile. 129 Offline-Assertions bestehen, Host-Wirksamkeit und Personen-/Save-/Quellen-/Bereinigungsevidenz bleiben zu prüfen. Die konkrete P0-DEV-Freigabe ist aktiv; einziges nächstes Paket ist die [P0-Abnahme](Stage-4.1-P0-Abnahme.md), keine neue Title-Metadatenübernahme.
