@@ -114,7 +114,6 @@ Screens:
                               - lblRefresh:
                                   Control: Classic/Button@2.2.0
                                   Properties:
-                                    AccessibleLabel: =Self.Text
                                     FocusedBorderColor: =gblTheme.ColorText
                                     FocusedBorderThickness: =3
                                     TabIndex: =0
@@ -147,7 +146,6 @@ Screens:
                               - lblNew:
                                   Control: Classic/Button@2.2.0
                                   Properties:
-                                    AccessibleLabel: =Self.Text
                                     FocusedBorderColor: =gblTheme.ColorText
                                     FocusedBorderThickness: =3
                                     TabIndex: =0
@@ -591,7 +589,6 @@ Screens:
                                     - lblObjectTypeTitle:
                                         Control: Classic/Button@2.2.0
                                         Properties:
-                                          AccessibleLabel: =Self.Text
                                           FocusedBorderColor: =gblTheme.ColorText
                                           FocusedBorderThickness: =3
                                           TabIndex: =0
@@ -811,7 +808,6 @@ Screens:
                                     - lblEditorCancel:
                                         Control: Classic/Button@2.2.0
                                         Properties:
-                                          AccessibleLabel: =Self.Text
                                           FocusedBorderColor: =gblTheme.ColorText
                                           FocusedBorderThickness: =3
                                           TabIndex: =0
@@ -844,7 +840,6 @@ Screens:
                                     - lblEditorSave:
                                         Control: Classic/Button@2.2.0
                                         Properties:
-                                          AccessibleLabel: =Self.Text
                                           FocusedBorderColor: =gblTheme.ColorText
                                           FocusedBorderThickness: =3
                                           TabIndex: =0
@@ -1735,7 +1730,6 @@ Screens:
                               - lblNavigationItem:
                                   Control: Classic/Button@2.2.0
                                   Properties:
-                                    AccessibleLabel: =Self.Text
                                     FocusedBorderColor: =gblTheme.ColorText
                                     FocusedBorderThickness: =3
                                     TabIndex: =0
@@ -1857,7 +1851,6 @@ Screens:
                         - lblDiscardStay:
                             Control: Classic/Button@2.2.0
                             Properties:
-                              AccessibleLabel: =Self.Text
                               FocusedBorderColor: =gblTheme.ColorText
                               FocusedBorderThickness: =3
                               TabIndex: =0
@@ -1875,7 +1868,6 @@ Screens:
                         - lblDiscardConfirm:
                             Control: Classic/Button@2.2.0
                             Properties:
-                              AccessibleLabel: =Self.Text
                               FocusedBorderColor: =gblTheme.ColorText
                               FocusedBorderThickness: =3
                               TabIndex: =0

@@ -15,6 +15,8 @@ Die lokale Reparatur `30432` ergänzt den verpflichtenden Asset-Titel durch Arch
 
 **Schnitt der Einführung:** Nur die vier genannten Anwendungsfälle und die nötigen Querschnittsfunktionen werden vorgezogen. Ein begrenzter Asset-Pilot ist ein Zwischenziel; er ersetzt die Abnahme des gesamten ersten Produktivumfangs nicht. Weitere Listen bleiben im Schema, werden aber nicht durch eine bloß sichtbare Kachel als produktiv freigegeben.
 
+Der freigegebene Import von 30432 und die zwei Title-Metadatensätze sind ausgeführt. Studio meldet acht PA2108 für nicht unterstützte Classic-Button-AccessibleLabel-Properties; Asset-Save blieb vor Write gesperrt. Technischer Korrekturstand 30433 nutzt bei Buttons Text als Screenreader-Namen und bleibt im selben P0-Abnahmeumfang. P0 ist bis Maker-/Tastatur-/Save-Evidenz offen.
+
 ## Arbeitspakete bis zum ersten produktiven Einsatz
 
 Die Modellwahl beschreibt die **Codex-Arbeit am Paket**, kein KI-Modell im Portal. `standard-reasoning` und `deep-reasoning` sind die Klassen des [lokalen Arbeitsprofils](project/Local-Agent-Workflow.md). Konkrete Empfehlungen beziehen sich auf die [aktuelle offizielle OpenAI-Modellauswahl](https://developers.openai.com/api/docs/guides/model-selection) und werden beim Paketstart gegen die dann verfügbaren Modelle geprüft. Für deterministische Teilaufgaben innerhalb eines Pakets genügt `fast`/GPT-6 Luna (low); die fachliche Abnahme bleibt menschlich.

@@ -2,7 +2,15 @@
 
 Stand: 2026-10-01, nach freigegebener DEV-Veröffentlichung · Modellklasse: `standard-reasoning` · P0 bleibt offen
 
-## Aktueller Reparaturkandidat 30432 (lokal)
+## Technische Reparaturschleife nach DEV-Freigabe
+
+Die ausdrückliche Freigabe für das P0-Paket wurde ausgeführt: beide Title-Metadatenschlüssel waren vorher leer, wurden einzeln neu angelegt und ihre gespeicherten Werte geprüft. Sicherung vor Import: Solution 30431, msapp `5c7ff36d4c93417b8c962b6e6561c5bb7c4a48b8e447cdcdc78ba711054a1d77` (bekannte Studio-168-Baseline). Import/Export von 30432: Exit 0, msapp bytegleich `a256590415ca31b4ee471c941a7731a72cecaa2199f1905ab213da0733513150`; Canvas 169 wurde durch PAC Live.
+
+Studio konnte 30432 nicht öffnen: acht **PA2108** für `AccessibleLabel` auf `Classic/Button@2.2.0`. Kein Studio-Checker-/Tastatur-/Save-Test behauptet; null Asset-Writes. Die lokale Accessibility-Prüfung hatte diese unzulässige Eigenschaft ebenfalls verlangt. Technischer Korrekturstand **30433** entfernt ausschließlich die acht Button-AccessibleLabel-Properties; Classic-Buttons verwenden `Text` als Screenreader-Namen gemäß [Microsoft Button-Dokumentation](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/controls/control-button). Eingabe- und Galerie-Labels, Tab/Fokus, Title/Save-/Personen-/Choice-Verträge bleiben erhalten. Das Gate verlangt jetzt den Namen über Text und verwirft die konkret belegte unzulässige Eigenschaft; eine Negativfixture reproduziert PA2108 und wird mit Exit 1 erwartet abgewiesen. Keine funktionale Scope-Erweiterung; die Korrekturschleife dient der bereits freigegebenen DEV-Abnahme.
+
+30433: vollständiger Build, 76 Power-Fx-Assertions, Titel-/Metadatendelta, Accessibility-Quellvertrag, Syntax/Architektur/Konsistenz/Registry/Runtime/Referenzen, vier YAMLs im Artefakt und PAC-Round-Trip: Exit 0. ZIP SHA-256 `06319fc19ab412762b2d4b4b0dbbe2a939e46c00b21e2f3c3805581d54ef6cc9`; msapp `6d9a0d850c17052cad92f07bb120078951a645457704fda273b28d769eb09bec`. Die zwei Title-Metadaten werden nicht erneut angelegt. Aktuelle Live-Evidenz wird nach erfolgreicher Studio-Verarbeitung und dem einen kontrollierten Asset-Smoke ergänzt. Kein Full-Provisioning/Seed/Reset oder DEV→Git-Source-Übernahme.
+
+## Reparaturkandidat 30432 vor Studio-Prüfung (historisch)
 
 `weiter` beauftragt die lokale Reparatur, keine erneuten Live-Writes. Solution `1.0.0.30432` ist gebaut; DEV bleibt beim zuletzt belegten `30431` / Canvas 168. Provisioning `6.2.5` und Canvas `1.0.0-alpha.4.1.0` unverändert. PR #16 bleibt Draft.
 

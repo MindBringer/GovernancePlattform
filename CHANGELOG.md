@@ -11,6 +11,8 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - Lokaler Reparaturkandidat `30432`: verpflichtender nativer Asset-Titel durch Architektur/Metadatengenerator, Guard und getrimmten Patch ohne Fallback; zwei zusätzliche Metadatensätze, bestehende Zeilen unverändert.
 - Asset-Kernaktionen auf Classic-Buttons umgestellt; Eingaben/Galerien mit Labels, Tastatur/Fokus und gesperrtem Modal-Hintergrund. 76 Offline-Power-Fx-Assertions sowie CI-Verträge für Asset-Title/Metadaten und Accessibility; Live-Abnahme von `30432` ausstehend.
 
+- P0-DEV-Freigabe: zwei Title-Metadaten angelegt, 30432 importiert/exportiert; Studio blockiert mit acht PA2108. Technischer Korrekturstand 30433 entfernt unzulässige Classic-Button-AccessibleLabel-Properties und ergänzt im Gate die tatsächliche Text-Namensregel/negative Fixture; keine Asset-Writes vor Maker-Abnahme.
+
 - Read-only-DEV-Export mit dem lokalen Stage-4.1-Reconciliation-Stand abgeglichen; Personenfeld- und Asset-Speicherlogik in den kanonischen Canvas-Quellcode übernommen.
 - Diagnostisches Suchlabel aus dem Quellcode entfernt; Solution-Manifest auf die DEV-Baseline `1.0.0.30428` ausgerichtet und Canvas-/Solution-Paket lokal neu erstellt.
 - CI prüft nun auch, ob das versionierte `.msapp` die vier aktuellen Canvas-YAMLs enthält. Studio-Validierung und DEV-Smoke bleiben für die fachliche Abnahme erforderlich.

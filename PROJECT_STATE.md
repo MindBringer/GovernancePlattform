@@ -4,12 +4,16 @@ Stand: 2026-10-01 · Arbeitszweig: `codex/stage41-p0` auf Roadmap-Head `964dc611
 
 ## Aktueller Kandidat
 
-- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; **Lokaler Reparaturkandidat Solution `1.0.0.30432`; belegter DEV-Stand bleibt `30431` / Canvas 168 Live.** Branch und Draft-PR sind die dauerhafte Übergabe; das ZIP bleibt lokales, ignoriertes Build-Artefakt.
+- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; **Technischer Korrekturstand Solution `1.0.0.30433` lokal gebaut; DEV-Import `30432` / Canvas 169 Live scheitert am Studio-YAML-Schema.** Branch und Draft-PR sind die dauerhafte Übergabe; das ZIP bleibt lokales, ignoriertes Build-Artefakt.
 - Neu verlangt passenden Provider mit Create und Save; Save verlangt den passenden Provider, Save und je nach Modus Create oder Edit mit positiver ID. Busy/ungültiger Editor sperren den Befehl; OnSelect prüft vor Mutationen die aktuelle Sperre. Die Registry bleibt unverändert: Asset/System mit Save, sieben andere registrierte Provider ohne Save.
 - Die nicht delegierbare Asset-Gesamtzahl wurde entfernt. Die übrigen Dashboard-Metadatenzähler bleiben bestehen; kein Ersatz durch einen begrenzten Fachdatensatz-Cache.
 - Personen-/Choice-Mappings bleiben erhalten. Asset erhält einen nativen, verpflichtenden Text-Titel (max. 255 Zeichen) aus `architecture/object-fields.yaml`. Der Patch schreibt den getrimmten Eingabetitel ohne generischen Fallback; fehlende/leere/zu lange Titel sperren Save unabhängig von veralteter Eligibility. Zwei neue Metadatensätze liefern das erste Pflichtfeld; bestehende Feldpositionen bleiben unverändert. Liste/Laden/Bearbeiten bestehender Datensätze fehlen weiterhin und gehören zu P1. Schema/Metadaten für Change, Risk, Evidence und Reviews sind keine App-Abnahme.
 - Roadmap P0–P7 priorisiert Asset-Pilot, danach Asset/Change/Risk/Evidence mit Verantwortlichen und Reviews. Incident/Problem und weitere Listen folgen.
 - Profil 1.2.0 ist adoptiert. Framework-Conformance-PR #6 bleibt isoliert und DO NOT MERGE; keine Framework-Locks/Runtimeversionen ergänzt.
+
+## Aktive freigegebene DEV-Reparaturschleife
+
+Beide Title-Metadaten einzeln angelegt und verifiziert; Import/Export 30432 erfolgreich und bytegleich. Studio verweigert das Öffnen wegen acht PA2108 (Classic-Button AccessibleLabel). Daher keine Asset-Speicherung. 30433 entfernt diese nicht unterstützten Button-Properties; Text übernimmt dort den Screenreader-Namen. Eingabe-/Galerie-Labels und fachliche Verträge bleiben erhalten. Gate prüft jetzt die tatsächliche Button-Schema-/Namensregel einschließlich negativer PA2108-Fixture. Vollständige lokale Gates/76 Assertions und PAC-Round-Trip bestehen. Dies ist eine technische Reparatur innerhalb der freigegebenen P0-Abnahme, kein neues Featurepaket. [Details und Hashes](docs/development/Stage-4.1-P0-Abnahme.md).
 
 ## Lokale P0-Reparatur 30432
 
