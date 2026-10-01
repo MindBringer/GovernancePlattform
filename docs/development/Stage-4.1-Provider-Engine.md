@@ -78,16 +78,12 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `colObjectProviderRegistry` ist in `App.pa.yaml` vorhanden.
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
 - **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
-- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (129 Assertions am Reparaturkandidaten 30435). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
-- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Der Build ist belegt; die Live-Speicherabnahme von 30435 steht noch aus.
+- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (135 Assertions; ergänzend Test-CanvasChoiceContract.ps1 mit 212 Assertions am Kandidaten 30440). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
+- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Der Build ist belegt; die Choice-Quellenabnahme von 30440 steht nach dem fehlerhaften ersten Speichertest noch aus.
 
-## P0-Kandidat vom 01.10.2026
+## Historische P0-Baseline und Title-Reparatur
 
-Solution `1.0.0.30431` wurde nach ausdrücklicher Freigabe am 01.10.2026 in DEV importiert. Nach dem erforderlichen Studio-Verarbeitungsschritt wurde Canvas 168 veröffentlicht und als Live geprüft. SourceCode-Pack/Unpack und Capability-Tests sind keine Maker-Abnahme. Die `.msapr`-Pack-Baseline behält alte interne Controls und SARIF-Meldungen, einschließlich der früheren CountRows-Warnung; sie wurde nicht manuell als zweite Quelle bearbeitet. Die direkte Importversion 167 führte noch alte Neu-Regeln aus; erst das Öffnen/Verarbeiten in Studio und Veröffentlichen der 168 aktivierten die geprüften YAML-Regeln. Dieser Maker-Schritt ist deshalb ein verbindliches Abnahmegate nach SourceCode-Pack und Import; Import/Publish allein genügt nicht. Die verbleibenden Prüfungen und der kontrollierte Asset-Smoke stehen in [Stage-4.1-P0-Abnahme.md](Stage-4.1-P0-Abnahme.md).
-
-## P0-Reparaturkandidat 30432 (lokal)
-
-Asset-Title wird aus der führenden Architektur als verpflichtender Text erzeugt; zwei zusätzliche Title-Metadatenzeilen erhalten SortOrder 0, vorhandene Zeilen bleiben unverändert. Initialisierung liest auch FieldDefinitions.IsRequired. Save und Revalidierung verlangen für Asset einen nicht leeren, maximal 255 Zeichen langen Titel; der Patch trimmt ohne generischen Fallback. Acht Aktionen/Auswahlen sind Classic-Buttons, Eingaben/Galerien haben expliziten Tastatur-/Fokus-/Labelvertrag und der Verwerfen-Dialog sperrt den Hintergrund. 76 Offline-Power-Fx-Assertions, neue Metadaten-/Accessibility-Gates und PAC-Build/Round-Trip bestehen. DEV bleibt 30431 / Canvas 168; neue Metadatenübernahme und Import/Studio-Veröffentlichung brauchen konkrete Freigabe. Nächstes Paket ist allein die P0-DEV-Abnahme von 30432 gemäß [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
+30431 / Canvas 168 belegte den erforderlichen Studio-Verarbeitungsschritt nach SourceCode-Import; die direkte Importversion führte noch alte interne Regeln aus. Die `.msapr`-Pack-Baseline behält historische Controls/SARIF und ist keine aktuelle Maker-Abnahme. 30432 ergänzte den nativen verpflichtenden Asset-Title und genau zwei Metadatenzeilen. Seine unzulässigen Classic-Button-Properties wurden in 30433 korrigiert; 30434/35 reparierten Galerieereignisse. Details und Versionen stehen historisch in der [P0-Abnahme](Stage-4.1-P0-Abnahme.md); aktueller Stand und einziges Folgepaket folgen unten.
 
 ## P0-Host-/Choice-Abnahme: aktueller Kandidat 30440
 
