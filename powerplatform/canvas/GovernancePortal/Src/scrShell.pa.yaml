@@ -112,13 +112,18 @@ Screens:
                                       )
                                     Width: =Parent.Width - 220
                               - lblRefresh:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    AccessibleLabel: =Self.Text
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =Align.Center
                                     BorderColor: =gblTheme.ColorBorder
                                     BorderThickness: =1
                                     Color: =gblTheme.ColorPrimary
                                     Fill: =gblTheme.ColorSurface
+                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =FontWeight.Semibold
                                     OnSelect: |-
@@ -137,12 +142,15 @@ Screens:
                                       Set(gblBusyMessage, Blank())
                                     Text: ="Aktualisieren"
                                     Width: =140
-                                    Wrap: =false
                                     X: =Parent.Width - Self.Width
                                     Y: =2
                               - lblNew:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    AccessibleLabel: =Self.Text
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =Align.Center
                                     BorderColor: =gblTheme.ColorPrimary
                                     BorderThickness: =1
@@ -154,7 +162,7 @@ Screens:
                                               || gblActiveProvider.ObjectTypeKey <> gblSelectedObjectTypeKey
                                               || !Coalesce(gblActiveProvider.SupportsCreate, false)
                                               || !Coalesce(gblActiveProvider.SupportsSave, false)
-                                              || gblSaveBusy,
+                                              || gblSaveBusy || gblShowDiscardDialog,
                                           DisplayMode.Disabled,
                                           DisplayMode.Edit
                                       )
@@ -225,7 +233,7 @@ Screens:
                                                               formField.SortOrder,
                                                               0
                                                           ),
-                                                          IsRequired: !IsBlank(formField.RequiredIf),
+                                                          IsRequired: !IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false),
                                                           IsReadOnly: false,
                                                           DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
                                                           ValueText: If(
@@ -268,7 +276,7 @@ Screens:
                                                           ValuePersonJobTitle: "",
                                                           IsDirty: false,
                                                           IsValid: If(
-                                                              !IsBlank(formField.RequiredIf),
+                                                              !IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false),
                                                               Switch(
                                                                   Coalesce(fieldDefinition.ControlType, "Text"),
                                                                   "Boolean", true,
@@ -292,7 +300,7 @@ Screens:
                                                               true
                                                           ),
                                                           ErrorMessage: If(
-                                                              !IsBlank(formField.RequiredIf)
+                                                              (!IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false))
                                                                   && IsBlank(fieldDefinition.DefaultValue)
                                                                   && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
                                                               "Pflichtfeld",
@@ -444,7 +452,8 @@ Screens:
 
                                           Set(gblEditorDirty, false);
                                           Select(lblEditorRevalidate);
-                                          Set(gblCurrentPage, "editor")
+                                          Set(gblCurrentPage, "editor");
+                                          SetFocus(lblEditorCancel)
                                       )
                                     Text: ="Neu"
                                     Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
@@ -511,6 +520,10 @@ Screens:
                                   Control: Gallery@2.15.0
                                   Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                                   Properties:
+                                    AccessibleLabel: ="Objekttyp auswählen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.DisplayNameDE, ThisItem.Title, ThisItem.ObjectTypeKey)
+                                    Selectable: =true
+                                    TabIndex: =-1
                                     BorderColor: =RGBA(0, 18, 107, 1)
                                     Height: =Parent.Height - 124
                                     Items: |-
@@ -576,11 +589,16 @@ Screens:
                                     Y: =64
                                   Children:
                                     - lblObjectTypeTitle:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          AccessibleLabel: =Self.Text
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Color: =gblTheme.ColorText
                                           Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
                                           FontWeight: =FontWeight.Semibold
                                           Height: =36
@@ -791,18 +809,24 @@ Screens:
                                           X: =16
                                           Y: =8
                                     - lblEditorCancel:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          AccessibleLabel: =Self.Text
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           Align: =Align.Center
                                           BorderColor: =gblTheme.ColorBorder
                                           BorderThickness: =1
                                           Color: =gblTheme.ColorPrimary
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Fill: =gblTheme.ColorSurface
                                           Font: =Font.'Open Sans'
                                           Height: =34
                                           OnSelect: |-
                                             =If(
                                                 gblEditorDirty,
-                                                Set(gblShowDiscardDialog, true),
+                                                Set(gblShowDiscardDialog, true); SetFocus(lblDiscardStay),
                                                 Clear(colEditorValues);
                                                 Clear(colEditorLookupSelections);
                                                 Clear(colEditorPersonSelections);
@@ -818,15 +842,20 @@ Screens:
                                           X: =Parent.Width - Self.Width - 16
                                           Y: =12
                                     - lblEditorSave:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          AccessibleLabel: =Self.Text
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           Align: =Align.Center
                                           BorderColor: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorPrimary, gblTheme.ColorBorder)
                                           BorderThickness: =1
                                           Color: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
                                           DisplayMode: |-
                                             =If(
-                                                gblEditorCanSave && !gblSaveBusy
+                                                gblEditorCanSave && !gblSaveBusy && !gblShowDiscardDialog
+                                                  && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                   && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                   && Coalesce(gblActiveProvider.SupportsSave, false)
                                                   && Switch(
@@ -882,32 +911,7 @@ Screens:
                                                                     Defaults(Assets)
                                                                 ),
                                                                 {
-                                                                    Title:
-                                                                        With(
-                                                                            {
-                                                                                editorTitle:
-                                                                                    LookUp(
-                                                                                        colEditorValues,
-                                                                                        FieldInternalName = "Title",
-                                                                                        ValueText
-                                                                                    ),
-                                                                                storedTitle:
-                                                                                    If(
-                                                                                        gblEditorMode = "Edit" && gblSelectedRecordId > 0,
-                                                                                        LookUp(
-                                                                                            Assets,
-                                                                                            ID = gblSelectedRecordId,
-                                                                                            Title
-                                                                                        ),
-                                                                                        Blank()
-                                                                                    )
-                                                                            },
-                                                                            Coalesce(
-                                                                                Trim(editorTitle),
-                                                                                storedTitle,
-                                                                                "Asset"
-                                                                            )
-                                                                        ),
+                                                                    Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
                                                                     Owner: With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
@@ -1135,6 +1139,7 @@ Screens:
                                             Set(
                                                 gblEditorCanSave,
                                                 CountRows(colEditorValues) > 0
+                                                    && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
                                                     && !gblSaveBusy
                                                     && gblActiveProvider.ObjectTypeKey = gblObjectType
@@ -1153,6 +1158,10 @@ Screens:
                                         Control: Gallery@2.15.0
                                         Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                                         Properties:
+                                          AccessibleLabel: ="Asset-Formularfelder"
+                                          ItemAccessibleLabel: =ThisItem.DisplayNameDE
+                                          Selectable: =false
+                                          TabIndex: =-1
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Height: =Parent.Height - 72
                                           Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
@@ -1218,9 +1227,14 @@ Screens:
                                           - txtEditorText:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                MaxLength: =If(ThisItem.FieldInternalName = "Title", 255, 0)
                                                 Font: =Font.'Open Sans'
                                                 HintText: =ThisItem.DisplayNameDE
                                                 HoverBorderColor: =gblTheme.ColorPrimary
@@ -1248,9 +1262,13 @@ Screens:
                                           - txtEditorMultiline:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Height: =78
                                                 HintText: =ThisItem.DisplayNameDE
@@ -1280,9 +1298,13 @@ Screens:
                                           - txtEditorNumber:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =If(IsBlank(ThisItem.ValueNumber), "", Text(ThisItem.ValueNumber))
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="0"
@@ -1311,9 +1333,13 @@ Screens:
                                           - datEditorDate:
                                               Control: Classic/DatePicker@2.6.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 DefaultDate: =ThisItem.ValueDate
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
@@ -1340,9 +1366,13 @@ Screens:
                                           - togEditorBoolean:
                                               Control: Classic/Toggle@2.1.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =gblTheme.ColorBorder
                                                 Default: =ThisItem.ValueBoolean
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 FalseText: ="Nein"
                                                 Font: =Font.'Open Sans'
                                                 Height: =40
@@ -1379,11 +1409,15 @@ Screens:
                                           - drpEditorChoice:
                                               Control: Classic/DropDown@2.3.1
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
                                                 Default: =ThisItem.ValueChoiceKey
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
@@ -1421,6 +1455,10 @@ Screens:
                                           - cmbEditorLookup:
                                               Control: Classic/ComboBox@2.4.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
@@ -1446,7 +1484,7 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayText"]
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
@@ -1537,6 +1575,7 @@ Screens:
                                           - lblEditorError:
                                               Control: Label@2.5.1
                                               Properties:
+                                                Live: =Live.Polite
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Color: =gblTheme.ColorError
                                                 Font: =Font.'Open Sans'
@@ -1550,6 +1589,10 @@ Screens:
                                           - cmbEditorPerson:
                                               Control: Classic/ComboBox@2.4.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 ChevronBackground: =RGBA(56, 96, 178, 1)
                                                 ChevronFill: =RGBA(255, 255, 255, 1)
@@ -1567,6 +1610,7 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayName"]
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 Items: |-
@@ -1660,6 +1704,10 @@ Screens:
                             Control: Gallery@2.15.0
                             Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                             Properties:
+                              AccessibleLabel: ="Navigation"
+                              ItemAccessibleLabel: =ThisItem.Label
+                              Selectable: =true
+                              TabIndex: =-1
                               BorderColor: =RGBA(0, 18, 107, 1)
                               Fill: =Color.Transparent
                               Height: =Parent.Height
@@ -1685,12 +1733,17 @@ Screens:
                               Width: =Parent.Width
                             Children:
                               - lblNavigationItem:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    AccessibleLabel: =Self.Text
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
                                     BorderColor: =RGBA(0, 0, 0, 1)
                                     Color: =gblTheme.ColorText
                                     Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
+                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
                                     Height: =Parent.TemplateHeight
@@ -1802,21 +1855,30 @@ Screens:
                               X: =24
                               Y: =62
                         - lblDiscardStay:
-                            Control: Label@2.5.1
+                            Control: Classic/Button@2.2.0
                             Properties:
+                              AccessibleLabel: =Self.Text
+                              FocusedBorderColor: =gblTheme.ColorText
+                              FocusedBorderThickness: =3
+                              TabIndex: =0
                               Align: =Align.Center
                               BorderColor: =gblTheme.ColorBorder
                               BorderThickness: =1
                               Color: =gblTheme.ColorPrimary
+                              Fill: =gblTheme.ColorSurface
                               Font: =Font.'Open Sans'
                               Height: =36
-                              OnSelect: =Set(gblShowDiscardDialog, false)
+                              OnSelect: =Set(gblShowDiscardDialog, false); SetFocus(lblEditorCancel)
                               Text: ="Weiter bearbeiten"
                               X: =Parent.Width - 326
                               Y: =132
                         - lblDiscardConfirm:
-                            Control: Label@2.5.1
+                            Control: Classic/Button@2.2.0
                             Properties:
+                              AccessibleLabel: =Self.Text
+                              FocusedBorderColor: =gblTheme.ColorText
+                              FocusedBorderThickness: =3
+                              TabIndex: =0
                               Align: =Align.Center
                               BorderColor: =gblTheme.ColorError
                               BorderThickness: =1
@@ -1836,7 +1898,8 @@ Screens:
                                 Set(gblCurrentPage, gblPreviousPage);
                                 Set(gblEditorMode, "");
                                 Set(gblObjectType, "");
-                                Set(gblSelectedRecordId, 0)
+                                Set(gblSelectedRecordId, 0);
+                                SetFocus(lblNew)
                               Text: ="Verwerfen"
                               Width: =130
                               X: =Parent.Width - 154

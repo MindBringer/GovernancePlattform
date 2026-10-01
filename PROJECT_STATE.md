@@ -4,12 +4,20 @@ Stand: 2026-10-01 · Arbeitszweig: `codex/stage41-p0` auf Roadmap-Head `964dc611
 
 ## Aktueller Kandidat
 
-- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; **Solution `1.0.0.30431` in DEV importiert; Canvas 168 Live nach Studio-Verarbeitung und Veröffentlichung.** Branch und Draft-PR sind die dauerhafte Übergabe; das ZIP bleibt lokales, ignoriertes Build-Artefakt.
+- Provisioning `6.2.5`; Canvas `1.0.0-alpha.4.1.0`; **Lokaler Reparaturkandidat Solution `1.0.0.30432`; belegter DEV-Stand bleibt `30431` / Canvas 168 Live.** Branch und Draft-PR sind die dauerhafte Übergabe; das ZIP bleibt lokales, ignoriertes Build-Artefakt.
 - Neu verlangt passenden Provider mit Create und Save; Save verlangt den passenden Provider, Save und je nach Modus Create oder Edit mit positiver ID. Busy/ungültiger Editor sperren den Befehl; OnSelect prüft vor Mutationen die aktuelle Sperre. Die Registry bleibt unverändert: Asset/System mit Save, sieben andere registrierte Provider ohne Save.
 - Die nicht delegierbare Asset-Gesamtzahl wurde entfernt. Die übrigen Dashboard-Metadatenzähler bleiben bestehen; kein Ersatz durch einen begrenzten Fachdatensatz-Cache.
-- Patch-/Personen-/Choice-Mappings und das führende Architekturmodell bleiben erhalten. Liste/Laden/Bearbeiten bestehender Datensätze fehlen weiterhin und gehören zu P1. Schema/Metadaten für Change, Risk, Evidence und Reviews sind keine App-Abnahme.
+- Personen-/Choice-Mappings bleiben erhalten. Asset erhält einen nativen, verpflichtenden Text-Titel (max. 255 Zeichen) aus `architecture/object-fields.yaml`. Der Patch schreibt den getrimmten Eingabetitel ohne generischen Fallback; fehlende/leere/zu lange Titel sperren Save unabhängig von veralteter Eligibility. Zwei neue Metadatensätze liefern das erste Pflichtfeld; bestehende Feldpositionen bleiben unverändert. Liste/Laden/Bearbeiten bestehender Datensätze fehlen weiterhin und gehören zu P1. Schema/Metadaten für Change, Risk, Evidence und Reviews sind keine App-Abnahme.
 - Roadmap P0–P7 priorisiert Asset-Pilot, danach Asset/Change/Risk/Evidence mit Verantwortlichen und Reviews. Incident/Problem und weitere Listen folgen.
 - Profil 1.2.0 ist adoptiert. Framework-Conformance-PR #6 bleibt isoliert und DO NOT MERGE; keine Framework-Locks/Runtimeversionen ergänzt.
+
+## Lokale P0-Reparatur 30432
+
+- `Title` nur für Asset: native Spalte, kein zweiter Titel oder neues fachliches Objekt. Der echte Metadatengenerator erzeugt `FieldDefinitions/Asset:Title` und `FormFieldDefinitions/Asset:Edit:Title`, jeweils SortOrder 0; Pflichtfeld und Text-Control sind konsistent. Offlinevergleich: genau zwei neue Zeilen, 1.012 bestehende unverändert.
+- Acht Befehls-/Auswahlcontrols verwenden echte Classic-Buttons mit Tastaturaktivierung; acht Eingabecontrols und drei relevante Galerien erhalten Labels/Tab-/Fokusvertrag. Der Verwerfen-Dialog sperrt Hintergrundbefehle und Eingaben, setzt den Fokus auf Weiter bearbeiten und gibt ihn beim Schließen zurück. Die Tastatur-/Screenreader-Abnahme in Studio/Player bleibt offen.
+- 76 tatsächliche Power-Fx-Assertions / Exit 0, einschließlich fehlendem/leerem/überlangem Titel, stale Eligibility, modal gesperrten Befehlen und getrimmtem Patch-Titel. CI ergänzt Offline-Titel-/Metadatendelta und Accessibility-Quellvertrag. Keine Tests abgeschwächt.
+- Vollständiger Build `30432`, vier YAMLs im msapp und PAC-Round-Trip, Architekturcompiler/Konsistenz, PowerShell-Syntax, Registry/Runtime/Referenzen und Repository-Audit: Exit 0. Provisioning/Canvas-Version bleiben getrennt und unverändert.
+- `weiter` beauftragt die lokale Umsetzung/Commit/Push. Kein erneuter Import, Publish, Metadaten-/Schema-/Datensatz-Write oder DEV→Git-Abgleich ausgeführt; die Freigabe für `30431` wird nicht auf `30432` übertragen.
 
 ## Belegte DEV-Abnahme vom 01.10.2026
 
@@ -23,15 +31,15 @@ Direkter DEV-Assets-Zugriff, Einzel-Löschbefehl und normaler SharePoint-Papierk
 
 Zusatzbefund: Navigation Risiko & Compliance zeigt eine leere Providerliste. Risk/Control/Measure daher nicht live einzeln geprüft; dieser Navigationsvertrag ist beim Datensatzkern zu klären.
 
-## Paketabschluss lokal
+## Vorheriger Paketabschluss 30431
 
-- Semantische Modellklasse `standard-reasoning`: begrenzte Canvas-Capability-Korrektur, keine Schema-/Provider-Neuarchitektur.
+- Semantische Modellklasse `standard-reasoning`: begrenzter Asset-Titel-/Metadaten-/Canvas-Vertrag und lokale Accessibility-Korrektur, keine Provider-Neuarchitektur.
 - Power-Fx-Engine: **58 Assertions / Exit 0**, direkt auf den tatsächlichen DisplayMode-/Revalidierungsformeln. Positive Asset/System-Pfade und negative Provider-/ID-/Modus-/Busy-/Validierungskontexte bestehen. OnSelect-Guards vor Mutationen geprüft; keine Tenantcalls.
 - Vollständiger PAC-Build `30431`, Registry-/Runtime-/Canvas-Prüfungen, vier YAMLs im msapp, PAC-Pack/Unpack, PowerShell-Syntax, Architekturcompiler/Konsistenz, Repository-Audit und Diff: **Exit 0**. Kandidaten-Hashes und Änderungen stehen in [P0-Abnahme](docs/development/Stage-4.1-P0-Abnahme.md).
 - Lokales Pester nicht installiert; `pac canvas validate` in PAC 2.9.3 nicht verfügbar. Engine-Test läuft lokal mit explizitem DLL-Verzeichnis, nicht in der bestehenden CI. PAC behält alte interne Controls/SARIF-Snapshots: deren Meldungen werden nicht als aktueller Maker-Check interpretiert und nicht zur Grünfärbung gelöscht.
-- CI #14 (`dd406bc`) und #15 (`964dc61`) beim Einstieg erfolgreich. PR #16 am Implementierungs-Head `d8d4f6b0e8f7db443a1681c7a9f883ef69302625`: alle drei CI-Prüfungen erfolgreich. Der aktuelle Dokuabschluss wird erneut am gepushten PR-Head geprüft; lokale Gates ersetzen CI nicht.
+- CI #14 (`dd406bc`) und #15 (`964dc61`) beim Einstieg erfolgreich. PR #16 am Implementierungs-Head `d8d4f6b0e8f7db443a1681c7a9f883ef69302625`: alle drei CI-Prüfungen erfolgreich. Doku-Head `14ca6e43e4d3bef6f83705addabcac35566b161a` ebenfalls alle drei Checks erfolgreich. Der Reparaturabschluss `30432` wird am neuen gepushten PR-Head geprüft; genaue CI-Head-Evidenz im PR-Handoff, lokale Gates ersetzen CI nicht.
 - Die Freigabe vom 01.10. galt Import/Veröffentlichung `30431` und genau einem synthetischen DEV-Asset-Test nach gesichertem Bereinigungsweg. Import und Studio-Veröffentlichung ausgeführt; Test vor Write wegen fehlendem Titel abgebrochen. Keine DEV-Übernahme, kein Provisioning/Seed/Reset, kein Datensatz-Write, kein Merge/Release. Der ursprüngliche Branch und seine elf gestagten Dateien bleiben erhalten; keine automatische Synchronisierung dorthin.
 
 ## Primäres nächstes Arbeitspaket
 
-**P0-Reparatur des Asset-Neuanlagevertrags:** Title durch Architektur/generierte Formularmetadaten/Canvas/Patch konsistent verfügbar machen und Tastatur/Fokus/Bezeichnungen der interaktiven Kerncontrols korrigieren. Danach genau einen synthetischen Asset speichern, anhand ID und Smoke-Titel verifizieren und bereinigen. [DEV-Evidenz, Checker-Triage und Testablauf](docs/development/Stage-4.1-P0-Abnahme.md). Neue Metadata-/Provisioning-Writes und ein neuer Importkandidat benötigen separate Freigabe. PR #14/#16 bleiben Draft; P1 folgt erst nach P0-Abnahme.
+**P0-DEV-Abnahme von Reparaturkandidat 30432:** nach konkreter Freigabe ausschließlich die zwei erzeugten Asset-Title-Metadatensätze übernehmen, den Kandidaten importieren, Studio verarbeiten/prüfen und veröffentlichen, Tastatur-/Fokusvertrag und danach genau einen synthetischen Save-/Quellen-/Bereinigungstest belegen. Kein Full-Provisioning/Seed/Reset; vor Writes aktuellen DEV-Stand und bestehende Zielschlüssel prüfen. [Kandidat, Metadatendelta und Ablauf](docs/development/Stage-4.1-P0-Abnahme.md). P0 bleibt bis zur Live-Evidenz offen; PR #14/#16 bleiben Draft, P1 folgt erst danach.

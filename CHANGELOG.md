@@ -7,7 +7,9 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 ### Canvas Stage 4.1 – Entwicklungsbranch
 
 - P0: Neu-/Save-Befehle prüfen passende Provider-Capabilities, Edit-Modus/ID und Busy-Status vor Mutationen; nicht speicherbare Typen öffnen kein Neuanlageformular.
-- Nicht delegierbare Asset-Gesamtzahl aus dem Dashboard entfernt; 58 Offline-Power-Fx-Assertions und lokaler Solution-Kandidat `1.0.0.30431`, noch ohne DEV-Abnahme.
+- Nicht delegierbare Asset-Gesamtzahl aus dem Dashboard entfernt; `30431` nach Freigabe in DEV und Canvas 168 Live geprüft. Asset-Save bleibt ohne erfolgreiche Quellen-/Bereinigungsevidenz offen.
+- Lokaler Reparaturkandidat `30432`: verpflichtender nativer Asset-Titel durch Architektur/Metadatengenerator, Guard und getrimmten Patch ohne Fallback; zwei zusätzliche Metadatensätze, bestehende Zeilen unverändert.
+- Asset-Kernaktionen auf Classic-Buttons umgestellt; Eingaben/Galerien mit Labels, Tastatur/Fokus und gesperrtem Modal-Hintergrund. 76 Offline-Power-Fx-Assertions sowie CI-Verträge für Asset-Title/Metadaten und Accessibility; Live-Abnahme von `30432` ausstehend.
 
 - Read-only-DEV-Export mit dem lokalen Stage-4.1-Reconciliation-Stand abgeglichen; Personenfeld- und Asset-Speicherlogik in den kanonischen Canvas-Quellcode übernommen.
 - Diagnostisches Suchlabel aus dem Quellcode entfernt; Solution-Manifest auf die DEV-Baseline `1.0.0.30428` ausgerichtet und Canvas-/Solution-Paket lokal neu erstellt.
@@ -15,7 +17,7 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - Canvas-Version `1.0.0-alpha.4.1.0` zwischen Versionsdatei, App und Entwicklerkonfiguration abgeglichen.
 - Object-Provider-Registry in der Canvas-Runtime synchronisiert; Auswahl bindet den aktiven Provider und der Neu-Befehl prüft dessen Create-Fähigkeit.
 - Synchronisierer gegen eine fälschlich erkannte Provider-Bindung korrigiert; CI prüft Canvas-Version, Registry und Runtime ohne automatische Reparatur.
-- DEV-Baseline `30430` wurde am 28.09.2026 freigegeben importiert und als Canvas 165 Live geprüft; Asset-Speicherung und P0-Kandidat `30431` sind vor der Stage-4.1-Integration noch abzunehmen.
+- DEV-Baseline `30430` wurde am 28.09.2026 freigegeben importiert und als Canvas 165 Live geprüft; P0-Speicher-/Quellen-/Bereinigungsabnahme des lokalen Reparaturkandidaten `30432` steht vor Stage-4.1-Integration aus.
 
 ### Documentation and repository
 

@@ -16,6 +16,9 @@ jobs:
       - name: Validate Canvas version and source
         shell: pwsh
         run: ./powerplatform/scripts/Validate-CanvasSource.ps1
+      - name: Validate Asset editor accessibility contract
+        shell: pwsh
+        run: ./powerplatform/scripts/Test-AssetEditorAccessibility.ps1
       - name: Validate object provider registry
         shell: pwsh
         run: ./powerplatform/scripts/Validate-ObjectProviderRegistry.ps1

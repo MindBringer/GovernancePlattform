@@ -2,7 +2,25 @@
 
 Stand: 2026-10-01, nach freigegebener DEV-Veröffentlichung · Modellklasse: `standard-reasoning` · P0 bleibt offen
 
-## Kandidat und Umfang
+## Aktueller Reparaturkandidat 30432 (lokal)
+
+`weiter` beauftragt die lokale Reparatur, keine erneuten Live-Writes. Solution `1.0.0.30432` ist gebaut; DEV bleibt beim zuletzt belegten `30431` / Canvas 168. Provisioning `6.2.5` und Canvas `1.0.0-alpha.4.1.0` unverändert. PR #16 bleibt Draft.
+
+- `architecture/object-fields.yaml` definiert natives Asset-Title als Pflicht-Text mit maximal 255 Zeichen. Der Compiler übernimmt die vorhandene native Spalte, keine zweite Namensspalte. Der Asset-Patch schreibt ausschließlich den getrimmten Eingabetitel; Save/Revalidierung sperren fehlende, leere und überlange Titel auch bei veralteter Eligibility. Die Initialisierung berücksichtigt FieldDefinitions.IsRequired zusätzlich zum Form-Pflichtmarker.
+- Der tatsächliche Metadatengenerator erzeugt genau die unten genannten zwei zusätzlichen Zeilen. Alle 1.012 vorherigen Metadatensätze bleiben im Offlinevergleich unverändert, einschließlich Feldpositionen. Titel erscheint vor bestehenden Feldern. Der native SharePoint-Spaltenvertrag ist kompiliert; dieses Paket verlangt keine pauschale Schema-Provisionierung im Tenant.
+
+| Liste / Schlüssel | Neue Werte für den gezielten DEV-Schritt |
+|---|---|
+| FieldDefinitions / `Asset:Title` | Asset, FieldInternalName Title, DisplayNameDE Titel, SharePointType/ControlType Text, IsRequired true, IsReadOnly false, IsVisible/IsActive true, SectionKey General, SortOrder 0 |
+| FormFieldDefinitions / `Asset:Edit:Title` | Asset, FormDefinitionKey Asset:Edit, FormMode Edit (bestehender Neu-Metadatenvertrag), FieldInternalName Title, RequiredIf true, SectionKey General, RowNumber/SortOrder 0, IsActive true |
+
+- Acht Aktionen/Auswahlen (`lblRefresh`, `lblNew`, `lblEditorCancel`, `lblEditorSave`, `lblDiscardStay`, `lblDiscardConfirm`, `lblNavigationItem`, `lblObjectTypeTitle`) sind Classic-Buttons. Acht Editor-Eingaben erhalten AccessibleLabel mit Pflicht-/Fehlerkontext, TabIndex 0 und sichtbaren Fokus (3 px). Drei relevante Galerien erhalten Galerie-/Zeilenlabels; reine Zeilenbeschriftungen sind keine zusätzlichen Tabstopps. Hintergrundbefehle und Eingaben sind während Verwerfen/Save gesperrt; Fokusübergabe für Neu und Dialog ist explizit. Diese Quellprüfung ist keine Tastatur-/Screenreader-Abnahme.
+- Lokale Gates: Power Fx **76 Assertions / 0**, tatsächlicher getrimmter Asset-Patch eingeschlossen; Titel-/Schema-/Metadatendelta **0**; Accessibility-Vertrag **16 Controls / 3 Galerien / 0**; Architekturcompiler/Konsistenz, PowerShell-Syntax, Registry/Runtime/Referenzen, vollständiger PAC-Build, vier YAMLs im msapp und PAC-Round-Trip, Repository-Audit/Diff **0**. Die beiden neuen Offline-Verträge laufen auch in CI. Pester fehlt lokal; PAC 2.9.3 unterstützt canvas validate nicht, CI führt den optionalen Power-Fx-Engine-Test weiterhin nicht aus.
+- ZIP SHA-256 `f2c2f451395437f459805952b328b1ec904a4c9fed086672d4dbd357026509d8`; msapp `a256590415ca31b4ee471c941a7731a72cecaa2199f1905ab213da0733513150`. ZIP und JSON-Zwei-Zeilen-Plan bleiben ignorierte lokale Artefakte. Tatsächlicher Commit/CI-Head wird im PR-Handoff dokumentiert.
+
+Nach Freigabe: zuerst aktuellen DEV-Stand sowie beide Zielschlüssel lesen. Bei neuerem fachlichem Delta nicht blind überschreiben. Ausschließlich diese zwei erzeugten Zeilen upserten; keine vollständige Publish-GPMetadata-Ausführung, kein Full-Provisioning/Seed/Reset. Bestehende Zielzeilen vor einer Änderung sichern; neue Zeilen lassen sich einzeln reversibel entfernen. Danach `30432` importieren, im Studio verarbeiten und Checker prüfen, veröffentlichen, tatsächliche Live-Regeln und Tab/Shift-Tab/Enter/Space im Asset-Pfad einschließlich Personenpicker und Verwerfen-Dialog prüfen. Verbleibende relevante Checker-/Bedienungsfehler halten P0 offen. Anschließend genau ein synthetischer Asset-Smoke gemäß folgendem Ablauf; nur dessen bestätigte ID/Smoke-Titel reversibel bereinigen. Keine Voll-Abnahme der 79 historischen Accessibility-Befunde oder produktive Freigabe aus Offlinechecks ableiten.
+
+## Vorheriger Kandidat 30431 und DEV-Umfang
 
 Branch `codex/stage41-p0` auf Roadmap-Head `964dc6112b618d22b056d468d93d45cfbd423f05` (PR #15), damit Zustandsquelle und Arbeitspaket übereinstimmen. Der ursprüngliche Workspace auf `codex/stage-4.1-dev-baseline` und seine gestagten Änderungen bleiben erhalten. Provisioning `6.2.5` und Canvas `1.0.0-alpha.4.1.0` bleiben gleich; die lokale Solution trägt `1.0.0.30431`.
 
@@ -46,7 +64,7 @@ PAC übernimmt alte interne Controls und `AppCheckerResult.sarif` aus der Pack-B
 
 1. Bestehende Microsoft-Anmeldung erneuern. DEV-App/Umgebung und tatsächliche Live-/Saved-Version lesen; bei neueren fachlichen Änderungen stoppen und Delta klären, keine automatische DEV-Übernahme.
 2. **Vor jeder Neuanlage** direkten Zugriff auf die richtige DEV-Assets-Liste nachweisen. Testverantwortlicher muss den einzelnen synthetischen Datensatz lesen und über den SharePoint-Papierkorb reversibel entfernen können. Asset hat im Architekturmodell `allowDelete = false`; hierfür wird kein App-Delete-Provider oder pauschales Löschrecht ergänzt. Bei `Access denied` oder unklarem Rückweg bleibt der Save-Test gesperrt.
-3. Kandidat `30431` nach separater DEV-Import-/Veröffentlichungsfreigabe einspielen und im Studio prüfen. Prüfen: Asset/System erlauben Neu; Contact, Incident, Problem, Change, Risk, Control, Measure nicht. Asset-Abbruch ohne Speichern funktioniert. Save ist bei fehlenden Pflichtwerten gesperrt. App-Checker-Details protokollieren.
+3. Reparaturkandidat `30432` nach separater Freigabe der zwei Title-Metadatensätze und DEV-Import-/Veröffentlichung einspielen und im Studio prüfen. Prüfen: Asset/System erlauben Neu; Contact, Incident, Problem, Change, Risk, Control, Measure nicht. Asset-Abbruch ohne Speichern funktioniert. Save ist bei fehlenden Pflichtwerten gesperrt. App-Checker-Details protokollieren.
 4. Genau einen synthetischen Asset anlegen: eindeutiger Titel `P0-SMOKE-<UTC-Zeit>-<Kurzkennung>`, ausschließlich synthetischer fachlicher Inhalt, ein ausdrücklich zugelassenes vorhandenes DEV-Testkonto als Verantwortlicher, gültige Metadaten-Choicewerte. Ist kein eindeutiger Titel im Formular verfügbar oder würde der Fallback `Asset` greifen, vor Save stoppen. Nicht unterstützte Felder nicht als geprüft ausgeben.
 5. Nach dem einzigen Save Erfolg und zurückgegebene ID festhalten. **Nicht blind erneut speichern**, falls Antwort/Fehler unklar ist: zuerst anhand Titel/ID in der Datenquelle auf möglichen bereits angelegten Datensatz prüfen.
 6. In der DEV-Assets-Liste genau diese ID öffnen und Titel, Owner, ausgewählte Choicewerte und weitere tatsächlich ausgefüllte gemappte Felder vergleichen. Quellen-Nachweis mit App-Erfolg abgleichen. App-Wiederöffnen/Ändern gehört zum noch fehlenden P1-Datensatzkern.
@@ -78,4 +96,4 @@ Screenshots, Logs und vollständige Exporte bleiben lokal/ignoriert. Die Nachwei
 
 ## Primäres nächstes Arbeitspaket
 
-**P0-Reparatur des Asset-Neuanlagevertrags:** natives Title-Feld konsistent zwischen führender Architektur, generierten Formularmetadaten, Canvas und Patch verfügbar machen; Tastatur/Fokus/Bezeichnungen der interaktiven Asset-Kerncontrols korrigieren. Danach den einen freigegebenen synthetischen Save-/Quellen-/Bereinigungstest wiederholen. Der leere Risiko-Navigationsbereich ist als separater Befund für den Datensatzkern festgehalten. Neue Metadata-/Provisioning-Writes und ein neuer Importkandidat benötigen ihre eigene konkrete Freigabe. P1 bleibt nach der belegten P0-Abnahme.
+**P0-DEV-Abnahme von Reparaturkandidat 30432:** konkrete Freigabe für die gezielte Zwei-Zeilen-Title-Metadatenübernahme sowie Import/Studio-Verarbeitung/Veröffentlichung; dann Tastatur-/Checker-Abnahme und genau ein synthetischer Save-/Quellen-/Bereinigungstest. Kein weiteres Featurepaket parallel. Risiko-Navigation bleibt separater P1-Befund. P1 folgt nach belegter P0-Abnahme.
