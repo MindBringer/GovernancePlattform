@@ -149,303 +149,303 @@ Screens:
                                     Color: =gblTheme.ColorTextInverse
                                     DisplayMode: |-
                                       =If(
-
                                           IsBlank(gblSelectedObjectTypeKey)
-
                                               || IsBlank(gblActiveProvider)
-
-                                              || !Coalesce(gblActiveProvider.SupportsCreate, false),
-
+                                              || gblActiveProvider.ObjectTypeKey <> gblSelectedObjectTypeKey
+                                              || !Coalesce(gblActiveProvider.SupportsCreate, false)
+                                              || !Coalesce(gblActiveProvider.SupportsSave, false)
+                                              || gblSaveBusy,
                                           DisplayMode.Disabled,
-
                                           DisplayMode.Edit
-
                                       )
                                     Fill: =gblTheme.ColorPrimary
                                     Font: =Font.'Open Sans'
                                     FontWeight: =FontWeight.Semibold
                                     OnSelect: |-
-                                      =Set(gblEditorMode, "New");
-                                      Set(gblObjectType, gblSelectedObjectTypeKey);
-                                      Set(gblSelectedRecordId, 0);
-                                      Set(gblPreviousPage, gblCurrentPage);
+                                      =If(
+                                          Self.DisplayMode = DisplayMode.Edit,
+                                          Set(gblEditorMode, "New");
+                                          Set(gblObjectType, gblSelectedObjectTypeKey);
+                                          Set(gblSelectedRecordId, 0);
+                                          Set(gblPreviousPage, gblCurrentPage);
 
-                                      Clear(colEditorValues);
-                                      Clear(colEditorLookupSelections);
-                                      Clear(colEditorPersonSelections);
-                                      Clear(colEditorChoiceOptions);
-                                      ForAll(
-                                          SortByColumns(
-                                              Filter(
-                                                  colFormFields,
-                                                  ObjectTypeKey = gblSelectedObjectTypeKey
-                                              ),
-                                              "SortOrder",
-                                              SortOrder.Ascending
-                                          ) As formField,
-                                          With(
-                                              {
-                                                  fieldDefinition: LookUp(
-                                                      colFieldDefinitions,
+                                          Clear(colEditorValues);
+                                          Clear(colEditorLookupSelections);
+                                          Clear(colEditorPersonSelections);
+                                          Clear(colEditorChoiceOptions);
+                                          ForAll(
+                                              SortByColumns(
+                                                  Filter(
+                                                      colFormFields,
                                                       ObjectTypeKey = gblSelectedObjectTypeKey
-                                                          && FieldInternalName = formField.FieldInternalName
-                                                  )
-                                              },
-                                              Collect(
-                                                  colEditorValues,
-                                                  {
-                                                      EditorFieldKey: gblSelectedObjectTypeKey & ":" & formField.FieldInternalName,
-                                                      ObjectTypeKey: gblSelectedObjectTypeKey,
-                                                      FieldInternalName: formField.FieldInternalName,
-                                                      DisplayNameDE: Coalesce(
-                                                          formField.OverrideLabelDE,
-                                                          fieldDefinition.DisplayNameDE,
-                                                          formField.FieldInternalName
-                                                      ),
-                                                      ControlType: Coalesce(
-                                                          fieldDefinition.ControlType,
-                                                          "Text"
-                                                      ),
-                                                      ChoiceSetKey: Coalesce(
-                                                          fieldDefinition.ChoiceSetKey,
-                                                          ""
-                                                      ),
-                                                      LookupObjectTypeKey: Coalesce(
-                                                          fieldDefinition.LookupObjectTypeKey,
-                                                          ""
-                                                      ),
-                                                      AllowMultiple: Coalesce(
-                                                          fieldDefinition.AllowMultiple,
-                                                          false
-                                                      ),
-                                                      SectionKey: Coalesce(
-                                                          formField.SectionKey,
-                                                          ""
-                                                      ),
-                                                      SortOrder: Coalesce(
-                                                          formField.SortOrder,
-                                                          0
-                                                      ),
-                                                      IsRequired: !IsBlank(formField.RequiredIf),
-                                                      IsReadOnly: false,
-                                                      DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
-                                                      ValueText: If(
-                                                          Coalesce(fieldDefinition.ControlType, "Text") in ["Text", "Note", "MultilineText"],
-                                                          Coalesce(fieldDefinition.DefaultValue, ""),
-                                                          ""
-                                                      ),
-                                                      ValueNumber: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") = "Number"
-                                                              && !IsBlank(fieldDefinition.DefaultValue),
-                                                          Value(fieldDefinition.DefaultValue),
-                                                          If(false, 0, Blank())
-                                                      ),
-                                                      ValueBoolean: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") = "Boolean",
-                                                          Lower(Coalesce(fieldDefinition.DefaultValue, "false")) in ["true", "1", "ja", "yes"],
-                                                          false
-                                                      ),
-                                                      ValueDate: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
-                                                              && !IsBlank(fieldDefinition.DefaultValue),
-                                                          DateValue(fieldDefinition.DefaultValue),
-                                                          If(false, Today(), Blank())
-                                                      ),
-                                                      ValueChoiceKey: Coalesce(
-                                                          LookUp(
-                                                              colChoiceValues As choiceValue,
-                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
-                                                                  && choiceValue.IsDefault = true,
-                                                              choiceValue.ChoiceKey
-                                                          ),
-                                                          fieldDefinition.DefaultValue,
-                                                          ""
-                                                      ),
-                                                      ValueLookupId: If(false, 0, Blank()),
-                                                      ValueLookupText: "",
-                                                      ValuePersonEmail: "",
-                                                      ValuePersonClaims: "",
-                                                      ValuePersonDepartment: "",
-                                                      ValuePersonJobTitle: "",
-                                                      IsDirty: false,
-                                                      IsValid: If(
-                                                          !IsBlank(formField.RequiredIf),
-                                                          Switch(
-                                                              Coalesce(fieldDefinition.ControlType, "Text"),
-                                                              "Boolean", true,
-                                                              "Number", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "Date", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "DateTime", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "Choice",
-                                                                  !IsBlank(
-                                                                      Coalesce(
-                                                                          LookUp(
-                                                                              colChoiceValues As choiceValue,
-                                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
-                                                                                  && choiceValue.IsDefault = true,
-                                                                              choiceValue.ChoiceKey
-                                                                          ),
-                                                                          fieldDefinition.DefaultValue
-                                                                      )
-                                                                  ),
-                                                              !IsBlank(fieldDefinition.DefaultValue)
-                                                          ),
-                                                          true
-                                                      ),
-                                                      ErrorMessage: If(
-                                                          !IsBlank(formField.RequiredIf)
-                                                              && IsBlank(fieldDefinition.DefaultValue)
-                                                              && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
-                                                          "Pflichtfeld",
-                                                          ""
-                                                      )
-                                                  }
-                                              )
-                                          )
-                                      );
-
-                                      /*
-                                          Stage 3.6: Choice Provider.
-                                          Die Gallery-Control-Instanzen erhalten eine feldbezogene,
-                                          stabile Optionsmenge mit eindeutigem EditorFieldKey.
-                                      */
-                                      Clear(colEditorChoiceOptions);
-                                      ForAll(
-                                          Filter(
-                                              colEditorValues,
-                                              ControlType = "Choice"
-                                                  && !IsBlank(ChoiceSetKey)
-                                          ) As choiceField,
-                                          Collect(
-                                              colEditorChoiceOptions,
-                                              AddColumns(
-                                                  ShowColumns(
-                                                      Filter(
-                                                          colChoiceValues As choiceValue,
-                                                          choiceValue.ChoiceSetKey = choiceField.ChoiceSetKey
-                                                              && choiceValue.IsActive = true
-                                                      ),
-                                                      ChoiceSetKey,
-                                                      ChoiceKey,
-                                                      DisplayNameDE,
-                                                      SortOrder,
-                                                      IsDefault
                                                   ),
-                                                  EditorFieldKey,
-                                                  choiceField.EditorFieldKey
+                                                  "SortOrder",
+                                                  SortOrder.Ascending
+                                              ) As formField,
+                                              With(
+                                                  {
+                                                      fieldDefinition: LookUp(
+                                                          colFieldDefinitions,
+                                                          ObjectTypeKey = gblSelectedObjectTypeKey
+                                                              && FieldInternalName = formField.FieldInternalName
+                                                      )
+                                                  },
+                                                  Collect(
+                                                      colEditorValues,
+                                                      {
+                                                          EditorFieldKey: gblSelectedObjectTypeKey & ":" & formField.FieldInternalName,
+                                                          ObjectTypeKey: gblSelectedObjectTypeKey,
+                                                          FieldInternalName: formField.FieldInternalName,
+                                                          DisplayNameDE: Coalesce(
+                                                              formField.OverrideLabelDE,
+                                                              fieldDefinition.DisplayNameDE,
+                                                              formField.FieldInternalName
+                                                          ),
+                                                          ControlType: Coalesce(
+                                                              fieldDefinition.ControlType,
+                                                              "Text"
+                                                          ),
+                                                          ChoiceSetKey: Coalesce(
+                                                              fieldDefinition.ChoiceSetKey,
+                                                              ""
+                                                          ),
+                                                          LookupObjectTypeKey: Coalesce(
+                                                              fieldDefinition.LookupObjectTypeKey,
+                                                              ""
+                                                          ),
+                                                          AllowMultiple: Coalesce(
+                                                              fieldDefinition.AllowMultiple,
+                                                              false
+                                                          ),
+                                                          SectionKey: Coalesce(
+                                                              formField.SectionKey,
+                                                              ""
+                                                          ),
+                                                          SortOrder: Coalesce(
+                                                              formField.SortOrder,
+                                                              0
+                                                          ),
+                                                          IsRequired: !IsBlank(formField.RequiredIf),
+                                                          IsReadOnly: false,
+                                                          DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
+                                                          ValueText: If(
+                                                              Coalesce(fieldDefinition.ControlType, "Text") in ["Text", "Note", "MultilineText"],
+                                                              Coalesce(fieldDefinition.DefaultValue, ""),
+                                                              ""
+                                                          ),
+                                                          ValueNumber: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") = "Number"
+                                                                  && !IsBlank(fieldDefinition.DefaultValue),
+                                                              Value(fieldDefinition.DefaultValue),
+                                                              If(false, 0, Blank())
+                                                          ),
+                                                          ValueBoolean: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") = "Boolean",
+                                                              Lower(Coalesce(fieldDefinition.DefaultValue, "false")) in ["true", "1", "ja", "yes"],
+                                                              false
+                                                          ),
+                                                          ValueDate: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
+                                                                  && !IsBlank(fieldDefinition.DefaultValue),
+                                                              DateValue(fieldDefinition.DefaultValue),
+                                                              If(false, Today(), Blank())
+                                                          ),
+                                                          ValueChoiceKey: Coalesce(
+                                                              LookUp(
+                                                                  colChoiceValues As choiceValue,
+                                                                  choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                      && choiceValue.IsDefault = true,
+                                                                  choiceValue.ChoiceKey
+                                                              ),
+                                                              fieldDefinition.DefaultValue,
+                                                              ""
+                                                          ),
+                                                          ValueLookupId: If(false, 0, Blank()),
+                                                          ValueLookupText: "",
+                                                          ValuePersonEmail: "",
+                                                          ValuePersonClaims: "",
+                                                          ValuePersonDepartment: "",
+                                                          ValuePersonJobTitle: "",
+                                                          IsDirty: false,
+                                                          IsValid: If(
+                                                              !IsBlank(formField.RequiredIf),
+                                                              Switch(
+                                                                  Coalesce(fieldDefinition.ControlType, "Text"),
+                                                                  "Boolean", true,
+                                                                  "Number", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "Date", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "DateTime", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "Choice",
+                                                                      !IsBlank(
+                                                                          Coalesce(
+                                                                              LookUp(
+                                                                                  colChoiceValues As choiceValue,
+                                                                                  choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                                      && choiceValue.IsDefault = true,
+                                                                                  choiceValue.ChoiceKey
+                                                                              ),
+                                                                              fieldDefinition.DefaultValue
+                                                                          )
+                                                                      ),
+                                                                  !IsBlank(fieldDefinition.DefaultValue)
+                                                              ),
+                                                              true
+                                                          ),
+                                                          ErrorMessage: If(
+                                                              !IsBlank(formField.RequiredIf)
+                                                                  && IsBlank(fieldDefinition.DefaultValue)
+                                                                  && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  )
                                               )
-                                          )
-                                      );
+                                          );
 
-                                      /*
-                                          Stage 3.3: Lookup Registry + Cache + Provider.
-
-                                          Power Fx kann Datenquellen nicht dynamisch anhand eines
-                                          Textwertes dereferenzieren. Die Registry beschreibt deshalb
-                                          die verfügbaren Ziele; der Provider enthält je verbundener
-                                          SharePoint-Liste einen statischen Zweig.
-
-                                          Bereits geladene Ziele bleiben im Cache und werden beim
-                                          erneuten Öffnen eines Editors nicht nochmals geladen.
-                                      */
-                                      ForAll(
-                                          Distinct(
+                                          /*
+                                              Stage 3.6: Choice Provider.
+                                              Die Gallery-Control-Instanzen erhalten eine feldbezogene,
+                                              stabile Optionsmenge mit eindeutigem EditorFieldKey.
+                                          */
+                                          Clear(colEditorChoiceOptions);
+                                          ForAll(
                                               Filter(
                                                   colEditorValues,
-                                                  ControlType = "Lookup"
-                                                      && !IsBlank(LookupObjectTypeKey)
-                                              ),
-                                              LookupObjectTypeKey
-                                          ) As requiredTarget,
-                                          Switch(
-                                              requiredTarget.Value,
-                                              "Asset",
-                                              If(
-                                                  IsBlank(
-                                                      LookUp(
-                                                          colLoadedLookupTargets,
-                                                          LookupObjectTypeKey = "Asset"
-                                                      )
-                                                  ),
-                                                  Collect(
-                                                      colLookupValues,
-                                                      AddColumns(
-                                                          ShowColumns(
-                                                              Assets,
-                                                              ID,
-                                                              Title,
-                                                              GovernanceID,
-                                                              IsActive
+                                                  ControlType = "Choice"
+                                                      && !IsBlank(ChoiceSetKey)
+                                              ) As choiceField,
+                                              Collect(
+                                                  colEditorChoiceOptions,
+                                                  AddColumns(
+                                                      ShowColumns(
+                                                          Filter(
+                                                              colChoiceValues As choiceValue,
+                                                              choiceValue.ChoiceSetKey = choiceField.ChoiceSetKey
+                                                                  && choiceValue.IsActive = true
                                                           ),
-                                                          LookupObjectTypeKey,
-                                                          "Asset",
-                                                          LookupId,
-                                                          ID,
-                                                          LookupKey,
-                                                          Coalesce(GovernanceID, Text(ID)),
-                                                          DisplayText,
-                                                          Coalesce(Title, GovernanceID, Text(ID)),
-                                                          SecondaryText,
-                                                          Coalesce(GovernanceID, ""),
-                                                          IsActiveValue,
-                                                          Coalesce(IsActive, true)
-                                                      )
-                                                  );
-                                                  Collect(
-                                                      colLoadedLookupTargets,
-                                                      {
-                                                          LookupObjectTypeKey: "Asset",
-                                                          LoadedAt: Now()
-                                                      }
+                                                          ChoiceSetKey,
+                                                          ChoiceKey,
+                                                          DisplayNameDE,
+                                                          SortOrder,
+                                                          IsDefault
+                                                      ),
+                                                      EditorFieldKey,
+                                                      choiceField.EditorFieldKey
                                                   )
-                                              ),
-                                              "System",
-                                              If(
-                                                  IsBlank(
-                                                      LookUp(
-                                                          colLoadedLookupTargets,
-                                                          LookupObjectTypeKey = "System"
-                                                      )
-                                                  ),
-                                                  Collect(
-                                                      colLookupValues,
-                                                      AddColumns(
-                                                          ShowColumns(
-                                                              Systems,
-                                                              ID,
-                                                              Title,
-                                                              GovernanceID,
-                                                              IsActive
-                                                          ),
-                                                          LookupObjectTypeKey,
-                                                          "System",
-                                                          LookupId,
-                                                          ID,
-                                                          LookupKey,
-                                                          Coalesce(GovernanceID, Text(ID)),
-                                                          DisplayText,
-                                                          Coalesce(Title, GovernanceID, Text(ID)),
-                                                          SecondaryText,
-                                                          Coalesce(GovernanceID, ""),
-                                                          IsActiveValue,
-                                                          Coalesce(IsActive, true)
-                                                      )
-                                                  );
-                                                  Collect(
-                                                      colLoadedLookupTargets,
-                                                      {
-                                                          LookupObjectTypeKey: "System",
-                                                          LoadedAt: Now()
-                                                      }
-                                                  )
-                                              ),
-                                              Blank()
-                                          )
-                                      );
+                                              )
+                                          );
 
-                                      Set(gblEditorDirty, false);
-                                      Select(lblEditorRevalidate);
-                                      Set(gblCurrentPage, "editor")
+                                          /*
+                                              Stage 3.3: Lookup Registry + Cache + Provider.
+
+                                              Power Fx kann Datenquellen nicht dynamisch anhand eines
+                                              Textwertes dereferenzieren. Die Registry beschreibt deshalb
+                                              die verfügbaren Ziele; der Provider enthält je verbundener
+                                              SharePoint-Liste einen statischen Zweig.
+
+                                              Bereits geladene Ziele bleiben im Cache und werden beim
+                                              erneuten Öffnen eines Editors nicht nochmals geladen.
+                                          */
+                                          ForAll(
+                                              Distinct(
+                                                  Filter(
+                                                      colEditorValues,
+                                                      ControlType = "Lookup"
+                                                          && !IsBlank(LookupObjectTypeKey)
+                                                  ),
+                                                  LookupObjectTypeKey
+                                              ) As requiredTarget,
+                                              Switch(
+                                                  requiredTarget.Value,
+                                                  "Asset",
+                                                  If(
+                                                      IsBlank(
+                                                          LookUp(
+                                                              colLoadedLookupTargets,
+                                                              LookupObjectTypeKey = "Asset"
+                                                          )
+                                                      ),
+                                                      Collect(
+                                                          colLookupValues,
+                                                          AddColumns(
+                                                              ShowColumns(
+                                                                  Assets,
+                                                                  ID,
+                                                                  Title,
+                                                                  GovernanceID,
+                                                                  IsActive
+                                                              ),
+                                                              LookupObjectTypeKey,
+                                                              "Asset",
+                                                              LookupId,
+                                                              ID,
+                                                              LookupKey,
+                                                              Coalesce(GovernanceID, Text(ID)),
+                                                              DisplayText,
+                                                              Coalesce(Title, GovernanceID, Text(ID)),
+                                                              SecondaryText,
+                                                              Coalesce(GovernanceID, ""),
+                                                              IsActiveValue,
+                                                              Coalesce(IsActive, true)
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colLoadedLookupTargets,
+                                                          {
+                                                              LookupObjectTypeKey: "Asset",
+                                                              LoadedAt: Now()
+                                                          }
+                                                      )
+                                                  ),
+                                                  "System",
+                                                  If(
+                                                      IsBlank(
+                                                          LookUp(
+                                                              colLoadedLookupTargets,
+                                                              LookupObjectTypeKey = "System"
+                                                          )
+                                                      ),
+                                                      Collect(
+                                                          colLookupValues,
+                                                          AddColumns(
+                                                              ShowColumns(
+                                                                  Systems,
+                                                                  ID,
+                                                                  Title,
+                                                                  GovernanceID,
+                                                                  IsActive
+                                                              ),
+                                                              LookupObjectTypeKey,
+                                                              "System",
+                                                              LookupId,
+                                                              ID,
+                                                              LookupKey,
+                                                              Coalesce(GovernanceID, Text(ID)),
+                                                              DisplayText,
+                                                              Coalesce(Title, GovernanceID, Text(ID)),
+                                                              SecondaryText,
+                                                              Coalesce(GovernanceID, ""),
+                                                              IsActiveValue,
+                                                              Coalesce(IsActive, true)
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colLoadedLookupTargets,
+                                                          {
+                                                              LookupObjectTypeKey: "System",
+                                                              LoadedAt: Now()
+                                                          }
+                                                      )
+                                                  ),
+                                                  Blank()
+                                              )
+                                          );
+
+                                          Set(gblEditorDirty, false);
+                                          Select(lblEditorRevalidate);
+                                          Set(gblCurrentPage, "editor")
+                                      )
                                     Text: ="Neu"
                                     Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
                                     Width: =80
@@ -821,16 +821,30 @@ Screens:
                                         Control: Label@2.5.1
                                         Properties:
                                           Align: =Align.Center
-                                          BorderColor: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorBorder)
+                                          BorderColor: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorPrimary, gblTheme.ColorBorder)
                                           BorderThickness: =1
-                                          Color: =If(gblEditorCanSave, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
-                                          Fill: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorFooter)
+                                          Color: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
+                                          DisplayMode: |-
+                                            =If(
+                                                gblEditorCanSave && !gblSaveBusy
+                                                  && gblActiveProvider.ObjectTypeKey = gblObjectType
+                                                  && Coalesce(gblActiveProvider.SupportsSave, false)
+                                                  && Switch(
+                                                      gblEditorMode,
+                                                      "New", Coalesce(gblActiveProvider.SupportsCreate, false),
+                                                      "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                      false
+                                                  ),
+                                                DisplayMode.Edit,
+                                                DisplayMode.Disabled
+                                            )
+                                          Fill: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorPrimary, gblTheme.ColorFooter)
                                           Font: =Font.'Open Sans'
                                           FontWeight: =FontWeight.Semibold
                                           Height: =34
                                           OnSelect: |-
                                             =If(
-                                                gblEditorCanSave && !gblSaveBusy,
+                                                Self.DisplayMode = DisplayMode.Edit,
                                                 Set(gblSaveBusy, true);
                                                 Set(gblSaveError, "");
                                                 Set(gblSavedRecordId, 0);
@@ -1066,7 +1080,7 @@ Screens:
                                                     ),
                                                     Set(
                                                         gblSaveError,
-                                                        "Für den Objekttyp '" & gblObjectType & "' ist der Stage-3.4-Save-Provider noch nicht registriert."
+                                                        "Für den Objekttyp '" & gblObjectType & "' ist noch kein Save-Provider registriert."
                                                     )
                                                 );
 
@@ -1123,6 +1137,14 @@ Screens:
                                                 CountRows(colEditorValues) > 0
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
                                                     && !gblSaveBusy
+                                                    && gblActiveProvider.ObjectTypeKey = gblObjectType
+                                                    && Coalesce(gblActiveProvider.SupportsSave, false)
+                                                    && Switch(
+                                                        gblEditorMode,
+                                                        "New", Coalesce(gblActiveProvider.SupportsCreate, false),
+                                                        "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                        false
+                                                    )
                                             )
                                           Text: =""
                                           Visible: =false

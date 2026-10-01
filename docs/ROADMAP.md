@@ -1,12 +1,14 @@
 # Governance Portal Roadmap
 
-Stand: 2026-09-28 · Ziel: erste relevante Anwendungsfälle zügig und belastbar in der Power App nutzen
+Stand: 2026-10-01 · Ziel: erste relevante Anwendungsfälle zügig und belastbar in der Power App nutzen
 
 ## Zielbild und Ausgangslage
 
 Der **erste produktive Umfang** umfasst Assets, Changes, Risks und Evidence in der Power App. Verantwortliche können zugeordnet und nach erneutem Öffnen wieder angezeigt werden. Für diese Objekte lassen sich Reviews planen, durchführen und nachvollziehen. Ein Datensatz ist erst unterstützt, wenn Anlegen, Wiederfinden, Öffnen, Ändern und Speichern mit echten Nutzerrollen geprüft sind. Nicht benötigte Objektarten und Komfortfunktionen folgen später.
 
 Die Architektur definiert bereits die Listen und Bibliotheken, Felder, Statusmodelle, Relationen und Review-Metadaten. Das ist noch keine fertige App-Funktion. Der Stage-4.1-Kandidat `1.0.0-alpha.4.1.0` wurde als Solution `1.0.0.30430` in DEV importiert; Canvas-Version 165 ist dort live. Ein Asset-Formular und die Personensuche wurden ohne Datensatz-Speicherung geprüft. Die App hat Patch-Zweige für Asset und System, aber keinen belegten Weg, bestehende Datensätze wieder zu öffnen. Für Change und Risk meldet die Registry `SupportsCreate`, jedoch `SupportsSave = false`; ein geöffnetes Formular kann nicht erfolgreich speichern. Evidence ist eine modellierte SharePoint-Bibliothek ohne Canvas-Upload-/Verknüpfungsablauf. Reviews sind als Modell und Workflow-Definition vorhanden, nicht als abgenommener End-to-End-Prozess.
+
+Der lokale P0-Kandidat `1.0.0.30431` sperrt die Neuanlage ohne passende Create-/Save-Capabilities und entfernt die unzuverlässige Asset-Gesamtzahl. Build und 58 Offline-Capability-Assertions bestehen; dieser Kandidat ist noch nicht in DEV importiert. Die Microsoft-Sitzung ist abgelaufen, Datenquellenzugriff/Bereinigung und Maker-Abnahme bleiben offen (siehe [P0-Abnahme](development/Stage-4.1-P0-Abnahme.md)).
 
 **Schnitt der Einführung:** Nur die vier genannten Anwendungsfälle und die nötigen Querschnittsfunktionen werden vorgezogen. Ein begrenzter Asset-Pilot ist ein Zwischenziel; er ersetzt die Abnahme des gesamten ersten Produktivumfangs nicht. Weitere Listen bleiben im Schema, werden aber nicht durch eine bloß sichtbare Kachel als produktiv freigegeben.
 

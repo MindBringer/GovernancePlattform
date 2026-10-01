@@ -36,9 +36,11 @@ Beim Auswählen eines Objekttyps wird der passende Datensatz in `gblActiveProvid
 
 ## Erste capability-gesteuerte Funktion
 
-Der globale **Neu**-Befehl ist nicht mehr nur vom ausgewählten Objekttyp abhängig. Er wird nur aktiviert, wenn der aktive Provider `SupportsCreate = true` meldet.
+Der globale **Neu**-Befehl ist nicht mehr nur vom ausgewählten Objekttyp abhängig. Er wird nur aktiviert, wenn der aktive Provider zur Auswahl passt und sowohl `SupportsCreate = true` als auch `SupportsSave = true` meldet. Während eines Speichervorgangs bleibt er deaktiviert. `OnSelect` prüft den aktuellen `DisplayMode` vor jeder Editor-Mutation.
 
-Damit entsteht die erste echte Entkopplung zwischen Navigation/Metadaten und fest codierter UI-Funktion.
+Die Save-Schaltfläche und die Editor-Revalidierung prüfen ebenfalls den passenden Provider und `SupportsSave`. Im Modus `New` ist zusätzlich `SupportsCreate` nötig; `Edit` erfordert `SupportsEdit` und eine positive Datensatz-ID. Unbekannte Modi und fehlende Provider bleiben gesperrt. Auch ein veraltetes `gblEditorCanSave = true` kann die Save-Sperre nicht umgehen. Das ist eine UI-/Ausführungsgrenze, keine zusätzliche SharePoint-Berechtigung.
+
+Die nicht delegierbare Asset-Gesamtzahl wurde aus dem lokalen Dashboard entfernt. Verlässliche Fachkennzahlen folgen nach dem Datensatzkern; die übrigen Metadatenzähler bleiben unverändert.
 
 ## Build-Integration
 
@@ -66,7 +68,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 - Datenquellen werden weiterhin statisch in Power Fx adressiert; Power Apps erlaubt keine dynamische Dereferenzierung aus Textwerten.
 - Die Registry steuert Fähigkeiten und Providerauflösung, ersetzt aber noch nicht die statischen Save-Zweige.
-- Stage 4.2 erweitert die Engine um einen normalisierten Record-Cache und ListProvider für Incident, Problem und Change.
+- Der Datensatzkern (Roadmap P1) ergänzt Liste, Laden und Bearbeiten. Change folgt im ersten Produktivumfang (P3); Incident/Problem werden nachfolgend eingebunden.
 
 ## Abnahmekriterien
 
@@ -75,5 +77,10 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `pwsh ./powerplatform/scripts/Sync-ObjectProviderRuntime.ps1 -CheckOnly` läuft danach erfolgreich.
 - `colObjectProviderRegistry` ist in `App.pa.yaml` vorhanden.
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
-- **Neu** ist für Provider ohne Create-Capability deaktiviert.
+- **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
+- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (58 Assertions). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
 - vollständiger Build und DEV-Smoke-Test laufen erfolgreich.
+
+## P0-Kandidat vom 01.10.2026
+
+Solution `1.0.0.30431` wurde ausschließlich lokal gebaut. SourceCode-Pack/Unpack und Capability-Tests sind keine Maker-Abnahme. Die `.msapr`-Pack-Baseline behält alte interne Controls und SARIF-Meldungen, einschließlich der früheren CountRows-Warnung; sie wurde nicht manuell als zweite Quelle bearbeitet. Nach einem separat freigegebenen DEV-Import muss Studio die kanonischen YAMLs neu prüfen. Die verbleibenden Prüfungen und der kontrollierte Asset-Smoke stehen in [Stage-4.1-P0-Abnahme.md](Stage-4.1-P0-Abnahme.md).

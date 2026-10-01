@@ -6,13 +6,16 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 
 ### Canvas Stage 4.1 – Entwicklungsbranch
 
+- P0: Neu-/Save-Befehle prüfen passende Provider-Capabilities, Edit-Modus/ID und Busy-Status vor Mutationen; nicht speicherbare Typen öffnen kein Neuanlageformular.
+- Nicht delegierbare Asset-Gesamtzahl aus dem Dashboard entfernt; 58 Offline-Power-Fx-Assertions und lokaler Solution-Kandidat `1.0.0.30431`, noch ohne DEV-Abnahme.
+
 - Read-only-DEV-Export mit dem lokalen Stage-4.1-Reconciliation-Stand abgeglichen; Personenfeld- und Asset-Speicherlogik in den kanonischen Canvas-Quellcode übernommen.
 - Diagnostisches Suchlabel aus dem Quellcode entfernt; Solution-Manifest auf die DEV-Baseline `1.0.0.30428` ausgerichtet und Canvas-/Solution-Paket lokal neu erstellt.
 - CI prüft nun auch, ob das versionierte `.msapp` die vier aktuellen Canvas-YAMLs enthält. Studio-Validierung und DEV-Smoke bleiben für die fachliche Abnahme erforderlich.
 - Canvas-Version `1.0.0-alpha.4.1.0` zwischen Versionsdatei, App und Entwicklerkonfiguration abgeglichen.
 - Object-Provider-Registry in der Canvas-Runtime synchronisiert; Auswahl bindet den aktiven Provider und der Neu-Befehl prüft dessen Create-Fähigkeit.
 - Synchronisierer gegen eine fälschlich erkannte Provider-Bindung korrigiert; CI prüft Canvas-Version, Registry und Runtime ohne automatische Reparatur.
-- DEV-/Studio-Abgleich und Live-Smoke-Test stehen vor der Stage-4.1-Integration noch aus.
+- DEV-Baseline `30430` wurde am 28.09.2026 freigegeben importiert und als Canvas 165 Live geprüft; Asset-Speicherung und P0-Kandidat `30431` sind vor der Stage-4.1-Integration noch abzunehmen.
 
 ### Documentation and repository
 
