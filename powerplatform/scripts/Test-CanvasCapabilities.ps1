@@ -58,7 +58,8 @@ $engine.UpdateVariable('gblSelectedRecordId', 0)
 $engine.UpdateVariable('gblSaveBusy', $false)
 $engine.UpdateVariable('gblShowDiscardDialog', $false)
 $engine.UpdateVariable('gblEditorCanSave', $true)
-$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, FieldInternalName: "Title", ValueText: "P0-SMOKE"})', $null, $options))
+$engine.UpdateVariable('colEditorChoiceOptions', $engine.Eval('Table({EditorFieldKey: "Asset:Criticality", ChoiceKey: "Criticality:High", DisplayNameDE: "Hoch"})', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P0-SMOKE"})', $null, $options))
 
 foreach ($provider in $providers) {
     $key = $provider.objectTypeKey
@@ -98,20 +99,20 @@ $engine.UpdateVariable('gblObjectType', 'Asset')
 $engine.UpdateVariable('gblEditorMode', '')
 Assert-Formula $saveFormula 'Disabled' 'No editor mode'
 $engine.UpdateVariable('gblEditorMode', 'New')
-$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: false, FieldInternalName: "Title", ValueText: "P0-SMOKE"})', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: false, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P0-SMOKE"})', $null, $options))
 Assert-Formula $validityFormula $false 'Invalid required field'
-$engine.UpdateVariable('colEditorValues', $engine.Eval('FirstN(Table({IsValid: true, FieldInternalName: "Title", ValueText: "P0-SMOKE"}), 0)', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('FirstN(Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P0-SMOKE"}), 0)', $null, $options))
 Assert-Formula $validityFormula $false 'Empty editor'
 $engine.UpdateVariable('gblEditorCanSave', $false)
 Assert-Formula $saveFormula 'Disabled' 'Failed validation'
 $engine.UpdateVariable('gblEditorCanSave', $true)
 $engine.UpdateVariable('gblSelectedObjectTypeKey', 'Asset')
 foreach ($title in @('', '   ', ('X' * 256))) {
-    $engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, FieldInternalName: "Title", ValueText: "' + $title + '"})', $null, $options))
+    $engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "' + $title + '"})', $null, $options))
     Assert-Formula $saveFormula 'Disabled' 'Invalid Asset Title with stale true eligibility'
     Assert-Formula $validityFormula $false 'Invalid Asset Title revalidation'
 }
-$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, FieldInternalName: "Description", ValueText: "A description"})', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Description", ValueText: "A description"})', $null, $options))
 Assert-Formula $saveFormula 'Disabled' 'Missing Asset Title metadata'
 Assert-Formula $validityFormula $false 'Missing Asset Title revalidation'
 $engine.UpdateVariable('gblEditorMode', 'Edit')
@@ -125,15 +126,24 @@ Assert-Formula $saveFormula 'Edit' 'Asset Title guard preserves System capabilit
 Assert-Formula $validityFormula $true 'System revalidation unchanged by Asset Title guard'
 $engine.UpdateVariable('gblObjectType', 'Asset')
 $engine.UpdateVariable('gblActiveProvider', $engine.Eval('{ObjectTypeKey: "Asset", SupportsCreate: true, SupportsEdit: true, SupportsSave: true}', $null, $options))
-$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, FieldInternalName: "Title", ValueText: "' + ('X' * 255) + '"})', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "' + ('X' * 255) + '"})', $null, $options))
 Assert-Formula $saveFormula 'Edit' 'Native Title accepts 255 characters'
 Assert-Formula $validityFormula $true 'Native Title boundary revalidation'
-$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, FieldInternalName: "Title", ValueText: "  P0-SMOKE  "})', $null, $options))
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "  P0-SMOKE  "})', $null, $options))
 Assert-Formula $saveFormula 'Edit' 'Valid Asset Title'
 Assert-Formula $validityFormula $true 'Valid Asset Title revalidation'
 $titlePatch = [regex]::Match((Get-ControlProperty 'lblEditorSave' 'OnSelect'), '(?m)^\s*Title: (?<formula>Trim\([^\r\n]+)').Groups['formula'].Value.TrimEnd(',')
 if (-not $titlePatch) { throw 'Asset Patch must use the validated Title without a fallback.' }
 Assert-Formula $titlePatch 'P0-SMOKE' 'Actual Asset Patch trims the input Title'
+# The full Save and revalidation expressions must reject unknown nonempty keys
+# even when both cached eligibility and the field's IsValid flag are stale true.
+foreach ($case in @(@('Criticality:High', 'Edit', $true), @('', 'Edit', $true), @('Criticality:Unknown', 'Disabled', $false))) {
+    $rows = 'Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P0-SMOKE"}, {IsValid: true, ControlType: "Choice", EditorFieldKey: "Asset:Criticality", ValueChoiceKey: "'+$case[0]+'", FieldInternalName: "Criticality", ValueText: ""})'
+    $engine.UpdateVariable('colEditorValues', $engine.Eval($rows, $null, $options))
+    Assert-Formula $saveFormula $case[1] 'Full Save choice boundary with stale true eligibility'
+    Assert-Formula $validityFormula $case[2] 'Full revalidation choice boundary with stale true field validity'
+}
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P0-SMOKE"})', $null, $options))
 $engine.UpdateVariable('gblShowDiscardDialog', $true)
 Assert-Formula $newFormula 'Disabled' 'Discard modal prevents New'
 Assert-Formula $saveFormula 'Disabled' 'Discard modal prevents Save'

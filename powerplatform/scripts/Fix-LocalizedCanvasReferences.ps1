@@ -54,6 +54,15 @@ $requiredPatterns = @(
 )
 
 if ($CheckOnly) {
+    $person = [regex]::Match($content, '(?ms)^ *- cmbEditorPerson:\r?\n(?<control>.*?)(?=^ {0,42}- \w+:|\z)').Groups['control'].Value
+    if ($person -match '(?m)^ +SearchItems:') {
+        throw 'SearchItems is private and unsupported in ComboBox SourceCode YAML (Studio PA2108); rebind Items in Studio and verify its generated rule.'
+    }
+    if ($person -notmatch 'searchTerm:\s*Self\.SearchText' -or
+        $person -notmatch 'top:\s*20\s*,' -or
+        $person -notmatch 'isSearchTermRequired:\s*true') {
+        throw 'Person search requires bounded, required server-filtered Items.'
+    }
     $invalid = $invalidPatterns | Where-Object { $content.Contains($_) }
     if ($invalid) {
         throw "Ungültige Canvas-Referenzen gefunden: $($invalid -join ', ')"

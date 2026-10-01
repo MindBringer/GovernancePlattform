@@ -1,121 +1,87 @@
-# P0 – Stage 4.1: Kandidat und ausstehende DEV-Abnahme
+# P0 – Stage 4.1: Choice-Reparatur vor erneuter DEV-Abnahme
 
-Stand: 2026-10-01, nach freigegebener DEV-Veröffentlichung · Modellklasse: `standard-reasoning` · P0 bleibt offen
+Stand: 2026-10-01 · Modellklasse: `deep-reasoning` · **P0 bleibt offen**
 
-## Aktuelle Host-Ereignis-Reparatur 30435
+## Aktueller Kandidat und Live-Ergebnis
 
-30433: Import/Export Exit 0, Export-msapp bytegleich `6d9a0d850c17052cad92f07bb120078951a645457704fda273b28d769eb09bec`. Studio öffnet, speichert und veröffentlicht Canvas 171; Maker bestätigt Publish successful. Lesender Studio-Export msapp `17ae3455b40d47e45edf0574c7ce0adfcb685480fcfa23779937cf5af1cc39e1`; tatsächliche interne Controls tragen Classic-Buttons, Title-MaxLength, Save-Guards und Eingabe-Labels. Kein DEV→Git-Source-Takeover. Player über aktuellen Maker-Wiedergabelink getestet, ältere Tabs zeigten zuvor alte Controls.
+Lokaler Kandidat **Solution 1.0.0.30440**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`. Noch nicht in DEV importiert. Letzter belegter DEV-Stand: **Solution 30439 / Canvas 181 Live**. Draft [PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16) basiert auf dem Roadmap-Branch; keine Stage-4.1-Integration oder Produktivfreigabe.
 
-Checker 171: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen (TextResources/StatusPresentation). 56 Accessibility-Fehler: 19 Fokus, 25 Tabstopp, zwölf Labels; aktive Eingabe- und Button-Namen sind vorhanden, viele Treffer betreffen statische Labels/Galerie-Container/Templatecontrols. Zwölf Leistungswarnungen: zehn nur initialisierte Collections, zwei ForAll-Mutationshinweise (lblNew/cmbEditorLookup). Restbefunde gehen vor Pilot in P2 bzw. Collection-/Lookup-Optimierung in P1; keine allgemeine Accessibility-Freigabe.
+Der ausdrücklich freigegebene **einzelne Asset-Speichertest ist verbraucht**: genau ein Save, Erfolgsmeldung und ID 8. Synthetischer Titel `P0-SMOKE-20261001T203143Z-C439`. Der Quellenvergleich bestätigt den getrimmten Titel und das ausgewählte freigegebene DEV-Testkonto als Owner. Die Kritikalität ist jedoch inkonsistent: „Hoch“ gewählt, Player danach „Niedrig“, Quelle `Criticality:High`. Dieser Datenintegritätsfehler blockiert P0; er wird nicht allein nach P2 verschoben.
 
-Enter/Space/Tab/Shift-Tab: Navigation, Asset-Auswahl, Neu, Pflicht-Titel, Abbrechen, Weiter bearbeiten und Verwerfen erreichbar. Dialog sperrt Hintergrundbefehle/Eingaben und fokussiert Weiter bearbeiten; Weiter bearbeiten gibt an Abbrechen zurück. Nach endgültigem Verwerfen ist Neu-Fokus nicht belegt (Tab landet bei Start). Asset/System-Neu frei, Contact gesperrt; vorherige 168-Evidenz für Incident/Problem/Change bleibt historisch, keine neue Vollprüfung aller Provider behauptet.
+Ausschließlich dieser anhand ID und Titel bestätigte Datensatz wurde reversibel in den normalen SharePoint-Papierkorb verschoben. ID-gefilterte aktive Liste leer, exakt dieser Titel im Papierkorb mit Herkunft Assets, danach alle vier vorhandenen Assets weiterhin sichtbar. Kein Purge, Reset, anderer Datensatz-Write oder zweite Neuanlage. Personen-/Tenantdaten und Voll-Logs bleiben außerhalb Git.
 
-**Blocker vor Save:** leer/Leerzeichen-Titel sperren korrekt. Nach nicht leerer Eingabe bleibt aber IsValid=false/ErrorMessage=Pflichtfeld. Reproduziert mit einzelnen Tasten in Studio-Vorschau; Variablen-Tabelle zeigt ValueText=DIAG und IsDirty=true, Validierungsmarker unverändert, 31 Galeriezeilen. Kein Asset-Save-Versuch/Write. Personenpicker-Suche nach freigegebenem Testkonto ohne auswählbaren Treffer; nicht als Rechtefehler oder funktionierender Personenvertrag ausgegeben.
+## Reparatur 30440
 
-30434 erfasst Text/Dirty/Validierung vor Patch und adressiert EditorFieldKey; Import Exit 0/Canvas 172 Live, keine Studio-Abnahme des Zwischenstands. 30435 ergänzt Sichtbarkeits-/Edit-Guards vor neun Ereignissen von acht Inputs; unsichtbare Controls teilen dieselbe ThisItem-Zeile und können sonst fremde Feldtyp-Validierungen patchen. Begründeter Reparaturansatz, abschließende Host-Wirksamkeit noch offen. Personen-/Choice-/Providerverträge erhalten.
+- `drpEditorChoice.Default` löst den qualifizierten `ValueChoiceKey` über die feldbezogenen `colEditorChoiceOptions` zu `DisplayNameDE` auf. `Items.Value` bleibt `DisplayNameDE`. `AllowEmptySelection=true` verhindert einen scheinbar ausgewählten ersten Eintrag bei leerem optionalem Wert; [Microsofts Dropdown-Vertrag](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/controls/control-drop-down).
+- Choice-OnChange erfasst Schlüssel, Bezeichnung und Validierung vor dem Galerie-Patch und adressiert den stabilen `EditorFieldKey`. Die Sichtbarkeits-/Edit-Guards bleiben erhalten.
+- Zehn vorhandene native Choice-Mappings übersetzen erst an der SharePoint-Patch-Grenze in den durch den Architekturcompiler erzeugten deutschen Wert: sechs Asset-Felder; System GovernanceStatus, Criticality, SystemType und Environment. Qualifizierte Schlüssel bleiben im Editor und im generischen Payload erhalten. Keine neue fachliche Feldzuordnung, kein Schema-/Choice-Metadaten-Write.
+- Save-DisplayMode und Revalidierung sperren unabhängig von veraltetem IsValid/Eligibility jeden nicht leeren Choice-Schlüssel ohne feldbezogene Bezeichnung. Leere optionale Werte bleiben leer; Pflichtfeldvalidierung bleibt separat wirksam.
+- Personensuche bleibt die begrenzte V2-Suche mit `Self.SearchText`, top 20, isSearchTermRequired=true und DisplayName/UPN. CI verwirft vier ungültige Fixtures, darunter das in Studio tatsächlich unzulässige öffentliche `SearchItems`-Property.
 
-30435 ZIP SHA-256 `d170fd2c19177b7204bdc98aaa58103cc15e9d8bcf20b6a5fe7c60fe8dad907d`; msapp `f88d11f37a1e52bedd308c6b09fafb60d1a6d4ccf0ed2c29892517ac9de6d411`. 129 Offline-Assertions, Titel-/Metadatendelta, Accessibility, Syntax/Architektur/Konsistenz, vollständiger Build/Registry/Runtime/Referenzen/Artefakt/Audit/Diff: Exit 0. SourceCode-Unpack erfolgreich; Experimental-Layout scheitert mit PAC NullReferenceException und ersetzt kein Gate. Pester nicht installiert, canvas validate in PAC 2.9.3 nicht verfügbar. Technische Reparatur innerhalb der konkreten DEV-Freigabe; keine neue Metadatenübernahme, Provisionierung/Seed/Reset oder Source-Übernahme.
+## Personenpicker: erforderlicher Studio-Schritt
 
-## Technische Reparaturschleife nach DEV-Freigabe
+SourceCode-PAC-Pack übernimmt auch interne historische Control-Regeln. Nach dem Import wurde trotz korrekter öffentlicher Items-Formel die private Suchregel `Search(ComboBoxSample, Self.SearchText, Value1)` ausgeführt. Ein unterstütztes **Studio-Rebinding von Items** (temporäre leere Tabelle, anschließend exakt die kanonische ForAll/SearchUserV2-Formel wiederherstellen), Speichern und gezielte App-Veröffentlichung erzeugte Canvas 181 mit funktionierender Suche.
 
-Die ausdrückliche Freigabe für das P0-Paket wurde ausgeführt: beide Title-Metadatenschlüssel waren vorher leer, wurden einzeln neu angelegt und ihre gespeicherten Werte geprüft. Sicherung vor Import: Solution 30431, msapp `5c7ff36d4c93417b8c962b6e6561c5bb7c4a48b8e447cdcdc78ba711054a1d77` (bekannte Studio-168-Baseline). Import/Export von 30432: Exit 0, msapp bytegleich `a256590415ca31b4ee471c941a7731a72cecaa2199f1905ab213da0733513150`; Canvas 169 wurde durch PAC Live.
+Der lesende Export von Canvas 181 bestätigt die generierte Suchregel über den V2-Aufruf und DisplayName; der Player zeigte einen benannten Treffer, direkte Auswahl blieb bestehen, der Owner war in der Datenquelle korrekt. Tastatur-Erreichbarkeit und Suche sind beobachtet; eine ausschließlich per Tastatur persistierte Personenauswahl wird nicht behauptet. Kein DEV→Git-Source-Takeover, keine zweite authorbare Quelle und kein manuell gepflegter privater SearchItems-Hack.
 
-Studio konnte 30432 nicht öffnen: acht **PA2108** für `AccessibleLabel` auf `Classic/Button@2.2.0`. Kein Studio-Checker-/Tastatur-/Save-Test behauptet; null Asset-Writes. Die lokale Accessibility-Prüfung hatte diese unzulässige Eigenschaft ebenfalls verlangt. Technischer Korrekturstand **30433** entfernt ausschließlich die acht Button-AccessibleLabel-Properties; Classic-Buttons verwenden `Text` als Screenreader-Namen gemäß [Microsoft Button-Dokumentation](https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/controls/control-button). Eingabe- und Galerie-Labels, Tab/Fokus, Title/Save-/Personen-/Choice-Verträge bleiben erhalten. Das Gate verlangt jetzt den Namen über Text und verwirft die konkret belegte unzulässige Eigenschaft; eine Negativfixture reproduziert PA2108 und wird mit Exit 1 erwartet abgewiesen. Keine funktionale Scope-Erweiterung; die Korrekturschleife dient der bereits freigegebenen DEV-Abnahme.
+**Nach jedem weiteren SourceCode-Import**: Items im Studio neu binden, kanonische Formel erhalten, Checker prüfen, gezielt veröffentlichen, frischen Player laden und benannten Treffer/Auswahl verifizieren. Lesender Export muss die erzeugte Suchregel belegen. Importerfolg oder Paketbytegleichheit allein genügt nicht.
 
-30433: vollständiger Build, 76 Power-Fx-Assertions, Titel-/Metadatendelta, Accessibility-Quellvertrag, Syntax/Architektur/Konsistenz/Registry/Runtime/Referenzen, vier YAMLs im Artefakt und PAC-Round-Trip: Exit 0. ZIP SHA-256 `06319fc19ab412762b2d4b4b0dbbe2a939e46c00b21e2f3c3805581d54ef6cc9`; msapp `6d9a0d850c17052cad92f07bb120078951a645457704fda273b28d769eb09bec`. Die zwei Title-Metadaten werden nicht erneut angelegt. Aktuelle Live-Evidenz wird nach erfolgreicher Studio-Verarbeitung und dem einen kontrollierten Asset-Smoke ergänzt. Kein Full-Provisioning/Seed/Reset oder DEV→Git-Source-Übernahme.
+## Belegte Reparaturhistorie
 
-## Reparaturkandidat 30432 vor Studio-Prüfung (historisch)
-
-`weiter` beauftragt die lokale Reparatur, keine erneuten Live-Writes. Solution `1.0.0.30432` ist gebaut; DEV bleibt beim zuletzt belegten `30431` / Canvas 168. Provisioning `6.2.5` und Canvas `1.0.0-alpha.4.1.0` unverändert. PR #16 bleibt Draft.
-
-- `architecture/object-fields.yaml` definiert natives Asset-Title als Pflicht-Text mit maximal 255 Zeichen. Der Compiler übernimmt die vorhandene native Spalte, keine zweite Namensspalte. Der Asset-Patch schreibt ausschließlich den getrimmten Eingabetitel; Save/Revalidierung sperren fehlende, leere und überlange Titel auch bei veralteter Eligibility. Die Initialisierung berücksichtigt FieldDefinitions.IsRequired zusätzlich zum Form-Pflichtmarker.
-- Der tatsächliche Metadatengenerator erzeugt genau die unten genannten zwei zusätzlichen Zeilen. Alle 1.012 vorherigen Metadatensätze bleiben im Offlinevergleich unverändert, einschließlich Feldpositionen. Titel erscheint vor bestehenden Feldern. Der native SharePoint-Spaltenvertrag ist kompiliert; dieses Paket verlangt keine pauschale Schema-Provisionierung im Tenant.
-
-| Liste / Schlüssel | Neue Werte für den gezielten DEV-Schritt |
+| Stand | Beobachtung und Grenze |
 |---|---|
-| FieldDefinitions / `Asset:Title` | Asset, FieldInternalName Title, DisplayNameDE Titel, SharePointType/ControlType Text, IsRequired true, IsReadOnly false, IsVisible/IsActive true, SectionKey General, SortOrder 0 |
-| FormFieldDefinitions / `Asset:Edit:Title` | Asset, FormDefinitionKey Asset:Edit, FormMode Edit (bestehender Neu-Metadatenvertrag), FieldInternalName Title, RequiredIf true, SectionKey General, RowNumber/SortOrder 0, IsActive true |
+| 30431 / Canvas 168 Live | Provider-/Busy-Guards und entfernte nicht delegierbare Asset-Gesamtzahl geprüft. Save vor Write gestoppt: Title-Metadaten fehlten. |
+| 30432 | Genau zwei Title-Metadaten nach Freigabe angelegt; kein Voll-Publish/Provisioning/Seed/Reset. Studio PA2108 für acht unzulässige Classic-Button-AccessibleLabel-Properties. |
+| 30433 / Canvas 171 Live | Button-Text-Namen statt unzulässigem Property. Navigation/Neu/Abbruch/Dialog per Tastatur; Titel leer sperrt, nicht leer blieb fälschlich ungültig. Kein Save. |
+| 30434 / Canvas 172 | Text-Update-Record vor Patch erfasst, stabiler EditorFieldKey. Import Exit 0; keine eigenständige Studio-Abnahme dieses Zwischenstands. |
+| 30435 / Canvas 174 Live | Neun Ereignisse von acht Inputs gegen unsichtbar/nicht bearbeitbar geschützt. Nicht leerer Titel aktiviert Save, Pflichtfehler wird gelöscht. Personenpicker weiter ohne benannten Treffer. |
+| 30436 / Canvas 176 Live | Diagnostische Änderung einer privaten gepackten Suchregel hielt Studio-Regenerierung nicht stand. Nicht als Source-Lösung übernommen. |
+| 30437 / Canvas 178 Saved | Direkter V2-Items-Diagnoseversuch ohne ForAll erfolglos; Studio-Version nicht veröffentlicht, kanonische Formel wiederhergestellt. |
+| 30438 / Canvas 179 | Öffentliche YAML-Eigenschaft SearchItems erzeugte Studio PA2108. PAC-Client nach anhaltendem Import-Warten beendet (Signal TERM, Wrapper Exit 241); **kein erfolgreicher CLI-Exit** behauptet. Unzulässige Eigenschaft entfernt und negative Fixture ergänzt. |
+| 30439 / Canvas 181 Live | Import **ohne `--publish-changes`** Exit 0; Studio-Rebinding, Speichern und gezielte Veröffentlichung erfolgreich. Genau ein Save ID 8; Title/Owner korrekt, Choice-Round-Trip fehlgeschlagen, Bereinigung belegt. |
+| 30440 lokal | Choice-Anzeige/Adapter/Guards korrigiert, Offline-Gates bestanden. DEV-/Studio-/Quellenabnahme ausstehend; dafür erneute konkrete Freigabe erforderlich. |
 
-- Acht Aktionen/Auswahlen (`lblRefresh`, `lblNew`, `lblEditorCancel`, `lblEditorSave`, `lblDiscardStay`, `lblDiscardConfirm`, `lblNavigationItem`, `lblObjectTypeTitle`) sind Classic-Buttons. Acht Editor-Eingaben erhalten AccessibleLabel mit Pflicht-/Fehlerkontext, TabIndex 0 und sichtbaren Fokus (3 px). Drei relevante Galerien erhalten Galerie-/Zeilenlabels; reine Zeilenbeschriftungen sind keine zusätzlichen Tabstopps. Hintergrundbefehle und Eingaben sind während Verwerfen/Save gesperrt; Fokusübergabe für Neu und Dialog ist explizit. Diese Quellprüfung ist keine Tastatur-/Screenreader-Abnahme.
-- Lokale Gates: Power Fx **76 Assertions / 0**, tatsächlicher getrimmter Asset-Patch eingeschlossen; Titel-/Schema-/Metadatendelta **0**; Accessibility-Vertrag **16 Controls / 3 Galerien / 0**; Architekturcompiler/Konsistenz, PowerShell-Syntax, Registry/Runtime/Referenzen, vollständiger PAC-Build, vier YAMLs im msapp und PAC-Round-Trip, Repository-Audit/Diff **0**. Die beiden neuen Offline-Verträge laufen auch in CI. Pester fehlt lokal; PAC 2.9.3 unterstützt canvas validate nicht, CI führt den optionalen Power-Fx-Engine-Test weiterhin nicht aus.
-- ZIP SHA-256 `f2c2f451395437f459805952b328b1ec904a4c9fed086672d4dbd357026509d8`; msapp `a256590415ca31b4ee471c941a7731a72cecaa2199f1905ab213da0733513150`. ZIP und JSON-Zwei-Zeilen-Plan bleiben ignorierte lokale Artefakte. Tatsächlicher Commit/CI-Head wird im PR-Handoff dokumentiert.
+Frühere Importaufrufe verwendeten `--publish-changes`; das ist historische Evidenz, keine künftige Standardfreigabe für Publish All. Neue Importe erfolgen ohne diesen Schalter; nur die benannte Canvas-App wird nach Studio-Prüfung gezielt veröffentlicht.
 
-Nach Freigabe: zuerst aktuellen DEV-Stand sowie beide Zielschlüssel lesen. Bei neuerem fachlichem Delta nicht blind überschreiben. Ausschließlich diese zwei erzeugten Zeilen upserten; keine vollständige Publish-GPMetadata-Ausführung, kein Full-Provisioning/Seed/Reset. Bestehende Zielzeilen vor einer Änderung sichern; neue Zeilen lassen sich einzeln reversibel entfernen. Danach `30432` importieren, im Studio verarbeiten und Checker prüfen, veröffentlichen, tatsächliche Live-Regeln und Tab/Shift-Tab/Enter/Space im Asset-Pfad einschließlich Personenpicker und Verwerfen-Dialog prüfen. Verbleibende relevante Checker-/Bedienungsfehler halten P0 offen. Anschließend genau ein synthetischer Asset-Smoke gemäß folgendem Ablauf; nur dessen bestätigte ID/Smoke-Titel reversibel bereinigen. Keine Voll-Abnahme der 79 historischen Accessibility-Befunde oder produktive Freigabe aus Offlinechecks ableiten.
+## Checker, Tastatur und verbleibende Grenzen
 
-## Vorheriger Kandidat 30431 und DEV-Umfang
+Checker 171: keine Formel-/Laufzeitbefunde, zwei ungenutzte Quellen (TextResources/StatusPresentation), 56 Accessibility-Fehler (19 Fokus, 25 Tabstopp, zwölf Labels), zwölf Leistungswarnungen (zehn initialisierte Collections, zwei ForAll-Mutationshinweise). Diese Counts sind **historisch**, kein neu berechneter Bericht für 181 oder 30440. Alte AppCheckerResult.sarif-Snapshots im Pack-Artefakt bleiben historische Daten, keine aktuelle Maker-Abnahme.
 
-Branch `codex/stage41-p0` auf Roadmap-Head `964dc6112b618d22b056d468d93d45cfbd423f05` (PR #15), damit Zustandsquelle und Arbeitspaket übereinstimmen. Der ursprüngliche Workspace auf `codex/stage-4.1-dev-baseline` und seine gestagten Änderungen bleiben erhalten. Provisioning `6.2.5` und Canvas `1.0.0-alpha.4.1.0` bleiben gleich; die lokale Solution trägt `1.0.0.30431`.
+Buttons haben Text-Namen, Inputs Labels/Fokus/Tabvertrag, Dialog sperrt Hintergrund und gibt bei Weiterbearbeiten Fokus an Abbrechen zurück. Nach endgültigem Verwerfen ist Neu-Fokus nicht belegt (Tab landet bei Start); vor Asset-Pilot in P2 schließen. Keine allgemeine Accessibility-Freigabe. Kontakte öffnen nach Neu keinen Editor; Asset/System-Neu positiv beobachtet. Risk/Control/Measure nicht live einzeln positiv geprüft: Navigation Risiko & Compliance war leer. Keine Vollabnahme aller Provider behauptet.
 
-- **Neu:** passende Auswahl, vorhandener Provider, Create und Save erforderlich; Busy sperrt den Befehl. `OnSelect` prüft den aktuellen DisplayMode vor der Initialisierung.
-- **Save:** passende Provideridentität und Save erforderlich. New prüft Create; Edit prüft Edit und positive ID. Unbekannter Modus, fehlender Provider, Busy oder fehlgeschlagene Validierung sperren Save. Auch programmatische Auswahl und veraltete Eligibility umgehen die Sperre nicht.
-- **Dashboard:** Asset-Gesamtzahl entfernt, weil `CountRows(Assets)` beim SharePoint-Connector keine verlässliche Gesamtzahl liefert. Keine Ersatzkennzahl aus einer ebenfalls begrenzten Sammlung.
-- Registry, Schema, Personen-/Choice-Mappings und bestehende Patch-Zweige bleiben unverändert. P1 implementiert erst den Load-/Edit-Einstieg. `SupportsSave` ist keine produktive Freigabe.
+P1 implementiert erst Datensatzliste/Laden/Bearbeiten. P2 prüft den vollständigen Asset-Round-Trip einschließlich GovernanceStatus, weiterer Verantwortlicher und Reviewtermin; nicht ausgefüllte/nicht gemappte Felder wurden in P0 nicht als gespeichert ausgegeben. Insbesondere Asset-GovernanceStatus bleibt im vorhandenen Patch ungemappt; ein sichtbarer Standard ist kein Quellenbeleg. Der Speichertest belegt keinen Reviewablauf.
 
-Lokales Artefakt: `artifacts/outbound/GovernancePortal_1.0.0.30431_1.0.0-alpha.4.1.0.zip` (ignoriert, nicht versioniert). SHA-256 ZIP: `11d575e2dfd6dfba64f3de0512cdcde14aa6f04ccec70877e7228b28bd1da4b4`; msapp: `02e58e6311e2e61a2351814c276f7a5b3673ecf56e3dd5417f54be65902191d5`.
-
-## Verifikation und Grenzen
+## Gates des lokalen Kandidaten 30440
 
 | Gate | Ergebnis / Exit-Code |
 |---|---|
-| Offline-Power-Fx-Capabilities | 58 Assertions erfolgreich / 0; tatsächliche DisplayMode-/Revalidierungsformeln mit allen neun Providern, invaliden IDs/Modi, fehlendem/veraltetem Provider, Busy, leeren/invaliden Feldern und veralteter Eligibility. Kein Tenantzugriff. |
-| Vollständiger Build | erfolgreich / 0; Version, Registry, Runtime-Sync, Canvas-Quellen/Referenzen, PAC Canvas-Pack und Solution-Pack |
-| PAC SourceCode-Pack/Unpack | vier kanonische YAMLs bytegleich nach Newline-/BOM-Normalisierung / 0 |
-| PowerShell-Syntax | erfolgreich / 0 |
-| Architekturcompiler / Konsistenz | erfolgreich / 0; 16 Objekttypen, 50 kompilierte Listen |
-| Canvas-Artefaktvergleich / Repository-Audit / Diff | erfolgreich / 0 |
-| Pester | nicht ausgeführt: Modul lokal nicht installiert; keine Pester-Abnahme behauptet |
-| `pac canvas validate` | nicht verfügbar in PAC 2.9.3; SourceCode-Pack verlangt zusätzlich Maker-Validierung |
-| DEV `30431` und Studio | Import / Export / Guardvergleich Exit 0; Canvas 168 Live. Studio: keine Formelfehler. Asset-Save vor Write abgebrochen: Title-Feld fehlt. |
+| Tatsächliche Power-Fx-Capabilities/Ereignisse | 135 Assertions / 0; Provider, Title-Grenzen, Busy, Stale Eligibility, Text-Record und alle Eingabeereignis-Guards |
+| Tatsächliche Power-Fx-Choice-Formeln | 212 Assertions / 0; zehn native Adapter, alle 42 deklarierten Werte, feldbezogene Defaults/Patches, leere/unbekannte/fremde Schlüssel, erfasster OnChange-Record |
+| Choice-Quell-/Compilervertrag | zehn Adapter / 42 Werte / 0; auch CI ohne PAC-DLLs |
+| Asset-Title-Schema/Metadatengenerator | zwei zusätzliche Zeilen, 1.012 bestehende unverändert / 0 |
+| Accessibility-Quellvertrag | 16 Controls / drei Galerien / 0; kein Ersatz für Host-Abnahme |
+| Personen-Quellvertrag | aktueller Quellcode akzeptiert, vier ungültige Fixtures verworfen / 0; private generierte Bindung bleibt Studio-Gate |
+| Vollständiger Build | Registry, Runtime-Sync, Source/Version, Referenzen, PAC Canvas-Pack und Solution-Pack / 0 |
+| PAC SourceCode-Unpack/Vergleich | vier YAMLs identisch nach BOM/Newline-Normalisierung / 0 |
+| PowerShell-Syntax | 33 Dateien / 0 |
+| Architektur/Konsistenz | 16 Objekttypen, 50 Listen / 0 |
+| Artefaktvergleich / Repository-Audit / Diff | bestanden / 0 |
+| Pester | nicht ausgeführt: Modul fehlt |
+| `pac canvas validate` | PAC 2.9.3 bietet diesen Befehl nicht; Maker-Prüfung erforderlich |
+| DEV-Abnahme 30440 | **nicht ausgeführt**, Live bleibt 30439 / 181; Offline-Grün ist keine Live-Abnahme |
 
-`Test-CanvasCapabilities.ps1` lädt die Core-/Interpreter-DLLs aus einer explizit angegebenen lokalen Power-Fx-Installation. Die bestehende CI validiert Syntax, Architektur, Registry/Runtime und gepackte YAMLs; sie führt diesen Engine-Test mangels PAC-DLLs nicht aus. Der Test ersetzt keinen Canvas-Host, SharePoint-Connector oder Maker-Compiler.
+Engine-Gates laden lokal Core-/Interpreter-DLLs aus der expliziten PAC-Installation. CI führt Quell-/Compiler-/Syntax-/Architektur-/Artefaktprüfungen aus, die 347 Engine-Assertions lokal. Keine Tests abgeschwächt.
 
-## Triage vor der DEV-Freigabe (historisch)
+30440 ZIP SHA-256: `6d7a661ccf1e2c5f304cb637e9b297ffcf1eb9a214e7b649de89170187b1c029`.
+30440 msapp SHA-256: `a3b8eb928f0153acd7c3454d2576ca2ef3f354905aaff247f26cdb65cd9a2564`.
+30439 ZIP SHA-256: `298d25acc205a21257a8307e2fd297a665a44cf87eca18dccf5b7165643b75ce`.
+Lesender Studio-181-Export msapp SHA-256: `6614cb1491fc8b1a4bb06287fbb45af9b7b1923a2b43f1322efac2bde5799c6e`.
+Builds/Exports/Logs/Screenshots bleiben lokal, nicht in Git.
 
-Vor der heutigen Freigabe belegter Live-Stand: DEV-Solution `30430`, Canvas 165 Live am 28.09.2026. Studio erzeugte dabei gespeicherte, unveröffentlichte Version 166. Am 01.10.2026 scheiterte die erneute lesende Versionsprüfung zunächst an `refresh_token_expired`, danach an der Microsoft-Anmeldeweiterleitung. Nach dem angebotenen Wiederholungsweg fordert Power Apps erneut Anmeldung. Kein aktueller DEV-Head wird daraus abgeleitet.
+## Freigaben, Git und genau ein nächstes Paket
 
-| Kategorie aus Studio am 28.09. | Entscheidung / Abnahme |
-|---|---|
-| 1 Formelwarnung: `CountRows(Assets)` | Genauigkeitsproblem im Dashboard; Ausdruck im kanonischen P0-Quellcode entfernt. Nach DEV-Import in Studio prüfen, dass die Warnung tatsächlich weg ist. |
-| 2 Datenquellenhinweise | Offen und abnahmerelevant: Details/IDs und betroffene Connections lesen; Verbindung und erforderliche Rechte mit dem DEV-Testkonto belegen. Keine pauschale Freigabe aus bloßen Counts. |
-| 79 Barrierefreiheitshinweise | Offen: Neu, Speichern, Abbrechen und Personenpicker mit Tastatur/Fokus/verständlichen Labels prüfen; Blocker im Asset-Neuanlagepfad vor P0-Abnahme beheben. Weitere Detailbefunde mit Zielpaket vor Pilotfreigabe erfassen. |
-| 12 Leistungshinweise | Offen: konkrete Regeln/Controls erfassen und Start/Formular/Pickersuche/Save beobachten. Hinweise auf unnötige Loads gehen gezielt in P1; ohne Details keine Entwarnung. |
+Die frühere konkrete Freigabe deckte zwei Title-Metadaten, DEV-Import/Studio-Veröffentlichung und **einen** Asset-Speichertest mit Quellenvergleich/Bereinigung. Diese Writes sind erledigt. Die lokale notwendige Choice-Reparatur ist vorbereitet; ein **zweiter** Save wird daraus nicht abgeleitet. Keine automatische Provisionierung, DEV-Übernahme, Publish All, Deployment, Release oder Merge.
 
-PAC übernimmt alte interne Controls und `AppCheckerResult.sarif` aus der Pack-Baseline. Dort stehen weiter `CountRows(Assets)` und historische Formelbefunde. Dieser Snapshot ist weder neu berechnet noch ein aktueller Studio-Bericht. Er wird nicht gelöscht, um eine vermeintlich grüne Abnahme zu erzeugen. Maßgeblich ist die erneute Maker-Prüfung des freigegebenen Kandidaten.
+Branch `codex/stage41-p0`, Draft PR #16 auf `codex/first-use-roadmap`; tatsächlicher Commit/CI-Head und Exit-Ergebnisse werden im PR-Handoff am Paketabschluss dokumentiert. Ursprünglicher Workspace `codex/stage-4.1-dev-baseline` mit elf gestagten Dateien bleibt erhalten. PR #14 bleibt Draft, Framework-PR #6 isoliert/DO NOT MERGE; keine Framework-Locks/Runtimeversionen.
 
-## Kontrollierter Asset-Speichertest
-
-1. Bestehende Microsoft-Anmeldung erneuern. DEV-App/Umgebung und tatsächliche Live-/Saved-Version lesen; bei neueren fachlichen Änderungen stoppen und Delta klären, keine automatische DEV-Übernahme.
-2. **Vor jeder Neuanlage** direkten Zugriff auf die richtige DEV-Assets-Liste nachweisen. Testverantwortlicher muss den einzelnen synthetischen Datensatz lesen und über den SharePoint-Papierkorb reversibel entfernen können. Asset hat im Architekturmodell `allowDelete = false`; hierfür wird kein App-Delete-Provider oder pauschales Löschrecht ergänzt. Bei `Access denied` oder unklarem Rückweg bleibt der Save-Test gesperrt.
-3. Reparaturkandidat `30432` nach separater Freigabe der zwei Title-Metadatensätze und DEV-Import-/Veröffentlichung einspielen und im Studio prüfen. Prüfen: Asset/System erlauben Neu; Contact, Incident, Problem, Change, Risk, Control, Measure nicht. Asset-Abbruch ohne Speichern funktioniert. Save ist bei fehlenden Pflichtwerten gesperrt. App-Checker-Details protokollieren.
-4. Genau einen synthetischen Asset anlegen: eindeutiger Titel `P0-SMOKE-<UTC-Zeit>-<Kurzkennung>`, ausschließlich synthetischer fachlicher Inhalt, ein ausdrücklich zugelassenes vorhandenes DEV-Testkonto als Verantwortlicher, gültige Metadaten-Choicewerte. Ist kein eindeutiger Titel im Formular verfügbar oder würde der Fallback `Asset` greifen, vor Save stoppen. Nicht unterstützte Felder nicht als geprüft ausgeben.
-5. Nach dem einzigen Save Erfolg und zurückgegebene ID festhalten. **Nicht blind erneut speichern**, falls Antwort/Fehler unklar ist: zuerst anhand Titel/ID in der Datenquelle auf möglichen bereits angelegten Datensatz prüfen.
-6. In der DEV-Assets-Liste genau diese ID öffnen und Titel, Owner, ausgewählte Choicewerte und weitere tatsächlich ausgefüllte gemappte Felder vergleichen. Quellen-Nachweis mit App-Erfolg abgleichen. App-Wiederöffnen/Ändern gehört zum noch fehlenden P1-Datensatzkern.
-7. Ausschließlich den anhand ID **und** Smoke-Titel bestätigten Testdatensatz reversibel in den Papierkorb verschieben; keine Suche-und-Massenlöschung, kein Purge/Reset. Abwesenheit in der aktiven Liste belegen. Bei fehlgeschlagener Bereinigung ID intern für den Testverantwortlichen halten und P0 offen lassen.
-8. Redigierte Abnahmeevidenz eintragen (Versionen, Datum, Erfolg/Fehler, Feldvergleich, Bereinigung, relevante Checker-Regeln). Keine Personen-, Tenant-, Credential- oder Voll-Logs committen.
-
-## DEV-Abnahme nach Freigabe vom 01.10.2026
-
-Der Benutzer hat den DEV-Import/die Veröffentlichung von `30431` und anschließend genau einen synthetischen Asset-Test mit verifizierbarer Bereinigung ausdrücklich freigegeben.
-
-- Anmeldung ist erneuert. Vorimport-Export: Solution `30430`, msapp SHA-256 `2edcdb3de5942a5fcd0022c372162143866dcd453d9b6798fa6106c3a36c75b1`, alle vier YAMLs identisch zur bekannten Baseline. Keine neueren fachlichen DEV-Änderungen überschrieben.
-- Direkter DEV-Assets-Zugriff funktioniert. Einzel-Auswahl zeigt einen aktivierten Löschbefehl; der normale SharePoint-Papierkorb ist zugänglich. Ein bestehendes Element wurde nur ausgewählt und wieder abgewählt, nicht verändert. Tatsächliche Bereinigung bleibt mangels neuem Testdatensatz ungeprüft.
-- PAC-Import mit `--publish-changes --force-overwrite`: Exit 0. Nachimport-Export: Solution `30431`, msapp byteidentisch zum Paket (`02e58e6311e2e61a2351814c276f7a5b3673ecf56e3dd5417f54be65902191d5`). Die Versionsliste zeigte zunächst Canvas 167 Live.
-- **Maker-Schritt ist erforderlich:** Im direkt importierten Player öffnete Kontakt weiterhin das Formular, auch nach Reload. Studio verarbeitete die YAMLs und erzeugte gespeicherte Version 168. Diese wurde innerhalb der erteilten Veröffentlichungsfreigabe veröffentlicht; die Meldung bestätigt Erfolg, die Versionsliste **168 Live**. Der anschließend neu geladene Player verwendet neue App-Ressourcen. Ein direkter Import/bytegleicher Export allein ist keine Prüfung der ausgeführten Steuerdaten.
-- Read-only Export nach Studio: Solution bleibt `30431`; kompiliertes msapp SHA-256 `5c7ff36d4c93417b8c962b6e6561c5bb7c4a48b8e447cdcdc78ba711054a1d77`. Die beiden fachlichen YAMLs unterscheiden sich durch Studio-Lokalisierung von SharePoint-Spaltennamen; Templates und EditorState bleiben bytegleich. Neu-/Save-DisplayMode und Revalidierung stimmen exakt mit den kanonischen Formeln überein; `CountRows(Assets)` fehlt in App.OnStart. Keine DEV-Quellen/Pack-Baseline in Git übernommen.
-- Auf Live 168: **Kontakt, Change, Problem, Incident** öffnen nach Neu keinen Editor. Asset-Formular öffnet und lässt sich ohne Write verwerfen. Risk/Control/Measure wurden nicht live einzeln geprüft: Navigation „Risiko & Compliance“ zeigt eine leere Providerliste. Das ist ein zusätzlicher Navigationsbefund, keine positive Capability-Abnahme dieser drei Typen.
-- **Asset-Smoke vor Write abgebrochen:** Die gefilterte DEV-Liste FormFieldDefinitions zeigt 30 aktive Asset-Felder ohne `Title`; auch die führende Architektur enthält keine Title-Felddefinition. Der Patch liest Title, verwendet aber sonst den generischen Fallback `Asset`. Der vereinbarte eindeutige Smoke-Titel kann so nicht eingegeben werden. Das Abbruchkriterium aus Schritt 4 wird beibehalten. Kein Asset wurde angelegt, daher kein Quellenvergleich/keine Bereinigung behauptet. Alle ungespeicherten Testformulare verworfen; Studio geschlossen (keine offene Edit-Lease).
-
-### Aktuelle Checker-Triage
-
-| Befund in Studio 168 | Entscheidung |
-|---|---|
-| Formeln: keine Fehler gefunden | Frühere CountRows-Warnung weg; kein Formelblocker im Maker-Check. |
-| Datenquelle: 2 ungenutzte Quellen | `TextResources`, `StatusPresentation`; kein Verbindungs-/Rechtefehler. Für P0 akzeptiert; Nutzung/Entfernung später bewusst entscheiden. |
-| Leistung: 12 Warnungen | 10 Collections werden initialisiert, aber nie aktualisiert; 2 ForAll-Mutationshinweise (`lblNew`, `cmbEditorLookup`). Für begrenzten Smoke kein harter Blocker; Optimierung bei P1, ohne die Collections ungeprüft zu entfernen. |
-| Barrierefreiheit: 79 Fehler | 25 fehlende Fokusanzeigen, 31 fehlende Tabstopps, 23 fehlende barrierefreie Bezeichnungen. Neu/Save/Abbrechen sowie Editor-/Lookup-/Personencontrols sind betroffen; weitere Treffer liegen in Templates/statischen Labels. Vor Asset-Pilot sind die interaktiven Kerncontrols zu korrigieren und per Tastatur abzunehmen. Keine pauschale Accessibility-Freigabe. |
-
-Screenshots, Logs und vollständige Exporte bleiben lokal/ignoriert. Die Nachweise werden nur redigiert dokumentiert. PR #14 und #16 bleiben Draft, PR #6 isoliert/DO NOT MERGE; kein Merge/Release, keine Provisionierung, kein Seed/Reset oder produktiver Datensatz-Write.
-
-## Primäres nächstes Arbeitspaket
-
-**P0-Ereignis- und DEV-Speicherabnahme von 30435:** Studio verarbeiten/prüfen/veröffentlichen, Titel-/Personen-/Tastaturpfad belegen, erst dann genau ein synthetischer Save-/Quellen-/Bereinigungstest im bereits freigegebenen Umfang. Keine neue Feature-Erweiterung, P1 folgt erst nach belegter P0-Abnahme. Wegen mehrerer Host-/Galerie-Befunde Modellklasse `deep-reasoning` für diese Reparaturschleife.
+**Einziger primärer nächster Schritt: P0-Choice-DEV-Abnahme von 30440**, nach konkreter Freigabe für Import ohne Publish All, Studio-Rebinding/Checker/gezielte App-Veröffentlichung und genau **einen zusätzlichen** synthetischen Asset-Save mit Title, zugelassenem DEV-Testkonto und stabil angezeigter Kritikalität „Hoch“. Vor Save müssen Anzeige und gewählter Schlüssel übereinstimmen; bei Rücksprung abbrechen. Danach genau ID und Titel in der Quelle prüfen: Title getrimmt, Owner korrekt, Criticality **Hoch**. Testdatensatz reversibel entfernen und Abwesenheit/Papierkorb belegen. Bei unklarer Save-Antwort zuerst lesen, kein blindes Wiederholen. P1 beginnt erst nach erfolgreicher P0-Abnahme.
