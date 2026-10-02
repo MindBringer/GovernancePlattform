@@ -38,7 +38,7 @@ Beim Auswählen eines Objekttyps wird der passende Datensatz in `gblActiveProvid
 
 Der globale **Neu**-Befehl ist nicht mehr nur vom ausgewählten Objekttyp abhängig. Er wird nur aktiviert, wenn der aktive Provider zur Auswahl passt und sowohl `SupportsCreate = true` als auch `SupportsSave = true` meldet. Während eines Speichervorgangs bleibt er deaktiviert. `OnSelect` prüft den aktuellen `DisplayMode` vor jeder Editor-Mutation.
 
-Die Save-Schaltfläche und die Editor-Revalidierung prüfen ebenfalls den passenden Provider und `SupportsSave`. Im Modus `New` ist zusätzlich `SupportsCreate` nötig; `Edit` erfordert `SupportsEdit` und eine positive Datensatz-ID. Unbekannte Modi und fehlende Provider bleiben gesperrt. Auch ein veraltetes `gblEditorCanSave = true` kann die Save-Sperre nicht umgehen. Das ist eine UI-/Ausführungsgrenze, keine zusätzliche SharePoint-Berechtigung.
+Die Save-Schaltfläche und die Editor-Revalidierung prüfen ebenfalls den passenden Provider und `SupportsSave`. Im Modus `New` ist zusätzlich `SupportsCreate` nötig; `Edit` erfordert `SupportsEdit`, eine positive und übereinstimmende geladene ID, vollständige Hydrierung, echte Änderungen und keinen Konflikt. Load/Save sperren Eingaben und Navigation. Unbekannte Modi und fehlende Provider bleiben gesperrt. Auch ein veraltetes `gblEditorCanSave = true` kann die Save-Sperre nicht umgehen. Das ist eine UI-/Ausführungsgrenze, keine zusätzliche SharePoint-Berechtigung.
 
 Die nicht delegierbare Asset-Gesamtzahl wurde aus dem lokalen Dashboard entfernt. Verlässliche Fachkennzahlen folgen nach dem Datensatzkern; die übrigen Metadatenzähler bleiben unverändert.
 
@@ -68,7 +68,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 - Datenquellen werden weiterhin statisch in Power Fx adressiert; Power Apps erlaubt keine dynamische Dereferenzierung aus Textwerten.
 - Die Registry steuert Fähigkeiten und Providerauflösung, ersetzt aber noch nicht die statischen Save-Zweige.
-- Der Datensatzkern (Roadmap P1) ergänzt Liste, Laden und Bearbeiten. Change folgt im ersten Produktivumfang (P3); Incident/Problem werden nachfolgend eingebunden.
+- Der Datensatzkern (Roadmap P1) ergänzt im lokalen Kandidaten 30441 Liste, Laden und Bearbeiten für Asset/System; die DEV-Abnahme ist offen. Change folgt im ersten Produktivumfang (P3); Incident/Problem werden nachfolgend eingebunden.
 
 ## Abnahmekriterien
 
@@ -78,7 +78,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `colObjectProviderRegistry` ist in `App.pa.yaml` vorhanden.
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
 - **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
-- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (135 Assertions; ergänzend Test-CanvasChoiceContract.ps1 mit 212 Assertions am Kandidaten 30440). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
+- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (137 Assertions; ergänzend Choice 212 und Record Core 275 am Kandidaten 30441). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
 - Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Build und begrenzte P0-Choice-Quellenabnahme von 30440 sind erfolgreich; keine vollständige Asset-/Produktivabnahme.
 
 ## Historische P0-Baseline und Title-Reparatur
@@ -93,4 +93,10 @@ Genau ein zusätzlicher ausdrücklich freigegebener Save ID 9 im frischen Player
 
 Studio-184-Checker vor Veröffentlichung: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen, 56 Accessibility-Befunde und zwölf Leistungswarnungen. 347 Offline-Power-Fx-Assertions, Quell-/Compiler-/Personenverträge, Build und verfügbare Projekt-Gates bestehen. Reine Tastatur-Persistenz der Personenauswahl und vollständige Asset-/Rollen-/Reviewabnahme bleiben offen; Neu-Fokus nach Verwerfen nun beobachtet. Details: [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
 
-**Einziger primärer nächster Schritt: P1 · Datensatzkern**, Modellklasse `deep-reasoning`: Liste/Suche/Seitenführung, Laden nach ID, Bearbeiten/Speichern und bestehender Datensatz-Round-Trip. Vollständige Asset-Mappings/Verantwortliche/Reviewtermin folgen P2. Keine erneute Title-Metadatenübernahme, keine Produktivfreigabe oder implizite Stage-4.1-Integration.
+## P1: lokaler Datensatzkern 30441
+
+Native Asset-/System-Galerien verwenden direkte Titelanfangsfilter oder ID-Gleichheit und ID-Sortierung; die Galerie lädt weitere Datensätze beim Blättern. Keine lokale Gesamtzahl oder vorgeschaltete begrenzte Datensatzcollection. Load speichert den originalen nativen Record und hydriert genau den vorhandenen Patch-Vertrag (Asset 17 / System 16 Felder). Metadatentyp/-vollständigkeit und unbekannte Choices sperren Save; unveränderte Personenobjekte bleiben erhalten. Edit benötigt geladene ID, vollständigen Load, echte Änderung und konfliktfreien Stand. Frische Modified-Prüfung und `ErrorKind.Conflict` geben sichtbare Fehler; der atomare Connector-Konfliktschutz ist in DEV zu prüfen.
+
+Die sieben bisher nicht ausführbaren Registry-Typen melden nun auch List/Create als false; Asset/System behalten alle vier Fähigkeiten. System-Title benötigt genau zwei neue Metadatenzeilen; bestehende Asset-Title-Metadaten und alle anderen Zeilen bleiben erhalten. Zusätzlich prüft die CI `Test-CanvasRecordCore.ps1`; lokal prüft die tatsächliche Power-Fx-Engine 275 Record-Assertions, zusammen 624. Diese Tests ersetzen keine Maker-/Connector-Abnahme.
+
+**Einziger primärer nächster Schritt: P1 · DEV-Abnahme des Datensatzkerns**, Modellklasse `deep-reasoning`, mit dem konkret begrenzten [Test-/Freigabeplan](Stage-4.1-P1-Datensatzkern.md). Keine neue DEV-Aktion in der lokalen P1-Umsetzung. Vollständige Asset-Mappings/Verantwortliche/Reviewtermin folgen P2 nach erfolgreichem P1-Round-Trip; keine Produktivfreigabe oder implizite Stage-4.1-Integration.

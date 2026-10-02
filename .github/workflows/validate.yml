@@ -34,3 +34,6 @@ jobs:
       - name: Validate Canvas choice source and compiler contract
         shell: pwsh
         run: ./powerplatform/scripts/Test-CanvasChoiceContract.ps1
+      - name: Validate record core source and compiler contract
+        shell: pwsh
+        run: ./powerplatform/scripts/Test-CanvasRecordCore.ps1

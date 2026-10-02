@@ -1,0 +1,289 @@
+[CmdletBinding()]
+param(
+    [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')),
+    [string]$PowerFxDirectory
+)
+Set-StrictMode -Version Latest
+$ErrorActionPreference = 'Stop'
+# Offline source/compiler/real Power Fx contracts. No authentication or connector calls.
+Import-Module (Join-Path $RepositoryRoot 'provisioning/Modules/Model.psm1') -Force
+Import-Module (Join-Path $RepositoryRoot 'provisioning/Modules/Compiler.psm1') -Force
+$model = Get-GPArchitectureModel -Root (Join-Path $RepositoryRoot 'provisioning')
+$schema = Compile-GPArchitecture $model
+$source = Get-Content (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal/Src/scrShell.pa.yaml') -Raw
+$app = Get-Content (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal/Src/App.pa.yaml') -Raw
+function Get-Property([string]$Control, [string]$Property) {
+    $m = [regex]::Match($source, "(?m)^(?<indent> *)- ${Control}:\r?`n")
+    if (-not $m.Success) { throw "Missing control $Control" }
+    $tail = $source.Substring($m.Index + $m.Length)
+    $end = [regex]::Match($tail, "(?m)^ {0,$($m.Groups['indent'].Value.Length)}- \w+:")
+    if ($end.Success) { $tail = $tail.Substring(0, $end.Index) }
+    $p = [regex]::Match($tail, "(?m)^(?<indent> *)${Property}: \|-\r?`n(?<formula>(?:\k<indent> +[^\r\n]*\r?`n|\r?`n)+)")
+    if (-not $p.Success) { throw "Missing formula $Control.$Property" }
+    return $p.Groups['formula'].Value.Trim().TrimStart('=')
+}
+function Get-Balanced([string]$Text, [int]$Start, [char]$Open, [char]$Close) {
+    $depth = 0; $quoted = $false
+    for ($i=$Start; $i -lt $Text.Length; $i++) {
+        $ch = $Text[$i]
+        if ($ch -eq '"') {
+            if ($quoted -and $i+1 -lt $Text.Length -and $Text[$i+1] -eq '"') { $i++; continue }
+            $quoted = -not $quoted
+        }
+        if ($quoted) { continue }
+        if ($ch -eq $Open) { $depth++ }
+        if ($ch -eq $Close) {
+            $depth--
+            if ($depth -eq 0) { return $Text.Substring($Start,$i-$Start+1) }
+        }
+    }
+    throw 'Unbalanced expression in actual Canvas source.'
+}
+$load = Get-Property 'lblRecordLoad' 'OnSelect'
+$init = Get-Property 'lblEditorInitialize' 'OnSelect'
+$save = Get-Property 'lblEditorSave' 'OnSelect'
+$loadGuard = [regex]::Match($load, '(?s)^If\(\s*(?<guard>.*?)\s*,\s*Set\(gblLoadBusy').Groups['guard'].Value
+if ($loadGuard -notmatch '!gblEditorDirty' -or $loadGuard -notmatch 'SupportsList' -or $loadGuard -notmatch 'SupportsEdit' -or $loadGuard -notmatch 'gblSelectedRecordId > 0') { throw 'Missing record load capability/identity/dirty guard.' }
+$projections = @([regex]::Matches($load, 'ClearCollect\(colRecordValues, Table\('))
+if ($projections.Count -ne 2) { throw 'Exactly two native record load providers are expected.' }
+$records = @{}
+foreach ($pair in @(@('Asset','Assets'),@('System','Systems'))) {
+    $key = $pair[0]; $ds = $pair[1]
+    $index = if ($key -eq 'Asset') {0} else {1}
+    $start = $projections[$index].Index + $projections[$index].Value.LastIndexOf('Table(')
+    $projection = 'Table' + (Get-Balanced $load ($start+5) '(' ')')
+    $patchStart = [regex]::Match($save, "Patch\(\s*${ds},").Index
+    if ($patchStart -le 0) { throw "Missing $key Patch" }
+    $payloadStart = $save.IndexOf('{', $patchStart)
+    $payload = Get-Balanced $save $payloadStart '{' '}'
+    $loadedNames = @([regex]::Matches($projection, 'FieldInternalName: "([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
+    $writtenNames = @([regex]::Matches($payload, '(?m)^\s*(\w+): ') | Where-Object { $_.Groups[1].Value -notin @('Claims','DisplayName','Email','Department','JobTitle','Picture','Id','Value') } | ForEach-Object { $_.Groups[1].Value })
+    $expectedCount = if ($key -eq 'Asset') {17} else {16}
+    if ($loadedNames.Count -ne $expectedCount -or ($loadedNames | Sort-Object -Unique).Count -ne $expectedCount -or ($writtenNames.Count -ne $expectedCount) -or (Compare-Object ($loadedNames | Sort-Object) ($writtenNames | Sort-Object))) { throw "$key native load/write sets differ; existing fields could be erased." }
+    if ($save -notmatch "(?s)Patch\(\s*${ds},\s*If\([^,]+,\s*gbl${key}Record,\s*Defaults\(${ds}\)") { throw "$key Edit must patch the original loaded native record, preserving connector identity." }
+    if ($load -notmatch "Refresh\(${ds}\);\s*Set\(gbl${key}Record, LookUp\(${ds}, ID = gblSelectedRecordId\)\)") { throw "$key must refresh and load by delegable ID equality." }
+    $items = Get-Property "gal${key}Records" 'Items'
+    if ($items -notmatch "Filter\(${ds}, ID = gblRecordQueryId\)" -or $items -notmatch "Filter\(${ds}, StartsWith\(Title, gblRecordQuery\)\)" -or $items -match 'FirstN|LastN|ClearCollect|ForAll|\bID\s*[<>]') { throw "$key list must retain server delegation without local truncation or ID range filtering." }
+    $open = Get-Property "gal${key}Records" 'OnSelect'
+    if ($open -notmatch "gblObjectType = `"$key`"" -or $open -notmatch 'gblActiveProvider.ObjectTypeKey' -or $open -notmatch '!gblLoadBusy' -or $open -notmatch 'Select\(lblRecordLoad\)') { throw "$key stale gallery must not open another provider's record." }
+    $native = @($schema.Lists | Where-Object ObjectKey -eq $key)[0]
+    foreach ($name in $loadedNames) {
+        if (-not ($native.Fields.InternalName -contains $name)) { throw "$key.$name has no architecture field." }
+        $nativeField = @($native.Fields | Where-Object InternalName -eq $name)[0]
+        $row = [regex]::Match($projection, '\{FieldInternalName: "'+$name+'", NativeControlType: "(?<type>[^"]+)"').Groups['type'].Value
+        if ($row -ne $nativeField.Type) { throw "$key.$name load type $row differs from compiler $($nativeField.Type)." }
+    }
+    $records[$key] = @{Projection=$projection; Payload=$payload; Fields=$loadedNames; Schema=$native}
+}
+$providers = (Get-Content (Join-Path $RepositoryRoot 'powerplatform/config/ObjectProviderRegistry.json') -Raw | ConvertFrom-Json).providers
+foreach ($p in $providers) {
+    $supported = $p.objectTypeKey -in @('Asset','System')
+    if ($p.supportsList -ne $supported -or $p.supportsCreate -ne $supported -or $p.supportsEdit -ne $supported -or $p.supportsSave -ne $supported) { throw "Capabilities overstate available record paths: $($p.objectTypeKey)" }
+}
+foreach ($fragment in @('gblEditorLoadComplete','gblLoadedRecordId = gblSelectedRecordId','!gblEditorConflict','gblEditorDirty','FirstError.Kind = ErrorKind.Conflict','If(IsBlank(gblSaveError),')) {
+    if (-not $save.Contains($fragment) -and -not (Get-Property 'lblEditorSave' 'DisplayMode').Contains($fragment)) { throw "Missing edit safety: $fragment" }
+}
+if ($init -notmatch 'ControlType\) <> loadedValue.NativeControlType' -or $init -notmatch '__unmapped__' -or $init -notmatch 'IsDirty: false' -or $source -notmatch 'ShowNavigation: =true' -or $app -notmatch 'OnError: \|-') { throw 'Missing hydration/type, unmapped-choice, paging or data-error contract.' }
+Write-Host 'Record core source/compiler passed: Asset 17 / System 16 fields; native lists, original Patch bases, capability and conflict contracts.'
+if (-not $PowerFxDirectory) { return }
+foreach ($dll in 'Microsoft.PowerFx.Core.dll','Microsoft.PowerFx.Interpreter.dll') { [void][Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $dll)) }
+$engine = [Microsoft.PowerFx.RecalcEngine]::new()
+$options = [Microsoft.PowerFx.ParserOptions]::new()
+$options.Culture = [Globalization.CultureInfo]::InvariantCulture
+$parseOptions = [Microsoft.PowerFx.ParserOptions]::new(); $parseOptions.AllowsSideEffects = $true; $parseOptions.Culture = [Globalization.CultureInfo]::InvariantCulture
+$checks=0; $syntax=0
+function Eval([string]$Formula) {
+    $value = $engine.Eval($Formula, $null, $options)
+    if ($value -is [Microsoft.PowerFx.Types.ErrorValue]) { throw "Power Fx error in $Formula : $($value.ToObject() | ConvertTo-Json -Compress)" }
+    return $value
+}
+function Assert-Fx([string]$Formula, $Expected, [string]$Context) {
+    $actual = (Eval $Formula).ToObject()
+    if ($actual -cne $Expected) { throw "${Context}: expected '$Expected', got '$actual'. Formula: $Formula" }
+    $script:checks++
+}
+function FxString([string]$Value) { '"'+$Value.Replace('"','""')+'"' }
+foreach ($text in @($source,$app)) {
+    foreach ($m in [regex]::Matches($text,'(?m)^(?<indent> *)(?<key>\w+): \|-\r?\n(?<formula>(?:\k<indent> +[^\r\n]*\r?\n|\r?\n)+)')) {
+        $formula=$m.Groups['formula'].Value.Trim().TrimStart('=')
+        $parsed=$engine.Parse($formula,$parseOptions);$syntax++
+        if(-not $parsed.IsSuccess){ Write-Host ($formula.Substring(0,[Math]::Min(100,$formula.Length))); foreach($err in $parsed.Errors){Write-Host ($err.Span | Out-String)}; throw "Actual $($m.Groups['key'].Value) syntax: $(($parsed.Errors | ForEach-Object Message) -join '; ')"}
+    }
+}
+$hydrateStart = $init.IndexOf('With(', $init.IndexOf('{editorInput:'))
+$hydrate = 'With'+(Get-Balanced $init ($hydrateStart+4) '(' ')')
+$saveGuard = (Get-Property 'lblEditorSave' 'DisplayMode').Replace('DisplayMode.Edit','"Edit"').Replace('DisplayMode.Disabled','"Disabled"')
+# Evaluate the actual event guards: hydrated defaults must never dirty or erase a row.
+$engine.UpdateVariable('gblEditorMode','Edit')
+$baseline = '{ValueText: "SYNTHETIC", ValueNumber: 0, ValueDate: Date(2026,10,1)+Time(13,14,15), ValueBoolean: false, ValueChoiceKey: "Criticality:High", ValueLookupId: 3001, ValuePersonClaims: "i:0#.f|membership|synthetic@tenant.invalid", ValuePersonEmail: "synthetic@tenant.invalid"}'
+$engine.UpdateVariable('ThisItem',(Eval $baseline))
+foreach ($control in @('txtEditorText','txtEditorMultiline','txtEditorNumber','datEditorDate','togEditorBoolean','drpEditorChoice','cmbEditorLookup','cmbEditorPerson')) {
+    $events=if($control -eq 'togEditorBoolean'){@('OnCheck','OnUncheck')}else{@('OnChange')}
+    foreach($event in $events) {
+        $handler=Get-Property $control $event
+        $guard=[regex]::Match($handler,'^If\(\s*(?<guard>[^\r\n]+),').Groups['guard'].Value.Replace('Self.','testControl.').Replace('DisplayMode.Edit','"Edit"')
+        if(-not $guard){throw "Missing actual $control.$event guard."}
+        $sameText=if($control -eq 'txtEditorNumber'){'0'}else{'SYNTHETIC'}
+        $engine.UpdateVariable('testControl',(Eval ('{Visible: true, DisplayMode: "Edit", Text: '+(FxString $sameText)+', Value: false, SelectedDate: Date(2026,10,1), Selected: {ChoiceKey: "Criticality:High"}, SelectedItems: Table({LookupId: 3001, UserPrincipalName: "synthetic@tenant.invalid", DisplayName: "SYNTHETIC"})}')))
+        Assert-Fx $guard $false "$control.$event loaded default does not rewrite or dirty"
+        $engine.UpdateVariable('testControl',(Eval '{Visible: true, DisplayMode: "Edit", Text: "1", Value: true, SelectedDate: Date(2026,10,2), Selected: {ChoiceKey: "Criticality:Low"}, SelectedItems: Table({LookupId: 3002, UserPrincipalName: "changed@tenant.invalid", DisplayName: "CHANGED"})}'))
+        Assert-Fx $guard $true "$control.$event explicit change reaches update"
+        if($control -in @('drpEditorChoice','cmbEditorLookup','cmbEditorPerson')) {
+            $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Selected: {ChoiceKey: ""}, SelectedItems: FirstN(testControl.SelectedItems,0)})'))
+            Assert-Fx $guard $true "$control explicit optional clearing reaches update"
+        }
+        if($control -eq 'drpEditorChoice') {
+            $engine.UpdateVariable('ThisItem',(Eval 'Patch(ThisItem, {ValueChoiceKey: "Criticality:__unmapped__:OLD"})'))
+            Assert-Fx $guard $false 'Unknown persisted choice cannot silently disappear in empty default event'
+            $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Selected: {ChoiceKey: "Criticality:High"}})'))
+            Assert-Fx $guard $true 'Unknown persisted choice permits explicit valid replacement'
+            $engine.UpdateVariable('ThisItem',(Eval $baseline))
+        }
+    }
+}
+# Complete native rows, synthetic identities only, including alias email vs claims principal.
+foreach ($key in @('Asset','System')) {
+    $engine = [Microsoft.PowerFx.RecalcEngine]::new()
+    $contract=$records[$key]
+    $engine.UpdateVariable('gblObjectType',$key)
+    $engine.UpdateVariable('gblEditorMode','Edit')
+    $choiceRows=@(); $choiceCases=@{}
+    foreach ($field in ($contract.Schema.Fields | Where-Object { $_.InternalName -in $contract.Fields -and $_.Type -eq 'Choice' })) {
+        $set=@($model.ChoiceSets | Where-Object key -eq $field.ChoiceSet)[0]
+        $choiceCases[$field.InternalName]=@{Set=$set.key; Value=$set.values[-1][1]; Key="$($set.key):$($set.values[-1][0])"}
+        foreach($choice in $set.values){$choiceRows += '{ChoiceSetKey: '+(FxString $set.key)+', ChoiceKey: '+(FxString "$($set.key):$($choice[0])")+', DisplayNameDE: '+(FxString $choice[1])+', IsActive: true}'}
+    }
+    $engine.UpdateVariable('colChoiceValues',(Eval ('Table('+($choiceRows -join ',')+')')))
+    foreach($empty in @($false,$true)) {
+        $nativeFields=@('ID: 1001','Modified: Date(2026,10,1)+Time(12,0,0)')
+        $metadata=@()
+        foreach($name in $contract.Fields) {
+            $field=@($contract.Schema.Fields | Where-Object InternalName -eq $name)[0]
+            $value = switch($field.Type) {
+                'User' { '{Claims: "i:0#.f|membership|synthetic@tenant.invalid", DisplayName: "Synthetische Person", Email: "alias@example.invalid", Department: "TEST", JobTitle: "TEST", Picture: ""}' }
+                'Choice' { '{Value: '+(FxString $choiceCases[$name].Value)+'}' }
+                'DateTime' { 'Date(2026,9,23)+Time(13,14,15)' }
+                'Number' { '0' }
+                'Boolean' { 'false' }
+                'Lookup' { '{Id: 3001, Value: "Synthetisches Ziel"}' }
+                default { FxString ('Wert "'+$name+'" äöü') }
+            }
+            if($name -eq 'Title') {$value='"P1-SYNTHETIC"'}
+            elseif($empty -and $field.Type -ne 'Boolean') {$value='If(false, '+$value+', Blank())'}
+            $nativeFields += $name+': '+$value
+            $set = if($choiceCases.ContainsKey($name)) {$choiceCases[$name].Set} else {''}
+            $metadata += '{FieldInternalName: '+(FxString $name)+', EditorFieldKey: '+(FxString "$key`:$name")+', ControlType: '+(FxString $field.Type)+', ChoiceSetKey: '+(FxString $set)+', IsRequired: '+$field.Required.ToString().ToLowerInvariant()+', ValueText: "", ValueNumber: If(false,0,Blank()), ValueBoolean: If(false,true,Blank()), ValueDate: If(false,Now(),Blank()), ValueLookupId: If(false,0,Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: "", ValueChoiceKey: "", IsDirty: false, IsValid: true, ErrorMessage: ""}'
+        }
+        $nativeRecord=Eval ('{'+($nativeFields -join ',')+'}')
+        if(-not $empty){$nonemptyFixture=$nativeRecord}
+        $engine.UpdateVariable("gbl${key}Record",$nativeRecord)
+        $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
+        Assert-Fx 'CountRows(colRecordValues)' $contract.Fields.Count "$key complete projection"
+        $engine.UpdateVariable('colEditorValues',(Eval ('Table('+($metadata -join ',')+')')))
+        $values=Eval ('ForAll(colRecordValues As loadedValue, Patch(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), '+$hydrate+'))')
+        $engine.UpdateVariable('colEditorValues',$values)
+        Assert-Fx 'CountRows(Filter(colEditorValues, IsDirty))' 0 "$key hydration is clean"
+        Assert-Fx 'CountRows(Filter(colEditorValues, !IsValid))' 0 "$key optional blanks remain valid"
+        $optionRows=@()
+        foreach($field in $choiceCases.Keys) {
+            $set=@($model.ChoiceSets | Where-Object key -eq $choiceCases[$field].Set)[0]
+            foreach($choice in $set.values){$optionRows += '{EditorFieldKey: '+(FxString "$key`:$field")+', ChoiceKey: '+(FxString "$($set.key):$($choice[0])")+', DisplayNameDE: '+(FxString $choice[1])+'}'}
+        }
+        $engine.UpdateVariable('colEditorChoiceOptions',(Eval ('Table('+($optionRows -join ',')+')')))
+        $saved=Eval $contract.Payload
+        $engine.UpdateVariable('testSaved',$saved)
+        foreach($name in $contract.Fields) {
+            $field=@($contract.Schema.Fields | Where-Object InternalName -eq $name)[0]
+            $suffix = switch($field.Type){'Choice'{'.Value'}'User'{'.Claims'}'Lookup'{'.Id'}default{''}}
+            $expected=(Eval ("gbl${key}Record.$name"+$suffix)).ToObject()
+            Assert-Fx ('testSaved.'+$name+$suffix) $expected "$key/$name unchanged native round-trip (blank=$empty)"
+            if($field.Type -eq 'User' -and -not $empty) {
+                Assert-Fx ('testSaved.'+$name+'.Email') 'alias@example.invalid' "$key/$name untouched native email retained"
+                Assert-Fx ('testSaved.'+$name+'.Department') 'TEST' "$key/$name department retained"
+                Assert-Fx ('testSaved.'+$name+'.JobTitle') 'TEST' "$key/$name job title retained"
+                Assert-Fx ('LookUp(colEditorValues, FieldInternalName = '+(FxString $name)+', ValuePersonEmail)') 'synthetic@tenant.invalid' "$key/$name uses claims principal rather than email alias"
+            }
+        }
+        # Change one field using the hydrated editor; all other native values survive.
+        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As fieldValue, If(fieldValue.FieldInternalName = "Title", Patch(fieldValue, {ValueText: "  P1-CHANGED  ", IsDirty: true}), fieldValue))'))
+        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+        Assert-Fx 'testSaved.Title' 'P1-CHANGED' "$key changed Title trims"
+        foreach($name in ($contract.Fields | Where-Object {$_ -ne 'Title'})) {
+            $field=@($contract.Schema.Fields | Where-Object InternalName -eq $name)[0]
+            $suffix=switch($field.Type){'Choice'{'.Value'}'User'{'.Claims'}'Lookup'{'.Id'}default{''}}
+            Assert-Fx ('testSaved.'+$name+$suffix) ((Eval ("gbl${key}Record.$name"+$suffix)).ToObject()) "$key/$name survives another field's edit"
+        }
+        foreach($g in @('gblSaveBusy','gblLoadBusy','gblShowDiscardDialog','gblEditorConflict')) {$engine.UpdateVariable($g,$false)}
+        $engine.UpdateVariable('gblEditorMode','Edit');$engine.UpdateVariable('gblCurrentPage','ObjectList')
+        $engine.UpdateVariable('gblEditorCanSave',$true);$engine.UpdateVariable('gblEditorLoadComplete',$true)
+        $engine.UpdateVariable('gblEditorDirty',$true);$engine.UpdateVariable('gblSelectedRecordId',1001);$engine.UpdateVariable('gblLoadedRecordId',1001)
+        $engine.UpdateVariable('gblActiveProvider',(Eval ('{ObjectTypeKey: '+(FxString $key)+', SupportsList: true, SupportsCreate: true, SupportsEdit: true, SupportsSave: true}')))
+        Assert-Fx $saveGuard 'Edit' "$key loaded changed record permits save"
+        foreach($state in @(@('gblEditorConflict',$true),@('gblEditorLoadComplete',$false),@('gblEditorDirty',$false),@('gblLoadBusy',$true),@('gblLoadedRecordId',1002))) {
+            $original=(Eval $state[0]);$engine.UpdateVariable($state[0],$state[1])
+            Assert-Fx $saveGuard 'Disabled' "$key blocks $($state[0]) despite stale CanSave"
+            $engine.UpdateVariable($state[0],$original)
+        }
+        $conflict=[regex]::Match($save,'IsBlank\(gbl'+$key+'Current.Modified\) \|\| IsBlank\(gbl'+$key+'Record.Modified\) \|\| gbl'+$key+'Current.Modified <> gbl'+$key+'Record.Modified').Value
+        if(-not $conflict){throw 'Missing native Modified preflight.'}
+        $engine.UpdateVariable("gbl${key}Current",$nativeRecord)
+        Assert-Fx $conflict $false "$key unchanged source"
+        $engine.UpdateVariable("gbl${key}Current",(Eval ("Patch(gbl${key}Record, {Modified: Date(2026,10,2)+Time(0,0,0)})")))
+        Assert-Fx $conflict $true "$key detects parallel modification"
+        $engine.UpdateVariable("gbl${key}Current",(Eval ("Patch(gbl${key}Record, {Modified: If(false, Now(), Blank())})")))
+        Assert-Fx $conflict $true "$key refuses missing concurrency stamp"
+        $engine.UpdateVariable("gbl${key}Current",(Eval ("Patch(gbl${key}Record, {ID: If(false, 0, Blank())})")))
+        Assert-Fx ("IsBlank(gbl${key}Current.ID)") $true "$key detects deleted/inaccessible source"
+    }
+    $engine.UpdateVariable("gbl${key}Record",$nonemptyFixture)
+    $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
+    $engine.UpdateVariable('colEditorValues',(Eval ('ForAll(colRecordValues As loadedValue, Patch(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), '+$hydrate+'))')))
+    $complete=[regex]::Match($init,'(?m)Set\(gblEditorLoadComplete, (?<expression>CountRows\(Filter\(colRecordValues[^\r\n]+ = 0)\),').Groups['expression'].Value
+    if(-not $complete){throw 'Missing actual metadata completeness/type expression.'}
+    Assert-Fx $complete $true "$key complete metadata permits hydration"
+    $completeValues=Eval 'colEditorValues'
+    $engine.UpdateVariable('colEditorValues',(Eval 'Filter(colEditorValues, FieldInternalName <> "Owner")'))
+    Assert-Fx $complete $false "$key missing metadata blocks hydration"
+    $engine.UpdateVariable('colEditorValues',$completeValues)
+    $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Owner", Patch(v, {ControlType: "Text"}), v))'))
+    Assert-Fx $complete $false "$key incorrect metadata type blocks hydration"
+    $engine.UpdateVariable('colEditorValues',$completeValues)
+    $engine.UpdateVariable('loadedValue',(Eval 'Patch(LookUp(colRecordValues, FieldInternalName = "Criticality"), {ValueText: "UNKNOWN-NATIVE-VALUE"})'))
+    $engine.UpdateVariable('testHydrated',(Eval $hydrate))
+    Assert-Fx 'testHydrated.IsValid' $false "$key unknown persisted choice invalid"
+    Assert-Fx '":__unmapped__:" in testHydrated.ValueChoiceKey' $true "$key unknown choice not silently blanked"
+    Assert-Fx '!IsBlank(testHydrated.ErrorMessage)' $true "$key unknown choice explains the block"
+    $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Criticality", Patch(v, testHydrated), v))'))
+    Assert-Fx $saveGuard 'Disabled' "$key unknown persisted choice blocks stale CanSave"
+    $engine.UpdateVariable('colEditorValues',$completeValues)
+    # Explicitly clearing an optional person must be distinguishable from untouched native identity.
+    $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Owner", Patch(v, {ValuePersonClaims: "", ValuePersonEmail: "", ValueText: "", IsDirty: true}), v))'))
+    $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+    Assert-Fx 'IsBlank(testSaved.Owner)' $true "$key explicit person clear persists"
+    $engine.UpdateVariable('colEditorValues',$completeValues)
+    $engine.UpdateVariable('gblEditorDirty',$false)
+    Assert-Fx $loadGuard $true "$key clean list can load an ID"
+    foreach($flag in @('gblSaveBusy','gblLoadBusy','gblShowDiscardDialog','gblEditorDirty')) {
+        $engine.UpdateVariable($flag,$true);Assert-Fx $loadGuard $false "$key load blocks $flag";$engine.UpdateVariable($flag,$false)
+    }
+    $engine.UpdateVariable('gblSelectedRecordId',0);Assert-Fx $loadGuard $false "$key cannot load zero ID";$engine.UpdateVariable('gblSelectedRecordId',1001)
+    $engine.UpdateVariable('gblCurrentPage','editor');Assert-Fx $loadGuard $false "$key cannot replace editor from stale list event";$engine.UpdateVariable('gblCurrentPage','ObjectList')
+    $provider=Eval 'gblActiveProvider'
+    $engine.UpdateVariable('gblActiveProvider',(Eval 'Patch(gblActiveProvider, {SupportsEdit: false})'));Assert-Fx $loadGuard $false "$key unsupported edit blocked";$engine.UpdateVariable('gblActiveProvider',$provider)
+    $engine.UpdateVariable('gblActiveProvider',(Eval 'Patch(gblActiveProvider, {ObjectTypeKey: "Foreign"})'));Assert-Fx $loadGuard $false "$key stale provider blocked";$engine.UpdateVariable('gblActiveProvider',$provider)
+    # The actual gallery query must find a record beyond 2000 locally too; server delegation is a separate host gate.
+    $ds=if($key -eq 'Asset'){'Assets'}else{'Systems'}
+    $rows=1..3000 | ForEach-Object { '{ID: '+$_+', Title: '+(FxString $(if($_ -eq 3000){'P1-LAST'}else{'OTHER'}))+'}' }
+    $engine.UpdateVariable($ds,(Eval ('Table('+($rows -join ',')+')')))
+    $engine.UpdateVariable('gblRecordQuery','P1-LAST');$engine.UpdateVariable('gblRecordQueryId',0)
+    $items=Get-Property "gal${key}Records" 'Items'
+    Assert-Fx ('CountRows('+$items+')') 1 "$key prefix finds final record in 3000-row fixture"
+    Assert-Fx ('First('+$items+').ID') 3000 "$key prefix preserves native ID"
+    $engine.UpdateVariable('gblRecordQuery','NO-MATCH');$engine.UpdateVariable('gblRecordQueryId',3000)
+    Assert-Fx ('First('+$items+').ID') 3000 "$key exact ID is independent of prefix"
+    $engine.UpdateVariable('gblRecordQueryId',-1)
+    Assert-Fx ('CountRows('+$items+')') 0 "$key invalid ID never falls back to unfiltered list"
+    $engine.UpdateVariable('gblRecordQueryId',0)
+    Assert-Fx ('CountRows('+$items+')') 0 "$key empty search result distinct from error"
+}
+Write-Host "Actual record core Power Fx passed: $checks assertions; $syntax behavior formulas parsed. Connector delegation/ETag/Studio still require DEV acceptance."

@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$PlanPath)
+param([string]$PlanPath, [ValidateSet("Asset","System")][string]$ObjectType = "Asset")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -8,9 +8,9 @@ Import-Module "$root/provisioning/Modules/Model.psm1" -Force
 Import-Module "$root/provisioning/Modules/Compiler.psm1" -Force
 $model = Get-GPArchitectureModel -Root "$root/provisioning"
 $schema = Compile-GPArchitecture $model
-$title = @(($schema.Lists | Where-Object ObjectKey -eq 'Asset').Fields | Where-Object InternalName -eq 'Title')
+$title = @(($schema.Lists | Where-Object ObjectKey -eq $ObjectType).Fields | Where-Object InternalName -eq 'Title')
 if ($title.Count -ne 1 -or $title[0].Type -ne 'Text' -or -not $title[0].Required -or $title[0].maxLength -ne 255) {
-    throw 'Asset must resolve exactly one required native Title (Text, maxLength 255).'
+    throw "$ObjectType must resolve exactly one required native Title (Text, maxLength 255)."
 }
 
 # Run the actual generator in an isolated module instance, replacing its sole
@@ -38,9 +38,9 @@ try {
     $global:GPContext = @{DryRun=$true}
     $rows = @(Get-GeneratedRows $model)
     $baseline = Get-GPArchitectureModel -Root "$root/provisioning"
-    $baseline.ObjectFields = @($baseline.ObjectFields | Where-Object { -not ($_.objectTypeKey -eq 'Asset' -and $_.internalName -eq 'Title') })
+    $baseline.ObjectFields = @($baseline.ObjectFields | Where-Object { -not ($_.objectTypeKey -eq $ObjectType -and $_.internalName -eq 'Title') })
     $oldRows = @(Get-GeneratedRows $baseline)
-    $delta = @($rows | Where-Object { $_.List -in @('FieldDefinitions','FormFieldDefinitions') -and $_.Values.ObjectTypeKey -eq 'Asset' -and $_.Values.FieldInternalName -eq 'Title' })
+    $delta = @($rows | Where-Object { $_.List -in @('FieldDefinitions','FormFieldDefinitions') -and $_.Values.ObjectTypeKey -eq $ObjectType -and $_.Values.FieldInternalName -eq 'Title' })
     if ($delta.Count -ne 2 -or $rows.Count -ne ($oldRows.Count + 2)) { throw 'Expected exactly two additional metadata rows.' }
     $existing = @{}
     foreach ($row in $rows) { $existing[$row.List + '/' + $row.Values[$row.KeyField]] = $row.Values }
@@ -55,11 +55,11 @@ try {
     $field = ($delta | Where-Object List -eq 'FieldDefinitions').Values
     $form = ($delta | Where-Object List -eq 'FormFieldDefinitions').Values
     if (-not $field.IsRequired -or $field.ControlType -ne 'Text' -or $field.SortOrder -ne 0 -or $field.IsReadOnly) { throw 'Invalid Title field metadata.' }
-    if ($form.RequiredIf -ne 'true' -or $form.SortOrder -ne 0 -or $form.FormFieldDefinitionKey -ne 'Asset:Edit:Title') { throw 'Invalid Title form metadata.' }
+    if ($form.RequiredIf -ne 'true' -or $form.SortOrder -ne 0 -or $form.FormFieldDefinitionKey -ne "${ObjectType}:Edit:Title") { throw 'Invalid Title form metadata.' }
     if ($PlanPath) {
         $delta | ConvertTo-Json -Depth 10 | Set-Content -LiteralPath $PlanPath -Encoding utf8
     }
-    Write-Host "Asset Title contract passed: native schema, two new metadata rows, $($oldRows.Count) existing rows unchanged; no tenant access."
+    Write-Host "$ObjectType Title contract passed: native schema, two new metadata rows, $($oldRows.Count) existing rows unchanged; no tenant access."
 } finally {
     if ($oldContext) { $global:GPContext = $oldContext.Value }
     else { Remove-Variable GPContext -Scope Global -ErrorAction SilentlyContinue }

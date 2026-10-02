@@ -8,6 +8,11 @@
 # ************************************************************************************************
 App:
   Properties:
+    OnError: |-
+      =Set(gblRecordError, "Datenzugriff fehlgeschlagen. " & FirstError.Message);
+      If(gblSaveBusy, Set(gblSaveError, "Speicherergebnis unklar. Vor erneutem Speichern Datenstand prüfen."); Set(gblEditorConflict, true));
+      Set(gblLoadBusy, false);
+      Set(gblSaveBusy, false)
     OnStart: |-
       =Set(gblAppVersion, "1.0.0-alpha.4.1.0");
       Set(gblInitialized, false);
@@ -32,6 +37,17 @@ App:
       Set(gblSaveError, "");
       Set(gblSavedRecordId, 0);
       Set(gblShowDiscardDialog, false);
+      Set(gblPendingNavigationKey, "");
+      Set(gblPendingNavigationPage, "");
+      Set(gblLoadBusy, false);
+      Set(gblLoadedRecordId, 0);
+      Set(gblEditorLoadComplete, false);
+      Set(gblEditorConflict, false);
+      Set(gblRecordQuery, "");
+      Set(gblRecordQueryId, 0);
+      Set(gblRecordError, "");
+      ClearCollect(colRecordValues, {FieldInternalName: "", NativeControlType: "", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""});
+      Clear(colRecordValues);
 
       /* BEGIN GENERATED OBJECT PROVIDER RUNTIME - DO NOT EDIT */
       ClearCollect(
@@ -79,8 +95,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -90,8 +106,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -101,8 +117,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -112,8 +128,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -123,8 +139,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -134,8 +150,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           },
@@ -145,8 +161,8 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: true,
-              SupportsCreate: true,
+              SupportsList: false,
+              SupportsCreate: false,
               SupportsEdit: false,
               SupportsSave: false
           }
