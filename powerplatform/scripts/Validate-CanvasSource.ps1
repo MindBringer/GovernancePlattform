@@ -1,6 +1,7 @@
 [CmdletBinding()]
 param(
-    [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..'))
+    [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')),
+    [string]$PythonCommand = 'python3'
 )
 
 Set-StrictMode -Version Latest
@@ -32,6 +33,11 @@ function Resolve-CanvasSource {
 
 $canvasSource = Resolve-CanvasSource -Root $RepositoryRoot
 $src = Join-Path $canvasSource 'Src'
+$yamlValidator = Join-Path $RepositoryRoot 'tools/companion/verify_canvas_yaml.py'
+& $PythonCommand $yamlValidator --source $src
+if ($LASTEXITCODE -ne 0) {
+    throw 'Canvas YAML parsing failed. Install tools/companion/requirements-validation.txt in the selected Python environment.'
+}
 $appPath = Join-Path $src 'App.pa.yaml'
 $versionFile = Join-Path $RepositoryRoot 'powerplatform/VERSION'
 

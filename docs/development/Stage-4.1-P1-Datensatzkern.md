@@ -1,12 +1,12 @@
 # P1 – Datensatzkern und DEV-Abnahme
 
-Stand: 2026-10-02. **Lokale Umsetzung bereit; keine P1-Live-Abnahme.** Primäres Folgepaket ist ausschließlich die hier beschriebene P1-DEV-Abnahme. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
+Stand: 2026-10-02. **DEV 30441/Canvas 185 mit Studio-Blocker; Reparatur 30442 lokal bereit, P1 nicht abgenommen.** Primäres Folgepaket ist ausschließlich die hier beschriebene P1-DEV-Fortsetzung mit dem neuen Kandidaten. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
 
 ## Kandidat und Grenzen
 
 - Branch `codex/stage41-p1`, Basis P0 `5caee00823032b4306f0bdaa900ca9817a53610e`, [Draft-PR #17](https://github.com/MindBringer/GovernancePlattform/pull/17) auf `codex/stage41-p0`.
-- Solution **1.0.0.30441**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt.
-- Letzter belegter Live-Stand: **P0 30440 / Canvas 184**. Frühere P0-Neuanlage-/Save-Freigaben sind verbraucht. `weiter P1` beauftragt die lokale Umsetzung, Tests, Kandidat und Draft; kein neuer Import/Publish oder Tenant-Save.
+- Lokaler Reparaturkandidat: Solution **1.0.0.30442**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt. Noch nicht importiert.
+- Letzte erfolgreiche fachliche Abnahme: **P0 30440 / Canvas 184**. Aktueller DEV-Import: **30441 / Canvas 185 Live laut Maker**, Studio-Öffnen gescheitert. Die konkrete Freigabe für 30441 deckte zwei Metadatenzeilen und Import ab; fachliche Save-Kontingente sind ungenutzt. Sie autorisiert keinen automatischen Import des neuen 30442-Kandidaten. Frühere P0-Save-Freigaben bleiben verbraucht.
 - Kanonische Bearbeitungsquelle bleibt `powerplatform/canvas/GovernancePortal/`; SourceCode-Round-Trip nur in ignoriertem Staging. Keine DEV→Git-Übernahme.
 - P1 erhält die vorhandenen nativen Save-Verträge. Kein zusätzliches Asset-Fachmapping, neuer Provider, Evidence-/Reviewprozess oder Produktivrollout. Capabilities benennen ausführbare Pfade; Live-/Rollenabnahme bleibt separat.
 
@@ -48,7 +48,8 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 
 | Gate | Ergebnis / Exit-Code |
 |---|---|
-| Vollständiger `Build.ps1`, PAC 2.9.3 SourceCode-/Solution-Pack | 0; 30441, kein Import/Publish |
+| Vollständiger `Build.ps1`, PAC 2.9.3 SourceCode-/Solution-Pack | 0; 30442, kein Import/Publish |
+| Echter YAML-Parser / Regression | 0 / 0; vier Quellen, vier Regressionstests |
 | Canvas-Artefaktvergleich / SourceCode-Unpack | 0; vier kanonische YAMLs unverändert |
 | Architecture / ArchitectureConsistency | 0 / 0 |
 | PowerShell-Syntax | 0; 35 PS1-/PSM1-Dateien |
@@ -58,33 +59,41 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 | Accessibility-Quellvertrag | 0; 20 Controls / fünf Galerien, Load-/Save-/Modal-Sperren |
 | Capability-Engine | 0; 137 tatsächliche Assertions |
 | Choice-Quell-/Compiler-/Enginevertrag | 0; zehn Adapter / 42 Werte, 212 tatsächliche Assertions |
-| Record-Quell-/Compiler-/Enginevertrag | 0; Asset 17 / System 16 Felder, 275 tatsächliche Assertions, 51 mehrzeilige Formeln geparst |
+| Record-Quell-/Compiler-/Enginevertrag | 0; Asset 17 / System 16 Felder, 275 tatsächliche Assertions, 53 mehrzeilige Formeln geparst |
 | Repository-Audit / Diff | 0 / 0 |
 
 **624 tatsächliche Offline-Power-Fx-Assertions.** Die Recordtests werten tatsächliche Projektionen, Hydrierung, Payloads, Guard- und Galerieformeln aus. Voll-/Leerwerte, Datumszeiten, native Personenalias-/Claims-Werte, optionales Leeren, unveränderte Defaults, unbekannte Choices, fehlende Metadaten, falsche Kontrolltypen, Modified-Konflikte und 3.000-Zeilen-Fixtures sind enthalten. Ein lokaler Fixture-Test beweist keine SharePoint-Serverdelegation.
 
-CI enthält Record-Quell-/Compilervertrag und beide Title-Gates; optionale Engine-DLL-Tests laufen lokal. CI am Implementierungshead `ebdf97e1888fbf87fc4fa5e06f6cc30efb672499`: [Provisioning Push](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975015833), [Provisioning PR](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975067103) und [Repository PR](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975067083) erfolgreich. Der finale Dokumentationshead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Kein aktueller P1-Studio-Checker, Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis.
+CI enthält Record-Quell-/Compilervertrag, beide Title-Gates und nun den YAML-Parser samt Regression. Optionale Engine-DLL-Tests laufen lokal. Vor der Reparatur waren alle drei CI-Checks am Head `67a18e0049b75f468c826ca26a1e766206911cfd` erfolgreich; dieser grüne Stand erkannte den später belegten Studio-YAML-Fehler nicht. Der Reparaturhead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Alle 18 verfügbaren Abschluss-Gates am 30442-Kandidaten Exit 0. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Kein P1-Studio-Checker, Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis.
 
 ## Kandidaten-Hashes
 
-- `GovernancePortal_1.0.0.30441_1.0.0-alpha.4.1.0.zip`: SHA-256 `7f40b2ede2a1cbd43555e4c4f306bd751a8287cb396a9c43cf52a2d42a85c799`.
-- Versioniertes `gp_governanceportal_c93a1_DocumentUri.msapp`: SHA-256 `7610a5177eab92eb400a9c4dfa254d7d3e87d9c02d7febff0123585834ffe719`.
+- `GovernancePortal_1.0.0.30442_1.0.0-alpha.4.1.0.zip`: SHA-256 `558e6e9e63f6cd339b664df68968f5ccd063e50c79972307fac9bf43b771da12`.
+- Versioniertes `gp_governanceportal_c93a1_DocumentUri.msapp`: SHA-256 `911f4615521601353e78b13b545dc5071051e9ee703d2293bfea3369305340dc`.
 
 Originaler Workspace mit elf gestagten Dateien und P0-Branch erhalten; keine Framework-Locks/-Runtimeversionen, kein Merge/Release. PR #6 bleibt DO NOT MERGE. Neue Logs, ZIPs, Tenantsettings und personenbezogene Daten bleiben außerhalb Git.
 
-## Konkreter Freigabeumfang für P1 DEV
+## Beobachteter DEV-Versuch mit 30441
 
-Eine folgende Freigabe gilt ausschließlich für diesen Kandidaten und die DEV-Umgebung:
+Die Freigabe vom 02.10.2026 wurde begrenzt ausgeführt: Vorzustand 30440/184 und dessen Studio-msapp geprüft; genau `System:Title` und `System:Edit:Title` neu geschrieben und nach Reload mit allen Feldern/Boolean-Werten geprüft (je ID 721 in ihrer Liste). Alle-Elemente-Vorstand: vier Assets, IDs 4–7; keine Systems. Kein allgemeines Provisioning/Seed/Reset.
 
-1. Vorzustand lesen und sichern: aktuelle App-/Solution-Version, Metadatenschlüssel, fachliche Test-/Bestands-IDs und nur nötige redigierte Quellenwerte. Abweichung vom belegten Stand zunächst klären. Genau die zwei System-Title-Zeilen aus dem Plan ergänzen; falls sie bereits identisch vorhanden sind, kein Write. Bei abweichenden existierenden Zeilen stoppen.
-2. 30441 unmanaged importieren, **ohne Publish All**. Postimport lesend gegen Kandidat prüfen. In Studio öffnen, kanonische Personen-Items unterstützt neu binden, Formel exakt wiederherstellen und Checker ausführen. Notwendige lokale Formelreparaturen zuerst als neuen prüfbaren Kandidaten bauen; keine stillen fachlichen Studioänderungen. Gezielt diese App speichern/veröffentlichen, frischen Player öffnen.
+Import 30441 ohne `--publish-changes` und ohne Publish All Exit 0; Postexport Exit 0, Solution 30441 und msapp bytegleich mit dem freigegebenen Kandidaten. Maker zeigt nach Import **185 Live**. Studio meldet vor Öffnen **PA1001 / YamlInvalidSyntax**, ursprünglich `scrShell.pa.yaml(837,57)`: Doppelpunkt mit Leerzeichen in einem ungeschützten YAML-Formelwert. Beide neuen Asset-/System-Öffnen-Beschriftungen wurden lokal als `|-`-Blockskalare geschrieben; die Power-Fx-Formeln bleiben gleich. Der neue Parser verwirft diesen früheren Fehler vor Pack; vier Regressionstests sichern Fehlererkennung und Formelerhalt.
+
+Kein Studio-Rebinding, Checker, gezieltes Save/Publish oder fachlicher Create/Edit/Conflict/Delete ausgeführt. Ein frischer Player erreicht den Startbildschirm, zeigt jedoch den Hinweis auf eine kommende Version; das belegt keinen aktuellen P1-Runtime-Stand und ersetzt die Studio-Prüfung nicht. Test-/Rollen-/Delegationsgates bleiben offen. Lokale Belege und ungenutzte Write-Kontingente in `artifacts/p1-20261002/DEV-ABNAHME.json`; keine persönlichen Daten/Logs in Git.
+
+## Konkreter Freigabeumfang für die P1-DEV-Fortsetzung
+
+Eine neue Freigabe gilt ausschließlich für **30442** und dieselbe DEV-Umgebung. Die bereits korrekt gespeicherten zwei Metadatenzeilen werden nicht erneut geschrieben. Der übrige Testumfang bleibt begrenzt:
+
+1. Vorzustand lesen: DEV 30441/185, beide bestätigten Metadatenschlüssel, fachliche Bestands-IDs und nur nötige redigierte Quellenwerte. Bei abweichendem Stand stoppen; keine weiteren Metadaten-Writes.
+2. 30442 unmanaged importieren, **ohne Publish All**. Postimport lesend gegen Kandidat prüfen. In Studio öffnen, kanonische Personen-Items unterstützt neu binden, Formel exakt wiederherstellen und Checker ausführen. Notwendige lokale Formelreparaturen zuerst als neuen prüfbaren Kandidaten bauen; keine stillen fachlichen Studioänderungen. Gezielt diese App speichern/veröffentlichen, frischen Player öffnen.
 3. Lesende Tests: beide Listen, Titelanfang/ID, kein Treffer/ungültige ID, Navigation/Seitenführung, unsupported Provider, vorhandenen Datensatz ohne Save öffnen/abbrechen, Tastatur/Fokus/Dirty-/Busy-Sperren. Studio-Delegationswarnungen und tatsächliche Connector-Ausführung prüfen; große Datensatzmengen nur lesen, keine Massentestdaten erzeugen. Falls echte >2.000-Evidenz fehlt, ausdrücklich als offen festhalten.
 4. **Genau ein synthetisches Asset und ein synthetisches System über die App neu anlegen** (zwei Creates). Eindeutige Titel `P1-SMOKE-<UTC>-ASSET` / `P1-SMOKE-<UTC>-SYSTEM`, zugelassenes Testkonto, repräsentative gültige Choices sowie leere optionale Werte; System bei Bedarf an das synthetische Asset koppeln. IDs und tatsächlich gespeicherte Quellenwerte erfassen.
 5. Jeden Testdatensatz über Liste/ID erneut öffnen. Default-/Dirty-Zustand prüfen. **Je einmal ausschließlich den Titel ändern und speichern** (zwei Edits), erneut öffnen und Quelle vergleichen. Alle anderen 17/16 gemappten Werte müssen erhalten bleiben, ebenso nicht gemappte Quellenwerte. Benutzerwerte nicht anhand der UI allein als korrekt ausgeben.
 6. **Ein kontrollierter zusätzlicher Quellen-Edit am synthetischen Asset** für den Konflikttest: in der App vorab laden, dann den Titel dieses ID-/Marker-bestätigten Testassets über einen zweiten Client ändern. App-Title abweichend bearbeiten und Save versuchen. Der Versuch muss vor Patch blockieren bzw. als echter Connector-Konflikt enden; Titel/Modified/Version nachlesen, keine automatische Wiederholung. Dies belegt die beobachtete Reihenfolge, keine ungetestete atomare ETag-Garantie.
 7. Ausschließlich diese zwei bestätigten synthetischen IDs reversibel in den normalen Papierkorb entfernen, System zuerst wegen Lookup. ID-Filter, exakte Papierkorbtitel/Herkunft und alle vorab erfassten Bestandsdatensätze prüfen. Kein Reset, keine Bulk-Löschung, keine produktiven Inhalte anfassen.
 
-Erlaubt wären damit maximal **zwei Creates, zwei normale App-Edits, ein zusätzlicher Konflikt-Quellen-Edit, ein erwartbar blockierter App-Save-Versuch und zwei reversible Testdatensatzlöschungen**, neben den zwei begrenzten Metadatenzeilen und der Kandidatenübernahme. Bei unklarem Save-Ausgang zuerst Quellenprüfung, kein erneuter Save. Scheitert ein Round-Trip, bleibt P1 offen; weitere Tenant-Saves benötigen neuen konkreten Scope/Freigabe. Import/Publikation macht P1 nicht automatisch produktionsreif.
+Erlaubt wären damit maximal **zwei Creates, zwei normale App-Edits, ein zusätzlicher Konflikt-Quellen-Edit, ein erwartbar blockierter App-Save-Versuch und zwei reversible Testdatensatzlöschungen**, neben der 30442-Kandidatenübernahme. Die zwei Metadaten-Writes aus der vorherigen Freigabe sind bereits verbraucht und bleiben erhalten. Bei unklarem Save-Ausgang zuerst Quellenprüfung, kein erneuter Save. Scheitert ein Round-Trip, bleibt P1 offen; weitere Tenant-Saves benötigen neuen konkreten Scope/Freigabe. Import/Publikation macht P1 nicht automatisch produktionsreif.
 
 ## Technische Quellen und offene Host-Gates
 

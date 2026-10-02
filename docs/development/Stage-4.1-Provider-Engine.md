@@ -68,7 +68,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 - Datenquellen werden weiterhin statisch in Power Fx adressiert; Power Apps erlaubt keine dynamische Dereferenzierung aus Textwerten.
 - Die Registry steuert Fähigkeiten und Providerauflösung, ersetzt aber noch nicht die statischen Save-Zweige.
-- Der Datensatzkern (Roadmap P1) ergänzt im lokalen Kandidaten 30441 Liste, Laden und Bearbeiten für Asset/System; die DEV-Abnahme ist offen. Change folgt im ersten Produktivumfang (P3); Incident/Problem werden nachfolgend eingebunden.
+- Der Datensatzkern (Roadmap P1) ergänzt Liste, Laden und Bearbeiten für Asset/System; DEV 30441/185 hat einen Studio-YAML-Blocker, Reparatur 30442 liegt lokal bereit. Die DEV-Abnahme ist offen. Change folgt im ersten Produktivumfang (P3); Incident/Problem werden nachfolgend eingebunden.
 
 ## Abnahmekriterien
 
@@ -78,7 +78,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `colObjectProviderRegistry` ist in `App.pa.yaml` vorhanden.
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
 - **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
-- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (137 Assertions; ergänzend Choice 212 und Record Core 275 am Kandidaten 30441). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
+- `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (137 Assertions; ergänzend Choice 212 und Record Core 275 am Kandidaten 30442). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
 - Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Build und begrenzte P0-Choice-Quellenabnahme von 30440 sind erfolgreich; keine vollständige Asset-/Produktivabnahme.
 
 ## Historische P0-Baseline und Title-Reparatur
@@ -93,10 +93,10 @@ Genau ein zusätzlicher ausdrücklich freigegebener Save ID 9 im frischen Player
 
 Studio-184-Checker vor Veröffentlichung: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen, 56 Accessibility-Befunde und zwölf Leistungswarnungen. 347 Offline-Power-Fx-Assertions, Quell-/Compiler-/Personenverträge, Build und verfügbare Projekt-Gates bestehen. Reine Tastatur-Persistenz der Personenauswahl und vollständige Asset-/Rollen-/Reviewabnahme bleiben offen; Neu-Fokus nach Verwerfen nun beobachtet. Details: [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
 
-## P1: lokaler Datensatzkern 30441
+## P1: Datensatzkern, Reparaturkandidat 30442
 
 Native Asset-/System-Galerien verwenden direkte Titelanfangsfilter oder ID-Gleichheit und ID-Sortierung; die Galerie lädt weitere Datensätze beim Blättern. Keine lokale Gesamtzahl oder vorgeschaltete begrenzte Datensatzcollection. Load speichert den originalen nativen Record und hydriert genau den vorhandenen Patch-Vertrag (Asset 17 / System 16 Felder). Metadatentyp/-vollständigkeit und unbekannte Choices sperren Save; unveränderte Personenobjekte bleiben erhalten. Edit benötigt geladene ID, vollständigen Load, echte Änderung und konfliktfreien Stand. Frische Modified-Prüfung und `ErrorKind.Conflict` geben sichtbare Fehler; der atomare Connector-Konfliktschutz ist in DEV zu prüfen.
 
-Die sieben bisher nicht ausführbaren Registry-Typen melden nun auch List/Create als false; Asset/System behalten alle vier Fähigkeiten. System-Title benötigt genau zwei neue Metadatenzeilen; bestehende Asset-Title-Metadaten und alle anderen Zeilen bleiben erhalten. Zusätzlich prüft die CI `Test-CanvasRecordCore.ps1`; lokal prüft die tatsächliche Power-Fx-Engine 275 Record-Assertions, zusammen 624. Diese Tests ersetzen keine Maker-/Connector-Abnahme.
+Die sieben bisher nicht ausführbaren Registry-Typen melden nun auch List/Create als false; Asset/System behalten alle vier Fähigkeiten. Genau zwei System-Title-Metadaten wurden freigegeben in DEV gespeichert und nach Reload geprüft; keine erneuten Writes. Import 30441 ohne Publish All/`--publish-changes` und bytegleicher Postexport bestehen, Maker zeigt 185 Live; Studio scheitert an PA1001/YamlInvalidSyntax in der Öffnen-Beschriftung. Beide Beschriftungen sind im lokalen Kandidaten 30442 als Blockskalare korrigiert, Formeln unverändert. Echter YAML-Parser vor Pack/in CI und vier Regressionstests ergänzt; CI prüft weiter `Test-CanvasRecordCore.ps1`, lokal 275 Record-Assertions, zusammen 624/53 geparste Formeln. Alle 18 verfügbaren Gates und Build bestehen. Diese Tests ersetzen keine Maker-/Connector-Abnahme.
 
-**Einziger primärer nächster Schritt: P1 · DEV-Abnahme des Datensatzkerns**, Modellklasse `deep-reasoning`, mit dem konkret begrenzten [Test-/Freigabeplan](Stage-4.1-P1-Datensatzkern.md). Keine neue DEV-Aktion in der lokalen P1-Umsetzung. Vollständige Asset-Mappings/Verantwortliche/Reviewtermin folgen P2 nach erfolgreichem P1-Round-Trip; keine Produktivfreigabe oder implizite Stage-4.1-Integration.
+**Einziger primärer nächster Schritt: P1 · DEV-Fortsetzung mit 30442**, Modellklasse `deep-reasoning`, nach neuer konkreter Kandidatenfreigabe mit dem begrenzten [Test-/Freigabeplan](Stage-4.1-P1-Datensatzkern.md). Keine fachlichen Creates/Edits/Conflict/Deletes verbraucht, kein gezieltes Studio-Publish ausgeführt. Vollständige Asset-Mappings/Verantwortliche/Reviewtermin folgen P2 nach erfolgreichem P1-Round-Trip; keine Produktivfreigabe oder implizite Stage-4.1-Integration.

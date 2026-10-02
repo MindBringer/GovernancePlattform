@@ -834,7 +834,8 @@ Screens:
                                     - btnAssetRecordOpen:
                                         Control: Classic/Button@2.2.0
                                         Properties:
-                                          Text: ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                          Text: |-
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
@@ -892,7 +893,8 @@ Screens:
                                     - btnSystemRecordOpen:
                                         Control: Classic/Button@2.2.0
                                         Properties:
-                                          Text: ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                          Text: |-
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
