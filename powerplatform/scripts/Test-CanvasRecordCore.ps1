@@ -41,6 +41,12 @@ function Get-Balanced([string]$Text, [int]$Start, [char]$Open, [char]$Close) {
 }
 $load = Get-Property 'lblRecordLoad' 'OnSelect'
 $init = Get-Property 'lblEditorInitialize' 'OnSelect'
+$initFilterStart = $init.IndexOf('Filter(')
+if ($initFilterStart -lt 0) { throw 'Missing actual editor metadata Filter.' }
+$initFilter = 'Filter' + (Get-Balanced $init ($initFilterStart + 6) '(' ')')
+if ($initFilter -notmatch 'colFormFields As formField,\s*formField\.ObjectTypeKey = gblSelectedObjectTypeKey') {
+    throw 'Editor metadata alias must qualify ObjectTypeKey; implicit binding fails in Power Fx and Studio.'
+}
 $save = Get-Property 'lblEditorSave' 'OnSelect'
 $loadGuard = [regex]::Match($load, '(?s)^If\(\s*(?<guard>.*?)\s*,\s*Set\(gblLoadBusy').Groups['guard'].Value
 if ($loadGuard -notmatch '!gblEditorDirty' -or $loadGuard -notmatch 'SupportsList' -or $loadGuard -notmatch 'SupportsEdit' -or $loadGuard -notmatch 'gblSelectedRecordId > 0') { throw 'Missing record load capability/identity/dirty guard.' }
@@ -147,6 +153,21 @@ foreach ($key in @('Asset','System')) {
     $contract=$records[$key]
     $engine.UpdateVariable('gblObjectType',$key)
     $engine.UpdateVariable('gblEditorMode','Edit')
+    $engine.UpdateVariable('gblSelectedObjectTypeKey',$key)
+    $formRows = @()
+    foreach ($type in @('Asset','System')) {
+        foreach ($fieldName in $records[$type].Fields) {
+            $formRows += '{ObjectTypeKey: '+(FxString $type)+', FieldInternalName: '+(FxString $fieldName)+'}'
+        }
+        $formRows += '{ObjectTypeKey: '+(FxString $type)+', FieldInternalName: "UnsupportedField"}'
+    }
+    $formRows += '{ObjectTypeKey: "Foreign", FieldInternalName: "Title"}'
+    $engine.UpdateVariable('colFormFields',(Eval ('Table('+($formRows -join ',')+')')))
+    # Check/evaluate the actual aliased filter, not only parse it or mirror its predicate.
+    $engine.UpdateVariable('testFormFields',(Eval $initFilter))
+    Assert-Fx 'CountRows(testFormFields)' $contract.Fields.Count "$key actual metadata scope retains all native fields"
+    Assert-Fx 'CountRows(Filter(testFormFields, FieldInternalName = "UnsupportedField"))' 0 "$key unsupported form field excluded"
+    Assert-Fx ('CountRows(Filter(testFormFields, ObjectTypeKey <> '+(FxString $key)+'))') 0 "$key foreign metadata excluded"
     $choiceRows=@(); $choiceCases=@{}
     foreach ($field in ($contract.Schema.Fields | Where-Object { $_.InternalName -in $contract.Fields -and $_.Type -eq 'Choice' })) {
         $set=@($model.ChoiceSets | Where-Object key -eq $field.ChoiceSet)[0]

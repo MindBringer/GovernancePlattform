@@ -1,12 +1,12 @@
 # P1 – Datensatzkern und DEV-Abnahme
 
-Stand: 2026-10-02. **DEV 30441/Canvas 185 mit Studio-Blocker; Reparatur 30442 lokal bereit, P1 nicht abgenommen.** Primäres Folgepaket ist ausschließlich die hier beschriebene P1-DEV-Fortsetzung mit dem neuen Kandidaten. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
+Stand: 2026-10-02. **DEV 30442/Canvas 186 Live, Studio 187 gespeichert mit zwei Formelbefunden; Reparatur 30443 lokal bereit, P1 nicht abgenommen.** Primäres Folgepaket ist ausschließlich die hier beschriebene P1-DEV-Fortsetzung mit dem neuen Kandidaten. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
 
 ## Kandidat und Grenzen
 
 - Branch `codex/stage41-p1`, Basis P0 `5caee00823032b4306f0bdaa900ca9817a53610e`, [Draft-PR #17](https://github.com/MindBringer/GovernancePlattform/pull/17) auf `codex/stage41-p0`.
-- Lokaler Reparaturkandidat: Solution **1.0.0.30442**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt. Noch nicht importiert.
-- Letzte erfolgreiche fachliche Abnahme: **P0 30440 / Canvas 184**. Aktueller DEV-Import: **30441 / Canvas 185 Live laut Maker**, Studio-Öffnen gescheitert. Die konkrete Freigabe für 30441 deckte zwei Metadatenzeilen und Import ab; fachliche Save-Kontingente sind ungenutzt. Sie autorisiert keinen automatischen Import des neuen 30442-Kandidaten. Frühere P0-Save-Freigaben bleiben verbraucht.
+- Lokaler Reparaturkandidat: Solution **1.0.0.30443**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt. Noch nicht importiert.
+- Letzte erfolgreiche fachliche Abnahme: **P0 30440 / Canvas 184**. Aktueller DEV-Import: **30442 / Canvas 186 Live laut Maker**, Studio öffnet und hat 187 automatisch gespeichert, aber nicht veröffentlicht; zwei Formelbefunde im Formularfilter. Die Freigaben für 30441 und 30442 deckten die begrenzten Metadaten/Imports ab; fachliche Save-Kontingente sind ungenutzt. Sie autorisieren keinen automatischen Import des neuen 30443-Kandidaten. Frühere P0-Save-Freigaben bleiben verbraucht.
 - Kanonische Bearbeitungsquelle bleibt `powerplatform/canvas/GovernancePortal/`; SourceCode-Round-Trip nur in ignoriertem Staging. Keine DEV→Git-Übernahme.
 - P1 erhält die vorhandenen nativen Save-Verträge. Kein zusätzliches Asset-Fachmapping, neuer Provider, Evidence-/Reviewprozess oder Produktivrollout. Capabilities benennen ausführbare Pfade; Live-/Rollenabnahme bleibt separat.
 
@@ -48,7 +48,7 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 
 | Gate | Ergebnis / Exit-Code |
 |---|---|
-| Vollständiger `Build.ps1`, PAC 2.9.3 SourceCode-/Solution-Pack | 0; 30442, kein Import/Publish |
+| Vollständiger `Build.ps1`, PAC 2.9.3 SourceCode-/Solution-Pack | 0; 30443, kein Import/Publish |
 | Echter YAML-Parser / Regression | 0 / 0; vier Quellen, vier Regressionstests |
 | Canvas-Artefaktvergleich / SourceCode-Unpack | 0; vier kanonische YAMLs unverändert |
 | Architecture / ArchitectureConsistency | 0 / 0 |
@@ -59,17 +59,17 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 | Accessibility-Quellvertrag | 0; 20 Controls / fünf Galerien, Load-/Save-/Modal-Sperren |
 | Capability-Engine | 0; 137 tatsächliche Assertions |
 | Choice-Quell-/Compiler-/Enginevertrag | 0; zehn Adapter / 42 Werte, 212 tatsächliche Assertions |
-| Record-Quell-/Compiler-/Enginevertrag | 0; Asset 17 / System 16 Felder, 275 tatsächliche Assertions, 53 mehrzeilige Formeln geparst |
+| Record-Quell-/Compiler-/Enginevertrag | 0; Asset 17 / System 16 Felder, 281 tatsächliche Assertions, 53 mehrzeilige Formeln geparst |
 | Repository-Audit / Diff | 0 / 0 |
 
-**624 tatsächliche Offline-Power-Fx-Assertions.** Die Recordtests werten tatsächliche Projektionen, Hydrierung, Payloads, Guard- und Galerieformeln aus. Voll-/Leerwerte, Datumszeiten, native Personenalias-/Claims-Werte, optionales Leeren, unveränderte Defaults, unbekannte Choices, fehlende Metadaten, falsche Kontrolltypen, Modified-Konflikte und 3.000-Zeilen-Fixtures sind enthalten. Ein lokaler Fixture-Test beweist keine SharePoint-Serverdelegation.
+**630 tatsächliche Offline-Power-Fx-Assertions.** Die Recordtests werten tatsächliche Projektionen, Hydrierung, Payloads, Guard- und Galerieformeln aus. Voll-/Leerwerte, Datumszeiten, native Personenalias-/Claims-Werte, optionales Leeren, unveränderte Defaults, unbekannte Choices, fehlende Metadaten, falsche Kontrolltypen, Modified-Konflikte und 3.000-Zeilen-Fixtures sind enthalten. Ein lokaler Fixture-Test beweist keine SharePoint-Serverdelegation.
 
-CI enthält Record-Quell-/Compilervertrag, beide Title-Gates und nun den YAML-Parser samt Regression. Optionale Engine-DLL-Tests laufen lokal. Vor der Reparatur waren alle drei CI-Checks am Head `67a18e0049b75f468c826ca26a1e766206911cfd` erfolgreich; dieser grüne Stand erkannte den später belegten Studio-YAML-Fehler nicht. Der Reparaturhead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Alle 18 verfügbaren Abschluss-Gates am 30442-Kandidaten Exit 0. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Kein P1-Studio-Checker, Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis.
+CI enthält Record-Quell-/Compilervertrag, beide Title-Gates, YAML-Parser/Regression und den expliziten Aliasvertrag für den Formularfilter. Der optionale Engine-Test führt nun auch den tatsächlichen Formularfilter mit gemischten Asset-/System-/fremden Metadaten aus (sechs zusätzliche Assertions). Optionale Engine-DLL-Tests laufen lokal. Vor der Reparatur waren alle drei CI-Checks am Head `67a18e0049b75f468c826ca26a1e766206911cfd` erfolgreich; dieser grüne Stand erkannte den später belegten Studio-YAML-Fehler nicht. Der Reparaturhead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Alle 18 verfügbaren Abschluss-Gates am 30443-Kandidaten Exit 0. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Keine erfolgreiche P1-Studio-Abnahme, kein Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis. Der beobachtete 30442-Checker mit zwei Formelbefunden steht unten.
 
 ## Kandidaten-Hashes
 
-- `GovernancePortal_1.0.0.30442_1.0.0-alpha.4.1.0.zip`: SHA-256 `558e6e9e63f6cd339b664df68968f5ccd063e50c79972307fac9bf43b771da12`.
-- Versioniertes `gp_governanceportal_c93a1_DocumentUri.msapp`: SHA-256 `911f4615521601353e78b13b545dc5071051e9ee703d2293bfea3369305340dc`.
+- `GovernancePortal_1.0.0.30443_1.0.0-alpha.4.1.0.zip`: SHA-256 `e2cea445e8a4e3e2cddb1cf96f21be8ccfda57807eb53cd02d6c815c2c313607`.
+- Versioniertes `gp_governanceportal_c93a1_DocumentUri.msapp`: SHA-256 `1d5fa3d1fea7c91f9df1feb2811f6d2611a40d87d7c23ea4c3e62a4a9b46803e`.
 
 Originaler Workspace mit elf gestagten Dateien und P0-Branch erhalten; keine Framework-Locks/-Runtimeversionen, kein Merge/Release. PR #6 bleibt DO NOT MERGE. Neue Logs, ZIPs, Tenantsettings und personenbezogene Daten bleiben außerhalb Git.
 
@@ -81,19 +81,27 @@ Import 30441 ohne `--publish-changes` und ohne Publish All Exit 0; Postexport Ex
 
 Kein Studio-Rebinding, Checker, gezieltes Save/Publish oder fachlicher Create/Edit/Conflict/Delete ausgeführt. Ein frischer Player erreicht den Startbildschirm, zeigt jedoch den Hinweis auf eine kommende Version; das belegt keinen aktuellen P1-Runtime-Stand und ersetzt die Studio-Prüfung nicht. Test-/Rollen-/Delegationsgates bleiben offen. Lokale Belege und ungenutzte Write-Kontingente in `artifacts/p1-20261002/DEV-ABNAHME.json`; keine persönlichen Daten/Logs in Git.
 
+## Beobachteter DEV-Versuch mit 30442
+
+Die erneute konkrete Freigabe wurde ausgeführt: Vorzustand 30441/185 samt Paketidentität und beide vorhandenen Metadatenschlüssel gelesen, keine Metadaten-Writes. Import 30442 unmanaged ohne Publish All/`--publish-changes` Exit 0; Postexport Exit 0, msapp bytegleich mit freigegebenem Kandidaten. Maker zeigt **186 Live**. Studio öffnet erfolgreich; der YAML-Fehler ist behoben. Studio hat **187 automatisch gespeichert, nicht veröffentlicht**.
+
+App-Checker: genau zwei Formelbefunde in `lblEditorInitialize.OnSelect`: `ObjectTypeKey` wird nicht erkannt, daraus Error/Text-Vergleich inkompatibel. 70 Accessibility-, zwölf Leistungs- und zwei Datenquellenbefunde; keine angezeigten Laufzeitbefunde. Im neuen `Filter(colFormFields As formField, ...)` muss die Spalte als `formField.ObjectTypeKey` referenziert werden. Der ergänzte Offline-Test führte den tatsächlichen Filter aus und reproduzierte vor der Korrektur exakt dieselben zwei Fehler (Exit 1); nach Qualifizierung besteht er mit sechs zusätzlichen Scope-/Feldumfang-Assertions. Aktueller Record-Test 281, insgesamt 630. CI prüft die explizite Referenz auch ohne optionale Engine-DLLs.
+
+Kein Personen-Items-Rebinding, keine fachliche Studioänderung oder gezielte Veröffentlichung, keine Creates/Edits/Conflict/Deletes; P1 bleibt offen. Der neue **30443-Kandidat** korrigiert nur diese Referenz und ist nicht importiert. Vorherige CI am Head `11443eb3135858db4e588abfc05733f0050e522b` war grün, hatte den tatsächlichen Filter jedoch nicht ausgeführt. Screenshots/Befunde und Freigabeverbrauch lokal ignoriert; keine Logs/Personendaten in Git.
+
 ## Konkreter Freigabeumfang für die P1-DEV-Fortsetzung
 
-Eine neue Freigabe gilt ausschließlich für **30442** und dieselbe DEV-Umgebung. Die bereits korrekt gespeicherten zwei Metadatenzeilen werden nicht erneut geschrieben. Der übrige Testumfang bleibt begrenzt:
+Eine neue Freigabe gilt ausschließlich für **30443** und dieselbe DEV-Umgebung. Die bereits korrekt gespeicherten zwei Metadatenzeilen werden nicht erneut geschrieben. Der übrige Testumfang bleibt begrenzt:
 
-1. Vorzustand lesen: DEV 30441/185, beide bestätigten Metadatenschlüssel, fachliche Bestands-IDs und nur nötige redigierte Quellenwerte. Bei abweichendem Stand stoppen; keine weiteren Metadaten-Writes.
-2. 30442 unmanaged importieren, **ohne Publish All**. Postimport lesend gegen Kandidat prüfen. In Studio öffnen, kanonische Personen-Items unterstützt neu binden, Formel exakt wiederherstellen und Checker ausführen. Notwendige lokale Formelreparaturen zuerst als neuen prüfbaren Kandidaten bauen; keine stillen fachlichen Studioänderungen. Gezielt diese App speichern/veröffentlichen, frischen Player öffnen.
+1. Vorzustand lesen: DEV 30442/186 Live und Studio 187 gespeichert, nicht veröffentlicht, beide bestätigten Metadatenschlüssel, fachliche Bestands-IDs und nur nötige redigierte Quellenwerte. Bei abweichendem Stand stoppen; keine weiteren Metadaten-Writes.
+2. 30443 unmanaged importieren, **ohne Publish All**. Postimport lesend gegen Kandidat prüfen. In Studio öffnen, kanonische Personen-Items unterstützt neu binden, Formel exakt wiederherstellen und Checker ausführen. Notwendige lokale Formelreparaturen zuerst als neuen prüfbaren Kandidaten bauen; keine stillen fachlichen Studioänderungen. Gezielt diese App speichern/veröffentlichen, frischen Player öffnen.
 3. Lesende Tests: beide Listen, Titelanfang/ID, kein Treffer/ungültige ID, Navigation/Seitenführung, unsupported Provider, vorhandenen Datensatz ohne Save öffnen/abbrechen, Tastatur/Fokus/Dirty-/Busy-Sperren. Studio-Delegationswarnungen und tatsächliche Connector-Ausführung prüfen; große Datensatzmengen nur lesen, keine Massentestdaten erzeugen. Falls echte >2.000-Evidenz fehlt, ausdrücklich als offen festhalten.
 4. **Genau ein synthetisches Asset und ein synthetisches System über die App neu anlegen** (zwei Creates). Eindeutige Titel `P1-SMOKE-<UTC>-ASSET` / `P1-SMOKE-<UTC>-SYSTEM`, zugelassenes Testkonto, repräsentative gültige Choices sowie leere optionale Werte; System bei Bedarf an das synthetische Asset koppeln. IDs und tatsächlich gespeicherte Quellenwerte erfassen.
 5. Jeden Testdatensatz über Liste/ID erneut öffnen. Default-/Dirty-Zustand prüfen. **Je einmal ausschließlich den Titel ändern und speichern** (zwei Edits), erneut öffnen und Quelle vergleichen. Alle anderen 17/16 gemappten Werte müssen erhalten bleiben, ebenso nicht gemappte Quellenwerte. Benutzerwerte nicht anhand der UI allein als korrekt ausgeben.
 6. **Ein kontrollierter zusätzlicher Quellen-Edit am synthetischen Asset** für den Konflikttest: in der App vorab laden, dann den Titel dieses ID-/Marker-bestätigten Testassets über einen zweiten Client ändern. App-Title abweichend bearbeiten und Save versuchen. Der Versuch muss vor Patch blockieren bzw. als echter Connector-Konflikt enden; Titel/Modified/Version nachlesen, keine automatische Wiederholung. Dies belegt die beobachtete Reihenfolge, keine ungetestete atomare ETag-Garantie.
 7. Ausschließlich diese zwei bestätigten synthetischen IDs reversibel in den normalen Papierkorb entfernen, System zuerst wegen Lookup. ID-Filter, exakte Papierkorbtitel/Herkunft und alle vorab erfassten Bestandsdatensätze prüfen. Kein Reset, keine Bulk-Löschung, keine produktiven Inhalte anfassen.
 
-Erlaubt wären damit maximal **zwei Creates, zwei normale App-Edits, ein zusätzlicher Konflikt-Quellen-Edit, ein erwartbar blockierter App-Save-Versuch und zwei reversible Testdatensatzlöschungen**, neben der 30442-Kandidatenübernahme. Die zwei Metadaten-Writes aus der vorherigen Freigabe sind bereits verbraucht und bleiben erhalten. Bei unklarem Save-Ausgang zuerst Quellenprüfung, kein erneuter Save. Scheitert ein Round-Trip, bleibt P1 offen; weitere Tenant-Saves benötigen neuen konkreten Scope/Freigabe. Import/Publikation macht P1 nicht automatisch produktionsreif.
+Erlaubt wären damit maximal **zwei Creates, zwei normale App-Edits, ein zusätzlicher Konflikt-Quellen-Edit, ein erwartbar blockierter App-Save-Versuch und zwei reversible Testdatensatzlöschungen**, neben der 30443-Kandidatenübernahme. Die zwei Metadaten-Writes aus der vorherigen Freigabe sind bereits verbraucht und bleiben erhalten. Bei unklarem Save-Ausgang zuerst Quellenprüfung, kein erneuter Save. Scheitert ein Round-Trip, bleibt P1 offen; weitere Tenant-Saves benötigen neuen konkreten Scope/Freigabe. Import/Publikation macht P1 nicht automatisch produktionsreif.
 
 ## Technische Quellen und offene Host-Gates
 
