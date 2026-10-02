@@ -35,3 +35,7 @@ jobs:
       - name: Run architecture compiler test
         shell: pwsh
         run: ./provisioning/Scripts/Test-Architecture.ps1
+
+      - name: Validate Asset Title schema and generated metadata
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-AssetTitleContract.ps1

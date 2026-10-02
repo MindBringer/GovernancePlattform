@@ -664,14 +664,6 @@ App:
               Value: CountRows(colValidationDefinitions),
               TargetPage: "validation",
               SortOrder: 50
-          },
-
-          {
-              Key: "assets",
-              Title: "Assets",
-              Value: CountRows(Assets),
-              TargetPage: "assets",
-              SortOrder: 60
           }
       );
 

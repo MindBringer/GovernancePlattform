@@ -1,9 +1,9 @@
 # ************************************************************************************************
 # Warning: YAML source code for Canvas Apps should only be used to review changes made within Power Apps Studio and for minor edits (Preview).
 # Use the maker portal to create and edit your Power Apps.
-# 
+#
 # The schema file for Canvas Apps is available at https://go.microsoft.com/fwlink/?linkid=2304907
-# 
+#
 # For more information, visit https://go.microsoft.com/fwlink/?linkid=2292623
 # ************************************************************************************************
 Screens:
@@ -112,13 +112,17 @@ Screens:
                                       )
                                     Width: =Parent.Width - 220
                               - lblRefresh:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =Align.Center
                                     BorderColor: =gblTheme.ColorBorder
                                     BorderThickness: =1
                                     Color: =gblTheme.ColorPrimary
                                     Fill: =gblTheme.ColorSurface
+                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =FontWeight.Semibold
                                     OnSelect: |-
@@ -137,315 +141,318 @@ Screens:
                                       Set(gblBusyMessage, Blank())
                                     Text: ="Aktualisieren"
                                     Width: =140
-                                    Wrap: =false
                                     X: =Parent.Width - Self.Width
                                     Y: =2
                               - lblNew:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =Align.Center
                                     BorderColor: =gblTheme.ColorPrimary
                                     BorderThickness: =1
                                     Color: =gblTheme.ColorTextInverse
                                     DisplayMode: |-
                                       =If(
-
                                           IsBlank(gblSelectedObjectTypeKey)
-
                                               || IsBlank(gblActiveProvider)
-
-                                              || !Coalesce(gblActiveProvider.SupportsCreate, false),
-
+                                              || gblActiveProvider.ObjectTypeKey <> gblSelectedObjectTypeKey
+                                              || !Coalesce(gblActiveProvider.SupportsCreate, false)
+                                              || !Coalesce(gblActiveProvider.SupportsSave, false)
+                                              || gblSaveBusy || gblShowDiscardDialog,
                                           DisplayMode.Disabled,
-
                                           DisplayMode.Edit
-
                                       )
                                     Fill: =gblTheme.ColorPrimary
                                     Font: =Font.'Open Sans'
                                     FontWeight: =FontWeight.Semibold
                                     OnSelect: |-
-                                      =Set(gblEditorMode, "New");
-                                      Set(gblObjectType, gblSelectedObjectTypeKey);
-                                      Set(gblSelectedRecordId, 0);
-                                      Set(gblPreviousPage, gblCurrentPage);
+                                      =If(
+                                          Self.DisplayMode = DisplayMode.Edit,
+                                          Set(gblEditorMode, "New");
+                                          Set(gblObjectType, gblSelectedObjectTypeKey);
+                                          Set(gblSelectedRecordId, 0);
+                                          Set(gblPreviousPage, gblCurrentPage);
 
-                                      Clear(colEditorValues);
-                                      Clear(colEditorLookupSelections);
-                                      Clear(colEditorPersonSelections);
-                                      Clear(colEditorChoiceOptions);
-                                      ForAll(
-                                          SortByColumns(
-                                              Filter(
-                                                  colFormFields,
-                                                  ObjectTypeKey = gblSelectedObjectTypeKey
-                                              ),
-                                              "SortOrder",
-                                              SortOrder.Ascending
-                                          ) As formField,
-                                          With(
-                                              {
-                                                  fieldDefinition: LookUp(
-                                                      colFieldDefinitions,
+                                          Clear(colEditorValues);
+                                          Clear(colEditorLookupSelections);
+                                          Clear(colEditorPersonSelections);
+                                          Clear(colEditorChoiceOptions);
+                                          ForAll(
+                                              SortByColumns(
+                                                  Filter(
+                                                      colFormFields,
                                                       ObjectTypeKey = gblSelectedObjectTypeKey
-                                                          && FieldInternalName = formField.FieldInternalName
-                                                  )
-                                              },
-                                              Collect(
-                                                  colEditorValues,
-                                                  {
-                                                      EditorFieldKey: gblSelectedObjectTypeKey & ":" & formField.FieldInternalName,
-                                                      ObjectTypeKey: gblSelectedObjectTypeKey,
-                                                      FieldInternalName: formField.FieldInternalName,
-                                                      DisplayNameDE: Coalesce(
-                                                          formField.OverrideLabelDE,
-                                                          fieldDefinition.DisplayNameDE,
-                                                          formField.FieldInternalName
-                                                      ),
-                                                      ControlType: Coalesce(
-                                                          fieldDefinition.ControlType,
-                                                          "Text"
-                                                      ),
-                                                      ChoiceSetKey: Coalesce(
-                                                          fieldDefinition.ChoiceSetKey,
-                                                          ""
-                                                      ),
-                                                      LookupObjectTypeKey: Coalesce(
-                                                          fieldDefinition.LookupObjectTypeKey,
-                                                          ""
-                                                      ),
-                                                      AllowMultiple: Coalesce(
-                                                          fieldDefinition.AllowMultiple,
-                                                          false
-                                                      ),
-                                                      SectionKey: Coalesce(
-                                                          formField.SectionKey,
-                                                          ""
-                                                      ),
-                                                      SortOrder: Coalesce(
-                                                          formField.SortOrder,
-                                                          0
-                                                      ),
-                                                      IsRequired: !IsBlank(formField.RequiredIf),
-                                                      IsReadOnly: false,
-                                                      DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
-                                                      ValueText: If(
-                                                          Coalesce(fieldDefinition.ControlType, "Text") in ["Text", "Note", "MultilineText"],
-                                                          Coalesce(fieldDefinition.DefaultValue, ""),
-                                                          ""
-                                                      ),
-                                                      ValueNumber: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") = "Number"
-                                                              && !IsBlank(fieldDefinition.DefaultValue),
-                                                          Value(fieldDefinition.DefaultValue),
-                                                          If(false, 0, Blank())
-                                                      ),
-                                                      ValueBoolean: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") = "Boolean",
-                                                          Lower(Coalesce(fieldDefinition.DefaultValue, "false")) in ["true", "1", "ja", "yes"],
-                                                          false
-                                                      ),
-                                                      ValueDate: If(
-                                                          Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
-                                                              && !IsBlank(fieldDefinition.DefaultValue),
-                                                          DateValue(fieldDefinition.DefaultValue),
-                                                          If(false, Today(), Blank())
-                                                      ),
-                                                      ValueChoiceKey: Coalesce(
-                                                          LookUp(
-                                                              colChoiceValues As choiceValue,
-                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
-                                                                  && choiceValue.IsDefault = true,
-                                                              choiceValue.ChoiceKey
-                                                          ),
-                                                          fieldDefinition.DefaultValue,
-                                                          ""
-                                                      ),
-                                                      ValueLookupId: If(false, 0, Blank()),
-                                                      ValueLookupText: "",
-                                                      ValuePersonEmail: "",
-                                                      ValuePersonClaims: "",
-                                                      ValuePersonDepartment: "",
-                                                      ValuePersonJobTitle: "",
-                                                      IsDirty: false,
-                                                      IsValid: If(
-                                                          !IsBlank(formField.RequiredIf),
-                                                          Switch(
-                                                              Coalesce(fieldDefinition.ControlType, "Text"),
-                                                              "Boolean", true,
-                                                              "Number", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "Date", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "DateTime", !IsBlank(fieldDefinition.DefaultValue),
-                                                              "Choice",
-                                                                  !IsBlank(
-                                                                      Coalesce(
-                                                                          LookUp(
-                                                                              colChoiceValues As choiceValue,
-                                                                              choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
-                                                                                  && choiceValue.IsDefault = true,
-                                                                              choiceValue.ChoiceKey
-                                                                          ),
-                                                                          fieldDefinition.DefaultValue
-                                                                      )
-                                                                  ),
-                                                              !IsBlank(fieldDefinition.DefaultValue)
-                                                          ),
-                                                          true
-                                                      ),
-                                                      ErrorMessage: If(
-                                                          !IsBlank(formField.RequiredIf)
-                                                              && IsBlank(fieldDefinition.DefaultValue)
-                                                              && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
-                                                          "Pflichtfeld",
-                                                          ""
-                                                      )
-                                                  }
-                                              )
-                                          )
-                                      );
-
-                                      /*
-                                          Stage 3.6: Choice Provider.
-                                          Die Gallery-Control-Instanzen erhalten eine feldbezogene,
-                                          stabile Optionsmenge mit eindeutigem EditorFieldKey.
-                                      */
-                                      Clear(colEditorChoiceOptions);
-                                      ForAll(
-                                          Filter(
-                                              colEditorValues,
-                                              ControlType = "Choice"
-                                                  && !IsBlank(ChoiceSetKey)
-                                          ) As choiceField,
-                                          Collect(
-                                              colEditorChoiceOptions,
-                                              AddColumns(
-                                                  ShowColumns(
-                                                      Filter(
-                                                          colChoiceValues As choiceValue,
-                                                          choiceValue.ChoiceSetKey = choiceField.ChoiceSetKey
-                                                              && choiceValue.IsActive = true
-                                                      ),
-                                                      ChoiceSetKey,
-                                                      ChoiceKey,
-                                                      DisplayNameDE,
-                                                      SortOrder,
-                                                      IsDefault
                                                   ),
-                                                  EditorFieldKey,
-                                                  choiceField.EditorFieldKey
+                                                  "SortOrder",
+                                                  SortOrder.Ascending
+                                              ) As formField,
+                                              With(
+                                                  {
+                                                      fieldDefinition: LookUp(
+                                                          colFieldDefinitions,
+                                                          ObjectTypeKey = gblSelectedObjectTypeKey
+                                                              && FieldInternalName = formField.FieldInternalName
+                                                      )
+                                                  },
+                                                  Collect(
+                                                      colEditorValues,
+                                                      {
+                                                          EditorFieldKey: gblSelectedObjectTypeKey & ":" & formField.FieldInternalName,
+                                                          ObjectTypeKey: gblSelectedObjectTypeKey,
+                                                          FieldInternalName: formField.FieldInternalName,
+                                                          DisplayNameDE: Coalesce(
+                                                              formField.OverrideLabelDE,
+                                                              fieldDefinition.DisplayNameDE,
+                                                              formField.FieldInternalName
+                                                          ),
+                                                          ControlType: Coalesce(
+                                                              fieldDefinition.ControlType,
+                                                              "Text"
+                                                          ),
+                                                          ChoiceSetKey: Coalesce(
+                                                              fieldDefinition.ChoiceSetKey,
+                                                              ""
+                                                          ),
+                                                          LookupObjectTypeKey: Coalesce(
+                                                              fieldDefinition.LookupObjectTypeKey,
+                                                              ""
+                                                          ),
+                                                          AllowMultiple: Coalesce(
+                                                              fieldDefinition.AllowMultiple,
+                                                              false
+                                                          ),
+                                                          SectionKey: Coalesce(
+                                                              formField.SectionKey,
+                                                              ""
+                                                          ),
+                                                          SortOrder: Coalesce(
+                                                              formField.SortOrder,
+                                                              0
+                                                          ),
+                                                          IsRequired: !IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false),
+                                                          IsReadOnly: false,
+                                                          DefaultValue: Coalesce(fieldDefinition.DefaultValue, ""),
+                                                          ValueText: If(
+                                                              Coalesce(fieldDefinition.ControlType, "Text") in ["Text", "Note", "MultilineText"],
+                                                              Coalesce(fieldDefinition.DefaultValue, ""),
+                                                              ""
+                                                          ),
+                                                          ValueNumber: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") = "Number"
+                                                                  && !IsBlank(fieldDefinition.DefaultValue),
+                                                              Value(fieldDefinition.DefaultValue),
+                                                              If(false, 0, Blank())
+                                                          ),
+                                                          ValueBoolean: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") = "Boolean",
+                                                              Lower(Coalesce(fieldDefinition.DefaultValue, "false")) in ["true", "1", "ja", "yes"],
+                                                              false
+                                                          ),
+                                                          ValueDate: If(
+                                                              Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
+                                                                  && !IsBlank(fieldDefinition.DefaultValue),
+                                                              DateValue(fieldDefinition.DefaultValue),
+                                                              If(false, Today(), Blank())
+                                                          ),
+                                                          ValueChoiceKey: Coalesce(
+                                                              LookUp(
+                                                                  colChoiceValues As choiceValue,
+                                                                  choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                      && choiceValue.IsDefault = true,
+                                                                  choiceValue.ChoiceKey
+                                                              ),
+                                                              fieldDefinition.DefaultValue,
+                                                              ""
+                                                          ),
+                                                          ValueLookupId: If(false, 0, Blank()),
+                                                          ValueLookupText: "",
+                                                          ValuePersonEmail: "",
+                                                          ValuePersonClaims: "",
+                                                          ValuePersonDepartment: "",
+                                                          ValuePersonJobTitle: "",
+                                                          IsDirty: false,
+                                                          IsValid: If(
+                                                              !IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false),
+                                                              Switch(
+                                                                  Coalesce(fieldDefinition.ControlType, "Text"),
+                                                                  "Boolean", true,
+                                                                  "Number", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "Date", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "DateTime", !IsBlank(fieldDefinition.DefaultValue),
+                                                                  "Choice",
+                                                                      !IsBlank(
+                                                                          Coalesce(
+                                                                              LookUp(
+                                                                                  colChoiceValues As choiceValue,
+                                                                                  choiceValue.ChoiceSetKey = fieldDefinition.ChoiceSetKey
+                                                                                      && choiceValue.IsDefault = true,
+                                                                                  choiceValue.ChoiceKey
+                                                                              ),
+                                                                              fieldDefinition.DefaultValue
+                                                                          )
+                                                                      ),
+                                                                  !IsBlank(fieldDefinition.DefaultValue)
+                                                              ),
+                                                              true
+                                                          ),
+                                                          ErrorMessage: If(
+                                                              (!IsBlank(formField.RequiredIf) || Coalesce(fieldDefinition.IsRequired, false))
+                                                                  && IsBlank(fieldDefinition.DefaultValue)
+                                                                  && Coalesce(fieldDefinition.ControlType, "Text") <> "Boolean",
+                                                              "Pflichtfeld",
+                                                              ""
+                                                          )
+                                                      }
+                                                  )
                                               )
-                                          )
-                                      );
+                                          );
 
-                                      /*
-                                          Stage 3.3: Lookup Registry + Cache + Provider.
-
-                                          Power Fx kann Datenquellen nicht dynamisch anhand eines
-                                          Textwertes dereferenzieren. Die Registry beschreibt deshalb
-                                          die verfügbaren Ziele; der Provider enthält je verbundener
-                                          SharePoint-Liste einen statischen Zweig.
-
-                                          Bereits geladene Ziele bleiben im Cache und werden beim
-                                          erneuten Öffnen eines Editors nicht nochmals geladen.
-                                      */
-                                      ForAll(
-                                          Distinct(
+                                          /*
+                                              Stage 3.6: Choice Provider.
+                                              Die Gallery-Control-Instanzen erhalten eine feldbezogene,
+                                              stabile Optionsmenge mit eindeutigem EditorFieldKey.
+                                          */
+                                          Clear(colEditorChoiceOptions);
+                                          ForAll(
                                               Filter(
                                                   colEditorValues,
-                                                  ControlType = "Lookup"
-                                                      && !IsBlank(LookupObjectTypeKey)
-                                              ),
-                                              LookupObjectTypeKey
-                                          ) As requiredTarget,
-                                          Switch(
-                                              requiredTarget.Value,
-                                              "Asset",
-                                              If(
-                                                  IsBlank(
-                                                      LookUp(
-                                                          colLoadedLookupTargets,
-                                                          LookupObjectTypeKey = "Asset"
-                                                      )
-                                                  ),
-                                                  Collect(
-                                                      colLookupValues,
-                                                      AddColumns(
-                                                          ShowColumns(
-                                                              Assets,
-                                                              ID,
-                                                              Title,
-                                                              GovernanceID,
-                                                              IsActive
+                                                  ControlType = "Choice"
+                                                      && !IsBlank(ChoiceSetKey)
+                                              ) As choiceField,
+                                              Collect(
+                                                  colEditorChoiceOptions,
+                                                  AddColumns(
+                                                      ShowColumns(
+                                                          Filter(
+                                                              colChoiceValues As choiceValue,
+                                                              choiceValue.ChoiceSetKey = choiceField.ChoiceSetKey
+                                                                  && choiceValue.IsActive = true
                                                           ),
-                                                          LookupObjectTypeKey,
-                                                          "Asset",
-                                                          LookupId,
-                                                          ID,
-                                                          LookupKey,
-                                                          Coalesce(GovernanceID, Text(ID)),
-                                                          DisplayText,
-                                                          Coalesce(Title, GovernanceID, Text(ID)),
-                                                          SecondaryText,
-                                                          Coalesce(GovernanceID, ""),
-                                                          IsActiveValue,
-                                                          Coalesce(IsActive, true)
-                                                      )
-                                                  );
-                                                  Collect(
-                                                      colLoadedLookupTargets,
-                                                      {
-                                                          LookupObjectTypeKey: "Asset",
-                                                          LoadedAt: Now()
-                                                      }
+                                                          ChoiceSetKey,
+                                                          ChoiceKey,
+                                                          DisplayNameDE,
+                                                          SortOrder,
+                                                          IsDefault
+                                                      ),
+                                                      EditorFieldKey,
+                                                      choiceField.EditorFieldKey
                                                   )
-                                              ),
-                                              "System",
-                                              If(
-                                                  IsBlank(
-                                                      LookUp(
-                                                          colLoadedLookupTargets,
-                                                          LookupObjectTypeKey = "System"
-                                                      )
-                                                  ),
-                                                  Collect(
-                                                      colLookupValues,
-                                                      AddColumns(
-                                                          ShowColumns(
-                                                              Systems,
-                                                              ID,
-                                                              Title,
-                                                              GovernanceID,
-                                                              IsActive
-                                                          ),
-                                                          LookupObjectTypeKey,
-                                                          "System",
-                                                          LookupId,
-                                                          ID,
-                                                          LookupKey,
-                                                          Coalesce(GovernanceID, Text(ID)),
-                                                          DisplayText,
-                                                          Coalesce(Title, GovernanceID, Text(ID)),
-                                                          SecondaryText,
-                                                          Coalesce(GovernanceID, ""),
-                                                          IsActiveValue,
-                                                          Coalesce(IsActive, true)
-                                                      )
-                                                  );
-                                                  Collect(
-                                                      colLoadedLookupTargets,
-                                                      {
-                                                          LookupObjectTypeKey: "System",
-                                                          LoadedAt: Now()
-                                                      }
-                                                  )
-                                              ),
-                                              Blank()
-                                          )
-                                      );
+                                              )
+                                          );
 
-                                      Set(gblEditorDirty, false);
-                                      Select(lblEditorRevalidate);
-                                      Set(gblCurrentPage, "editor")
+                                          /*
+                                              Stage 3.3: Lookup Registry + Cache + Provider.
+
+                                              Power Fx kann Datenquellen nicht dynamisch anhand eines
+                                              Textwertes dereferenzieren. Die Registry beschreibt deshalb
+                                              die verfügbaren Ziele; der Provider enthält je verbundener
+                                              SharePoint-Liste einen statischen Zweig.
+
+                                              Bereits geladene Ziele bleiben im Cache und werden beim
+                                              erneuten Öffnen eines Editors nicht nochmals geladen.
+                                          */
+                                          ForAll(
+                                              Distinct(
+                                                  Filter(
+                                                      colEditorValues,
+                                                      ControlType = "Lookup"
+                                                          && !IsBlank(LookupObjectTypeKey)
+                                                  ),
+                                                  LookupObjectTypeKey
+                                              ) As requiredTarget,
+                                              Switch(
+                                                  requiredTarget.Value,
+                                                  "Asset",
+                                                  If(
+                                                      IsBlank(
+                                                          LookUp(
+                                                              colLoadedLookupTargets,
+                                                              LookupObjectTypeKey = "Asset"
+                                                          )
+                                                      ),
+                                                      Collect(
+                                                          colLookupValues,
+                                                          AddColumns(
+                                                              ShowColumns(
+                                                                  Assets,
+                                                                  ID,
+                                                                  Title,
+                                                                  GovernanceID,
+                                                                  IsActive
+                                                              ),
+                                                              LookupObjectTypeKey,
+                                                              "Asset",
+                                                              LookupId,
+                                                              ID,
+                                                              LookupKey,
+                                                              Coalesce(GovernanceID, Text(ID)),
+                                                              DisplayText,
+                                                              Coalesce(Title, GovernanceID, Text(ID)),
+                                                              SecondaryText,
+                                                              Coalesce(GovernanceID, ""),
+                                                              IsActiveValue,
+                                                              Coalesce(IsActive, true)
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colLoadedLookupTargets,
+                                                          {
+                                                              LookupObjectTypeKey: "Asset",
+                                                              LoadedAt: Now()
+                                                          }
+                                                      )
+                                                  ),
+                                                  "System",
+                                                  If(
+                                                      IsBlank(
+                                                          LookUp(
+                                                              colLoadedLookupTargets,
+                                                              LookupObjectTypeKey = "System"
+                                                          )
+                                                      ),
+                                                      Collect(
+                                                          colLookupValues,
+                                                          AddColumns(
+                                                              ShowColumns(
+                                                                  Systems,
+                                                                  ID,
+                                                                  Title,
+                                                                  GovernanceID,
+                                                                  IsActive
+                                                              ),
+                                                              LookupObjectTypeKey,
+                                                              "System",
+                                                              LookupId,
+                                                              ID,
+                                                              LookupKey,
+                                                              Coalesce(GovernanceID, Text(ID)),
+                                                              DisplayText,
+                                                              Coalesce(Title, GovernanceID, Text(ID)),
+                                                              SecondaryText,
+                                                              Coalesce(GovernanceID, ""),
+                                                              IsActiveValue,
+                                                              Coalesce(IsActive, true)
+                                                          )
+                                                      );
+                                                      Collect(
+                                                          colLoadedLookupTargets,
+                                                          {
+                                                              LookupObjectTypeKey: "System",
+                                                              LoadedAt: Now()
+                                                          }
+                                                      )
+                                                  ),
+                                                  Blank()
+                                              )
+                                          );
+
+                                          Set(gblEditorDirty, false);
+                                          Select(lblEditorRevalidate);
+                                          Set(gblCurrentPage, "editor");
+                                          SetFocus(lblEditorCancel)
+                                      )
                                     Text: ="Neu"
                                     Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
                                     Width: =80
@@ -511,6 +518,10 @@ Screens:
                                   Control: Gallery@2.15.0
                                   Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                                   Properties:
+                                    AccessibleLabel: ="Objekttyp auswählen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.DisplayNameDE, ThisItem.Title, ThisItem.ObjectTypeKey)
+                                    Selectable: =true
+                                    TabIndex: =-1
                                     BorderColor: =RGBA(0, 18, 107, 1)
                                     Height: =Parent.Height - 124
                                     Items: |-
@@ -576,11 +587,15 @@ Screens:
                                     Y: =64
                                   Children:
                                     - lblObjectTypeTitle:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Color: =gblTheme.ColorText
                                           Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
                                           FontWeight: =FontWeight.Semibold
                                           Height: =36
@@ -791,18 +806,23 @@ Screens:
                                           X: =16
                                           Y: =8
                                     - lblEditorCancel:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           Align: =Align.Center
                                           BorderColor: =gblTheme.ColorBorder
                                           BorderThickness: =1
                                           Color: =gblTheme.ColorPrimary
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Fill: =gblTheme.ColorSurface
                                           Font: =Font.'Open Sans'
                                           Height: =34
                                           OnSelect: |-
                                             =If(
                                                 gblEditorDirty,
-                                                Set(gblShowDiscardDialog, true),
+                                                Set(gblShowDiscardDialog, true); SetFocus(lblDiscardStay),
                                                 Clear(colEditorValues);
                                                 Clear(colEditorLookupSelections);
                                                 Clear(colEditorPersonSelections);
@@ -818,19 +838,38 @@ Screens:
                                           X: =Parent.Width - Self.Width - 16
                                           Y: =12
                                     - lblEditorSave:
-                                        Control: Label@2.5.1
+                                        Control: Classic/Button@2.2.0
                                         Properties:
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
                                           Align: =Align.Center
-                                          BorderColor: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorBorder)
+                                          BorderColor: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorPrimary, gblTheme.ColorBorder)
                                           BorderThickness: =1
-                                          Color: =If(gblEditorCanSave, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
-                                          Fill: =If(gblEditorCanSave, gblTheme.ColorPrimary, gblTheme.ColorFooter)
+                                          Color: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
+                                          DisplayMode: |-
+                                            =If(
+                                                gblEditorCanSave && !gblSaveBusy && !gblShowDiscardDialog
+                                                  && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                  && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
+                                                  && gblActiveProvider.ObjectTypeKey = gblObjectType
+                                                  && Coalesce(gblActiveProvider.SupportsSave, false)
+                                                  && Switch(
+                                                      gblEditorMode,
+                                                      "New", Coalesce(gblActiveProvider.SupportsCreate, false),
+                                                      "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                      false
+                                                  ),
+                                                DisplayMode.Edit,
+                                                DisplayMode.Disabled
+                                            )
+                                          Fill: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorPrimary, gblTheme.ColorFooter)
                                           Font: =Font.'Open Sans'
                                           FontWeight: =FontWeight.Semibold
                                           Height: =34
                                           OnSelect: |-
                                             =If(
-                                                gblEditorCanSave && !gblSaveBusy,
+                                                Self.DisplayMode = DisplayMode.Edit,
                                                 Set(gblSaveBusy, true);
                                                 Set(gblSaveError, "");
                                                 Set(gblSavedRecordId, 0);
@@ -868,32 +907,7 @@ Screens:
                                                                     Defaults(Assets)
                                                                 ),
                                                                 {
-                                                                    Title:
-                                                                        With(
-                                                                            {
-                                                                                editorTitle:
-                                                                                    LookUp(
-                                                                                        colEditorValues,
-                                                                                        FieldInternalName = "Title",
-                                                                                        ValueText
-                                                                                    ),
-                                                                                storedTitle:
-                                                                                    If(
-                                                                                        gblEditorMode = "Edit" && gblSelectedRecordId > 0,
-                                                                                        LookUp(
-                                                                                            Assets,
-                                                                                            ID = gblSelectedRecordId,
-                                                                                            Title
-                                                                                        ),
-                                                                                        Blank()
-                                                                                    )
-                                                                            },
-                                                                            Coalesce(
-                                                                                Trim(editorTitle),
-                                                                                storedTitle,
-                                                                                "Asset"
-                                                                            )
-                                                                        ),
+                                                                    Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
                                                                     Owner: With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
@@ -925,7 +939,7 @@ Screens:
                                                                         )
                                                                     ),
                                                                     Criticality: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
                                                                     NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
@@ -963,19 +977,19 @@ Screens:
                                                                         )
                                                                     ),
                                                                     DataClassification: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "DataClassification", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "DataClassification")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     LifecycleStatus: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "LifecycleStatus", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "LifecycleStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     ConfidentialityRequirement: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     IntegrityRequirement: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     AvailabilityRequirement: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     DataSteward: With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "DataSteward")},
@@ -1013,7 +1027,7 @@ Screens:
                                                                     Title: LookUp(colEditorValues, FieldInternalName = "Title", ValueText),
                                                                     Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
                                                                     GovernanceStatus: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     Owner: With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
@@ -1031,7 +1045,7 @@ Screens:
                                                                         )
                                                                     ),
                                                                     Criticality: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
                                                                     NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
@@ -1049,10 +1063,10 @@ Screens:
                                                                         )
                                                                     ),
                                                                     SystemType: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "SystemType", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "SystemType")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     Environment: {
-                                                                        Value: LookUp(colEditorValues, FieldInternalName = "Environment", ValueChoiceKey)
+                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Environment")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
                                                                     MonitoringStatus: LookUp(colEditorValues, FieldInternalName = "MonitoringStatus", ValueText),
                                                                     BackupStatus: LookUp(colEditorValues, FieldInternalName = "BackupStatus", ValueText),
@@ -1066,7 +1080,7 @@ Screens:
                                                     ),
                                                     Set(
                                                         gblSaveError,
-                                                        "Für den Objekttyp '" & gblObjectType & "' ist der Stage-3.4-Save-Provider noch nicht registriert."
+                                                        "Für den Objekttyp '" & gblObjectType & "' ist noch kein Save-Provider registriert."
                                                     )
                                                 );
 
@@ -1121,8 +1135,18 @@ Screens:
                                             Set(
                                                 gblEditorCanSave,
                                                 CountRows(colEditorValues) > 0
+                                                    && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                    && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
                                                     && !gblSaveBusy
+                                                    && gblActiveProvider.ObjectTypeKey = gblObjectType
+                                                    && Coalesce(gblActiveProvider.SupportsSave, false)
+                                                    && Switch(
+                                                        gblEditorMode,
+                                                        "New", Coalesce(gblActiveProvider.SupportsCreate, false),
+                                                        "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                        false
+                                                    )
                                             )
                                           Text: =""
                                           Visible: =false
@@ -1131,6 +1155,10 @@ Screens:
                                         Control: Gallery@2.15.0
                                         Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                                         Properties:
+                                          AccessibleLabel: ="Asset-Formularfelder"
+                                          ItemAccessibleLabel: =ThisItem.DisplayNameDE
+                                          Selectable: =false
+                                          TabIndex: =-1
                                           BorderColor: =RGBA(0, 18, 107, 1)
                                           Height: =Parent.Height - 72
                                           Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
@@ -1196,29 +1224,43 @@ Screens:
                                           - txtEditorText:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                MaxLength: =If(ThisItem.FieldInternalName = "Title", 255, 0)
                                                 Font: =Font.'Open Sans'
                                                 HintText: =ThisItem.DisplayNameDE
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueText: Self.Text,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
-                                                              "Pflichtfeld",
-                                                              ""
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      With(
+                                                          {
+                                                              editorKey: ThisItem.EditorFieldKey,
+                                                              editorInput: {
+                                                                  ValueText: Self.Text,
+                                                                  IsDirty: true,
+                                                                  IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                                  ErrorMessage: If(
+                                                                      ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                                      "Pflichtfeld",
+                                                                      ""
+                                                                  )
+                                                              }
+                                                          },
+                                                          Patch(
+                                                              colEditorValues,
+                                                              LookUp(colEditorValues, EditorFieldKey = editorKey),
+                                                              editorInput
                                                           )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType = "Text"
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1226,9 +1268,13 @@ Screens:
                                           - txtEditorMultiline:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Height: =78
                                                 HintText: =ThisItem.DisplayNameDE
@@ -1236,21 +1282,24 @@ Screens:
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Mode: =TextMode.MultiLine
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueText: Self.Text,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueText: Self.Text,
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Trim(Self.Text)),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Trim(Self.Text)),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType in ["Note", "MultilineText"]
                                                 Width: =Parent.TemplateWidth * 0.62
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1258,30 +1307,37 @@ Screens:
                                           - txtEditorNumber:
                                               Control: Classic/TextInput@2.3.2
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =If(IsBlank(ThisItem.ValueNumber), "", Text(ThisItem.ValueNumber))
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="0"
                                                 HoverBorderColor: =gblTheme.ColorPrimary
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.Text),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueNumber: If(IsBlank(Self.Text), Blank(), Value(Self.Text)),
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Self.Text),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Self.Text),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType = "Number"
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1289,28 +1345,35 @@ Screens:
                                           - datEditorDate:
                                               Control: Classic/DatePicker@2.6.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 DefaultDate: =ThisItem.ValueDate
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueDate: Self.SelectedDate,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.SelectedDate),
-                                                              "Pflichtfeld",
-                                                              ""
-                                                          )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueDate: Self.SelectedDate,
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsBlank(Self.SelectedDate),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 Visible: =ThisItem.ControlType in ["Date", "DateTime"]
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
@@ -1318,36 +1381,46 @@ Screens:
                                           - togEditorBoolean:
                                               Control: Classic/Toggle@2.1.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =gblTheme.ColorBorder
                                                 Default: =ThisItem.ValueBoolean
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 FalseText: ="Nein"
                                                 Font: =Font.'Open Sans'
                                                 Height: =40
                                                 OnCheck: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueBoolean: true,
-                                                          IsDirty: true,
-                                                          IsValid: true,
-                                                          ErrorMessage: ""
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueBoolean: true,
+                                                              IsDirty: true,
+                                                              IsValid: true,
+                                                              ErrorMessage: ""
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 OnUncheck: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueBoolean: false,
-                                                          IsDirty: true,
-                                                          IsValid: true,
-                                                          ErrorMessage: ""
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueBoolean: false,
+                                                              IsDirty: true,
+                                                              IsValid: true,
+                                                              ErrorMessage: ""
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 TrueFill: =gblTheme.ColorPrimary
                                                 TrueText: ="Ja"
                                                 Visible: =ThisItem.ControlType = "Boolean"
@@ -1357,11 +1430,22 @@ Screens:
                                           - drpEditorChoice:
                                               Control: Classic/DropDown@2.3.1
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
-                                                Default: =ThisItem.ValueChoiceKey
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                AllowEmptySelection: =true
+                                                Default: |-
+                                                  =LookUp(
+                                                      colEditorChoiceOptions As choiceOption,
+                                                      choiceOption.EditorFieldKey = ThisItem.EditorFieldKey
+                                                          && choiceOption.ChoiceKey = ThisItem.ValueChoiceKey,
+                                                      choiceOption.DisplayNameDE
+                                                  )
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
@@ -1375,22 +1459,31 @@ Screens:
                                                   )
                                                 Items.Value: =DisplayNameDE
                                                 OnChange: |-
-                                                  =Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueChoiceKey: Self.Selected.ChoiceKey,
-                                                          ValueText: Self.Selected.DisplayNameDE,
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey),
-                                                              "Pflichtfeld",
-                                                              ""
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      With(
+                                                          {
+                                                              editorKey: ThisItem.EditorFieldKey,
+                                                              editorInput: {
+                                                                  ValueChoiceKey: Self.Selected.ChoiceKey,
+                                                                  ValueText: Self.Selected.DisplayNameDE,
+                                                                  IsDirty: true,
+                                                                  IsValid: !ThisItem.IsRequired || !IsBlank(Self.Selected.ChoiceKey),
+                                                                  ErrorMessage: If(
+                                                                      ThisItem.IsRequired && IsBlank(Self.Selected.ChoiceKey),
+                                                                      "Pflichtfeld",
+                                                                      ""
+                                                                  )
+                                                              }
+                                                          },
+                                                          Patch(
+                                                              colEditorValues,
+                                                              LookUp(colEditorValues, EditorFieldKey = editorKey),
+                                                              editorInput
                                                           )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 SelectionFill: =gblTheme.ColorPrimary
                                                 Visible: =ThisItem.ControlType = "Choice"
                                                 Width: =Parent.TemplateWidth * 0.42
@@ -1399,6 +1492,10 @@ Screens:
                                           - cmbEditorLookup:
                                               Control: Classic/ComboBox@2.4.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 ChevronBackground: =gblTheme.ColorPrimary
                                                 ChevronFill: =gblTheme.ColorTextInverse
@@ -1424,7 +1521,7 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayText"]
-                                                DisplayMode: =If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit)
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
@@ -1434,48 +1531,51 @@ Screens:
                                                           && lookupValue.IsActiveValue = true
                                                   )
                                                 OnChange: |-
-                                                  =RemoveIf(
-                                                      colEditorLookupSelections,
-                                                      EditorFieldKey = ThisItem.EditorFieldKey
-                                                  );
-                                                  ForAll(
-                                                      Self.SelectedItems As selectedLookup,
-                                                      Collect(
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      RemoveIf(
                                                           colEditorLookupSelections,
-                                                          {
-                                                              EditorFieldKey: ThisItem.EditorFieldKey,
-                                                              LookupObjectTypeKey: ThisItem.LookupObjectTypeKey,
-                                                              LookupId: selectedLookup.LookupId,
-                                                              LookupKey: selectedLookup.LookupKey,
-                                                              DisplayText: selectedLookup.DisplayText,
-                                                              SecondaryText: selectedLookup.SecondaryText
-                                                          }
-                                                      )
-                                                  );
-                                                  Patch(
-                                                      colEditorValues,
-                                                      ThisItem,
-                                                      {
-                                                          ValueLookupId: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              Blank(),
-                                                              First(Self.SelectedItems).LookupId
-                                                          ),
-                                                          ValueLookupText: If(
-                                                              IsEmpty(Self.SelectedItems),
-                                                              "",
-                                                              First(Self.SelectedItems).DisplayText
-                                                          ),
-                                                          IsDirty: true,
-                                                          IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
-                                                          ErrorMessage: If(
-                                                              ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
-                                                              "Pflichtfeld",
-                                                              ""
+                                                          EditorFieldKey = ThisItem.EditorFieldKey
+                                                      );
+                                                      ForAll(
+                                                          Self.SelectedItems As selectedLookup,
+                                                          Collect(
+                                                              colEditorLookupSelections,
+                                                              {
+                                                                  EditorFieldKey: ThisItem.EditorFieldKey,
+                                                                  LookupObjectTypeKey: ThisItem.LookupObjectTypeKey,
+                                                                  LookupId: selectedLookup.LookupId,
+                                                                  LookupKey: selectedLookup.LookupKey,
+                                                                  DisplayText: selectedLookup.DisplayText,
+                                                                  SecondaryText: selectedLookup.SecondaryText
+                                                              }
                                                           )
-                                                      }
-                                                  );
-                                                  Select(lblEditorRevalidate)
+                                                      );
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueLookupId: If(
+                                                                  IsEmpty(Self.SelectedItems),
+                                                                  Blank(),
+                                                                  First(Self.SelectedItems).LookupId
+                                                              ),
+                                                              ValueLookupText: If(
+                                                                  IsEmpty(Self.SelectedItems),
+                                                                  "",
+                                                                  First(Self.SelectedItems).DisplayText
+                                                              ),
+                                                              IsDirty: true,
+                                                              IsValid: !ThisItem.IsRequired || !IsEmpty(Self.SelectedItems),
+                                                              ErrorMessage: If(
+                                                                  ThisItem.IsRequired && IsEmpty(Self.SelectedItems),
+                                                                  "Pflichtfeld",
+                                                                  ""
+                                                              )
+                                                          }
+                                                      );
+                                                      Select(lblEditorRevalidate)
+                                                  )
                                                 SearchFields: =["DisplayText", "SecondaryText"]
                                                 SelectMultiple: =ThisItem.AllowMultiple
                                                 Visible: =ThisItem.ControlType = "Lookup"
@@ -1515,6 +1615,7 @@ Screens:
                                           - lblEditorError:
                                               Control: Label@2.5.1
                                               Properties:
+                                                Live: =Live.Polite
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 Color: =gblTheme.ColorError
                                                 Font: =Font.'Open Sans'
@@ -1528,6 +1629,10 @@ Screens:
                                           - cmbEditorPerson:
                                               Control: Classic/ComboBox@2.4.0
                                               Properties:
+                                                AccessibleLabel: =ThisItem.DisplayNameDE & If(ThisItem.IsRequired, " (Pflichtfeld)", "") & If(!ThisItem.IsValid, " – " & ThisItem.ErrorMessage, "")
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                TabIndex: =0
                                                 BorderColor: =RGBA(0, 18, 107, 1)
                                                 ChevronBackground: =RGBA(56, 96, 178, 1)
                                                 ChevronFill: =RGBA(255, 255, 255, 1)
@@ -1545,6 +1650,7 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayName"]
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 Items: |-
@@ -1563,54 +1669,57 @@ Screens:
                                                   )
                                                 OnChange: |-
                                                   =If(
-                                                      IsEmpty(Self.SelectedItems),
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      If(
+                                                          IsEmpty(Self.SelectedItems),
 
-                                                      Patch(
-                                                          colEditorValues,
-                                                          ThisItem,
-                                                          {
-                                                              ValueText: "",
-                                                              ValuePersonEmail: "",
-                                                              ValuePersonClaims: "",
-                                                              ValuePersonDepartment: "",
-                                                              ValuePersonJobTitle: "",
-                                                              IsDirty: true,
-                                                              IsValid: !ThisItem.IsRequired,
-                                                              ErrorMessage:
-                                                                  If(
-                                                                      ThisItem.IsRequired,
-                                                                      "Pflichtfeld",
-                                                                      ""
-                                                                  )
-                                                          }
-                                                      ),
-
-                                                      With(
-                                                          {
-                                                              selectedPerson: First(Self.SelectedItems)
-                                                          },
                                                           Patch(
                                                               colEditorValues,
                                                               ThisItem,
                                                               {
-                                                                  ValueText:
-                                                                      selectedPerson.DisplayName,
-                                                                  ValuePersonEmail:
-                                                                      selectedPerson.UserPrincipalName,
-                                                                  ValuePersonClaims:
-                                                                      "i:0#.f|membership|" &
-                                                                      Lower(selectedPerson.UserPrincipalName),
+                                                                  ValueText: "",
+                                                                  ValuePersonEmail: "",
+                                                                  ValuePersonClaims: "",
                                                                   ValuePersonDepartment: "",
                                                                   ValuePersonJobTitle: "",
                                                                   IsDirty: true,
-                                                                  IsValid: true,
-                                                                  ErrorMessage: ""
+                                                                  IsValid: !ThisItem.IsRequired,
+                                                                  ErrorMessage:
+                                                                      If(
+                                                                          ThisItem.IsRequired,
+                                                                          "Pflichtfeld",
+                                                                          ""
+                                                                      )
                                                               }
+                                                          ),
+
+                                                          With(
+                                                              {
+                                                                  selectedPerson: First(Self.SelectedItems)
+                                                              },
+                                                              Patch(
+                                                                  colEditorValues,
+                                                                  ThisItem,
+                                                                  {
+                                                                      ValueText:
+                                                                          selectedPerson.DisplayName,
+                                                                      ValuePersonEmail:
+                                                                          selectedPerson.UserPrincipalName,
+                                                                      ValuePersonClaims:
+                                                                          "i:0#.f|membership|" &
+                                                                          Lower(selectedPerson.UserPrincipalName),
+                                                                      ValuePersonDepartment: "",
+                                                                      ValuePersonJobTitle: "",
+                                                                      IsDirty: true,
+                                                                      IsValid: true,
+                                                                      ErrorMessage: ""
+                                                                  }
+                                                              )
                                                           )
                                                       )
+                                                      ;
+                                                      Select(lblEditorRevalidate)
                                                   )
-                                                  ;
-                                                  Select(lblEditorRevalidate)
                                                 PressedColor: =RGBA(255, 255, 255, 1)
                                                 PressedFill: =RGBA(0, 18, 107, 1)
                                                 SearchFields: =["DisplayName"]
@@ -1638,6 +1747,10 @@ Screens:
                             Control: Gallery@2.15.0
                             Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                             Properties:
+                              AccessibleLabel: ="Navigation"
+                              ItemAccessibleLabel: =ThisItem.Label
+                              Selectable: =true
+                              TabIndex: =-1
                               BorderColor: =RGBA(0, 18, 107, 1)
                               Fill: =Color.Transparent
                               Height: =Parent.Height
@@ -1663,12 +1776,16 @@ Screens:
                               Width: =Parent.Width
                             Children:
                               - lblNavigationItem:
-                                  Control: Label@2.5.1
+                                  Control: Classic/Button@2.2.0
                                   Properties:
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    TabIndex: =0
                                     Align: =If(App.Width < gblTheme.BreakpointCompact, Align.Center, Align.Left)
                                     BorderColor: =RGBA(0, 0, 0, 1)
                                     Color: =gblTheme.ColorText
                                     Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
+                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
                                     Height: =Parent.TemplateHeight
@@ -1780,21 +1897,28 @@ Screens:
                               X: =24
                               Y: =62
                         - lblDiscardStay:
-                            Control: Label@2.5.1
+                            Control: Classic/Button@2.2.0
                             Properties:
+                              FocusedBorderColor: =gblTheme.ColorText
+                              FocusedBorderThickness: =3
+                              TabIndex: =0
                               Align: =Align.Center
                               BorderColor: =gblTheme.ColorBorder
                               BorderThickness: =1
                               Color: =gblTheme.ColorPrimary
+                              Fill: =gblTheme.ColorSurface
                               Font: =Font.'Open Sans'
                               Height: =36
-                              OnSelect: =Set(gblShowDiscardDialog, false)
+                              OnSelect: =Set(gblShowDiscardDialog, false); SetFocus(lblEditorCancel)
                               Text: ="Weiter bearbeiten"
                               X: =Parent.Width - 326
                               Y: =132
                         - lblDiscardConfirm:
-                            Control: Label@2.5.1
+                            Control: Classic/Button@2.2.0
                             Properties:
+                              FocusedBorderColor: =gblTheme.ColorText
+                              FocusedBorderThickness: =3
+                              TabIndex: =0
                               Align: =Align.Center
                               BorderColor: =gblTheme.ColorError
                               BorderThickness: =1
@@ -1814,7 +1938,8 @@ Screens:
                                 Set(gblCurrentPage, gblPreviousPage);
                                 Set(gblEditorMode, "");
                                 Set(gblObjectType, "");
-                                Set(gblSelectedRecordId, 0)
+                                Set(gblSelectedRecordId, 0);
+                                SetFocus(lblNew)
                               Text: ="Verwerfen"
                               Width: =130
                               X: =Parent.Width - 154
