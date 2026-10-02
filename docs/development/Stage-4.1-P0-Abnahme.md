@@ -1,14 +1,16 @@
-# P0 – Stage 4.1: Choice-Reparatur vor erneuter DEV-Abnahme
+# P0 – Stage 4.1: technische DEV-Abnahme abgeschlossen
 
-Stand: 2026-10-01 · Modellklasse: `deep-reasoning` · **P0 bleibt offen**
+Stand: 2026-10-02 · Modellklasse: `deep-reasoning` · **P0 technisch in DEV abgeschlossen**
 
 ## Aktueller Kandidat und Live-Ergebnis
 
-Lokaler Kandidat **Solution 1.0.0.30440**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`. Noch nicht in DEV importiert. Letzter belegter DEV-Stand: **Solution 30439 / Canvas 181 Live**. Draft [PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16) basiert auf dem Roadmap-Branch; keine Stage-4.1-Integration oder Produktivfreigabe.
+**Solution 1.0.0.30440 / Canvas 184 Live**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`. Import ohne `--publish-changes` Exit 0, Postimport-Export Exit 0 mit bytegleichem msapp. Unterstütztes Studio-Rebinding, Speichern und gezielte Veröffentlichung der benannten App; Maker bestätigt 184 Live. Draft [PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16) basiert auf dem Roadmap-Branch; keine Stage-4.1-Integration oder Produktivfreigabe.
 
-Der ausdrücklich freigegebene **einzelne Asset-Speichertest ist verbraucht**: genau ein Save, Erfolgsmeldung und ID 8. Synthetischer Titel `P0-SMOKE-20261001T203143Z-C439`. Der Quellenvergleich bestätigt den getrimmten Titel und das ausgewählte freigegebene DEV-Testkonto als Owner. Die Kritikalität ist jedoch inkonsistent: „Hoch“ gewählt, Player danach „Niedrig“, Quelle `Criticality:High`. Dieser Datenintegritätsfehler blockiert P0; er wird nicht allein nach P2 verschoben.
+Nach erneuter ausdrücklicher Freigabe erfolgte **genau ein zusätzlicher Asset-Save**, ID **9**, synthetischer Titel `P0-SMOKE-20261002T052051Z-C440`. Leer-/Leerzeichentitel sperrten Save, gültiger Titel aktivierte ihn. Personensuche lieferte den benannten zugelassenen DEV-Testtreffer; direkte Auswahl blieb erhalten. Kritikalität **Hoch** blieb nach Auswahl und Fokuswechsel sichtbar. Genau eine Save-Aktion; „Speichert …“ sperrte Navigation/Save/Abbruch, danach schloss der Editor. Eine flüchtige Erfolgsmeldung wurde nicht gesondert erfasst; der maßgebliche Erfolg ist der Quellenbeleg.
 
-Ausschließlich dieser anhand ID und Titel bestätigte Datensatz wurde reversibel in den normalen SharePoint-Papierkorb verschoben. ID-gefilterte aktive Liste leer, exakt dieser Titel im Papierkorb mit Herkunft Assets, danach alle vier vorhandenen Assets weiterhin sichtbar. Kein Purge, Reset, anderer Datensatz-Write oder zweite Neuanlage. Personen-/Tenantdaten und Voll-Logs bleiben außerhalb Git.
+Direkte SharePoint-Prüfung: **Title getrimmt**, **Owner korrekt**, **Criticality Hoch**. DOM-Zeilenidentität und anschließend sichtbarer ID-Filter 9 bestätigen denselben synthetischen Titel. Unausgefüllte optionale Choice-Felder bleiben leer. Ausschließlich dieser ID-/Titel-bestätigte Datensatz wurde reversibel in den normalen Papierkorb verschoben. ID-gefilterte aktive Liste leer, exakter Titel im Papierkorb mit Herkunft Assets; danach alle vier vorhandenen Assets erhalten. Kein Purge, Reset oder weiterer Datensatz-Write. Personen-/Tenantdaten, Voll-Logs und Screenshots bleiben außerhalb Git.
+
+Der vor der Veröffentlichung geöffnete alte Player zeigte weiterhin einen Rücksprung auf Niedrig; **kein Save**, Formular verworfen. Erst ein frisch geöffneter Player zeigte die neuen leeren Choice-Defaults und stabile Auswahl. Alte Sitzungen nach Veröffentlichung nicht als aktuellen Kandidaten abnehmen; App-Player-Version ist kein Nachweis der Canvas-Revision. Historischer ID-8-Test unter 30439: Title/Owner korrekt, Hoch gewählt/UI Niedrig/Quelle `Criticality:High`; bereits reversibel bereinigt. Dieser frühere Fehler bleibt als Reparaturgrund dokumentiert.
 
 ## Reparatur 30440
 
@@ -20,9 +22,9 @@ Ausschließlich dieser anhand ID und Titel bestätigte Datensatz wurde reversibe
 
 ## Personenpicker: erforderlicher Studio-Schritt
 
-SourceCode-PAC-Pack übernimmt auch interne historische Control-Regeln. Nach dem Import wurde trotz korrekter öffentlicher Items-Formel die private Suchregel `Search(ComboBoxSample, Self.SearchText, Value1)` ausgeführt. Ein unterstütztes **Studio-Rebinding von Items** (temporäre leere Tabelle, anschließend exakt die kanonische ForAll/SearchUserV2-Formel wiederherstellen), Speichern und gezielte App-Veröffentlichung erzeugte Canvas 181 mit funktionierender Suche.
+SourceCode-PAC-Pack übernimmt auch interne historische Control-Regeln. Nach dem Import wurde trotz korrekter öffentlicher Items-Formel die private Suchregel `Search(ComboBoxSample, Self.SearchText, Value1)` ausgeführt. Ein unterstütztes **Studio-Rebinding von Items** (temporäre leere Tabelle, anschließend exakt die kanonische ForAll/SearchUserV2-Formel wiederherstellen), Speichern und gezielte App-Veröffentlichung erzeugte historisch Canvas 181 mit funktionierender Suche; für 30440 wiederholt und als Canvas 184 gezielt veröffentlicht.
 
-Der lesende Export von Canvas 181 bestätigt die generierte Suchregel über den V2-Aufruf und DisplayName; der Player zeigte einen benannten Treffer, direkte Auswahl blieb bestehen, der Owner war in der Datenquelle korrekt. Tastatur-Erreichbarkeit und Suche sind beobachtet; eine ausschließlich per Tastatur persistierte Personenauswahl wird nicht behauptet. Kein DEV→Git-Source-Takeover, keine zweite authorbare Quelle und kein manuell gepflegter privater SearchItems-Hack.
+Der lesende Export von Canvas 184 bestätigt die generierte Suchregel über den V2-Aufruf und DisplayName; der Player zeigte einen benannten Treffer, direkte Auswahl blieb bestehen, der Owner war in der Datenquelle korrekt. Tastatur-Erreichbarkeit und Suche sind beobachtet; eine ausschließlich per Tastatur persistierte Personenauswahl wird nicht behauptet. Kein DEV→Git-Source-Takeover, keine zweite authorbare Quelle und kein manuell gepflegter privater SearchItems-Hack.
 
 **Nach jedem weiteren SourceCode-Import**: Items im Studio neu binden, kanonische Formel erhalten, Checker prüfen, gezielt veröffentlichen, frischen Player laden und benannten Treffer/Auswahl verifizieren. Lesender Export muss die erzeugte Suchregel belegen. Importerfolg oder Paketbytegleichheit allein genügt nicht.
 
@@ -39,15 +41,15 @@ Der lesende Export von Canvas 181 bestätigt die generierte Suchregel über den 
 | 30437 / Canvas 178 Saved | Direkter V2-Items-Diagnoseversuch ohne ForAll erfolglos; Studio-Version nicht veröffentlicht, kanonische Formel wiederhergestellt. |
 | 30438 / Canvas 179 | Öffentliche YAML-Eigenschaft SearchItems erzeugte Studio PA2108. PAC-Client nach anhaltendem Import-Warten beendet (Signal TERM, Wrapper Exit 241); **kein erfolgreicher CLI-Exit** behauptet. Unzulässige Eigenschaft entfernt und negative Fixture ergänzt. |
 | 30439 / Canvas 181 Live | Import **ohne `--publish-changes`** Exit 0; Studio-Rebinding, Speichern und gezielte Veröffentlichung erfolgreich. Genau ein Save ID 8; Title/Owner korrekt, Choice-Round-Trip fehlgeschlagen, Bereinigung belegt. |
-| 30440 lokal | Choice-Anzeige/Adapter/Guards korrigiert, Offline-Gates bestanden. DEV-/Studio-/Quellenabnahme ausstehend; dafür erneute konkrete Freigabe erforderlich. |
+| 30440 / Canvas 184 Live | Import ohne Publish All Exit 0, Studio-Rebinding/Checker/gezielte Veröffentlichung, lesender Export. Genau ein zusätzlich freigegebener Save ID 9 im frischen Player: Title/Owner/Hoch korrekt; reversible Bereinigung/Bestandsassets verifiziert. P0 technisch abgeschlossen. |
 
 Frühere Importaufrufe verwendeten `--publish-changes`; das ist historische Evidenz, keine künftige Standardfreigabe für Publish All. Neue Importe erfolgen ohne diesen Schalter; nur die benannte Canvas-App wird nach Studio-Prüfung gezielt veröffentlicht.
 
 ## Checker, Tastatur und verbleibende Grenzen
 
-Checker 171: keine Formel-/Laufzeitbefunde, zwei ungenutzte Quellen (TextResources/StatusPresentation), 56 Accessibility-Fehler (19 Fokus, 25 Tabstopp, zwölf Labels), zwölf Leistungswarnungen (zehn initialisierte Collections, zwei ForAll-Mutationshinweise). Diese Counts sind **historisch**, kein neu berechneter Bericht für 181 oder 30440. Alte AppCheckerResult.sarif-Snapshots im Pack-Artefakt bleiben historische Daten, keine aktuelle Maker-Abnahme.
+**Aktueller Studio-184-Checker vor Veröffentlichung:** keine Formel-/Laufzeitbefunde, zwei ungenutzte Quellen (TextResources/StatusPresentation), 56 Accessibility-Befunde (19 Fokus, 25 Tabstopp, zwölf Labels), zwölf Leistungswarnungen (zehn initialisierte Collections, zwei ForAll-Mutationshinweise). Die gleichen historischen Counts von 171 sind damit für 184 neu im Maker geprüft. Kein erneuter Checker nach dem Player-Save behauptet. Alte AppCheckerResult.sarif-Snapshots im Pack-Artefakt sind keine aktuelle Maker-Abnahme.
 
-Buttons haben Text-Namen, Inputs Labels/Fokus/Tabvertrag, Dialog sperrt Hintergrund und gibt bei Weiterbearbeiten Fokus an Abbrechen zurück. Nach endgültigem Verwerfen ist Neu-Fokus nicht belegt (Tab landet bei Start); vor Asset-Pilot in P2 schließen. Keine allgemeine Accessibility-Freigabe. Kontakte öffnen nach Neu keinen Editor; Asset/System-Neu positiv beobachtet. Risk/Control/Measure nicht live einzeln positiv geprüft: Navigation Risiko & Compliance war leer. Keine Vollabnahme aller Provider behauptet.
+Buttons haben Text-Namen, Inputs Labels/Fokus/Tabvertrag, Dialog sperrt Hintergrund und gibt bei Weiterbearbeiten Fokus an Abbrechen zurück. Nach endgültigem Verwerfen wurde **Neu-Fokus** im aktuellen Host positiv beobachtet; frühere ungeklärte Beobachtung damit geschlossen. Reine Tastatur-Persistenz der Personenauswahl nicht belegt. Keine allgemeine Accessibility-Freigabe; verbleibende Befunde vor Asset-Pilot im betroffenen Ablauf schließen oder begründet bewerten. Kontakte öffnen nach Neu keinen Editor; Asset/System-Neu positiv beobachtet. Risk/Control/Measure nicht live einzeln positiv geprüft: Navigation Risiko & Compliance war leer. Keine Vollabnahme aller Provider behauptet.
 
 P1 implementiert erst Datensatzliste/Laden/Bearbeiten. P2 prüft den vollständigen Asset-Round-Trip einschließlich GovernanceStatus, weiterer Verantwortlicher und Reviewtermin; nicht ausgefüllte/nicht gemappte Felder wurden in P0 nicht als gespeichert ausgegeben. Insbesondere Asset-GovernanceStatus bleibt im vorhandenen Patch ungemappt; ein sichtbarer Standard ist kein Quellenbeleg. Der Speichertest belegt keinen Reviewablauf.
 
@@ -68,7 +70,7 @@ P1 implementiert erst Datensatzliste/Laden/Bearbeiten. P2 prüft den vollständi
 | Artefaktvergleich / Repository-Audit / Diff | bestanden / 0 |
 | Pester | nicht ausgeführt: Modul fehlt |
 | `pac canvas validate` | PAC 2.9.3 bietet diesen Befehl nicht; Maker-Prüfung erforderlich |
-| DEV-Abnahme 30440 | **nicht ausgeführt**, Live bleibt 30439 / 181; Offline-Grün ist keine Live-Abnahme |
+| DEV-Abnahme 30440 | Import/Export Exit 0, Studio 184 Live und begrenzter Asset-Save-/Quellen-/Bereinigungstest bestanden; keine vollständige Asset-/Produktivabnahme |
 
 Engine-Gates laden lokal Core-/Interpreter-DLLs aus der expliziten PAC-Installation. CI führt Quell-/Compiler-/Syntax-/Architektur-/Artefaktprüfungen aus, die 347 Engine-Assertions lokal. Keine Tests abgeschwächt.
 
@@ -76,12 +78,13 @@ Engine-Gates laden lokal Core-/Interpreter-DLLs aus der expliziten PAC-Installat
 30440 msapp SHA-256: `a3b8eb928f0153acd7c3454d2576ca2ef3f354905aaff247f26cdb65cd9a2564`.
 30439 ZIP SHA-256: `298d25acc205a21257a8307e2fd297a665a44cf87eca18dccf5b7165643b75ce`.
 Lesender Studio-181-Export msapp SHA-256: `6614cb1491fc8b1a4bb06287fbb45af9b7b1923a2b43f1322efac2bde5799c6e`.
+Lesender Studio-184-Export msapp SHA-256: `d5d6bf9ee663dc03801c38da45021996d92b1440ae74c24d7e30a27c70bfb501`. Generierte Suchregel, Choice-Default/AllowEmptySelection, zehn native Adapter und beide Save-Guards read-only bestätigt. Studio-Regenerierung erklärt die Abweichung zum SourceCode-Pack; keine DEV-Quellenübernahme.
 Builds/Exports/Logs/Screenshots bleiben lokal, nicht in Git.
 
 ## Freigaben, Git und genau ein nächstes Paket
 
-Die frühere konkrete Freigabe deckte zwei Title-Metadaten, DEV-Import/Studio-Veröffentlichung und **einen** Asset-Speichertest mit Quellenvergleich/Bereinigung. Diese Writes sind erledigt. Die lokale notwendige Choice-Reparatur ist vorbereitet; ein **zweiter** Save wird daraus nicht abgeleitet. Keine automatische Provisionierung, DEV-Übernahme, Publish All, Deployment, Release oder Merge.
+Die frühere konkrete Freigabe deckte zwei Title-Metadaten, DEV-Import/Studio-Veröffentlichung und einen Asset-Speichertest (ID 8). Die erneute Freigabe deckte **30440 Import ohne Publish All, Studio-Rebinding/Checker/gezielte Veröffentlichung und genau einen zusätzlichen synthetischen Save mit Quellenvergleich/reversibler Bereinigung (ID 9)**. Beide Save-Freigaben sind verbraucht. Keine automatische Provisionierung, DEV-Übernahme, Publish All, Deployment, Release oder Merge.
 
-Branch `codex/stage41-p0`, Draft PR #16 auf `codex/first-use-roadmap`; tatsächlicher Commit/CI-Head und Exit-Ergebnisse werden im PR-Handoff am Paketabschluss dokumentiert. Ursprünglicher Workspace `codex/stage-4.1-dev-baseline` mit elf gestagten Dateien bleibt erhalten. PR #14 bleibt Draft, Framework-PR #6 isoliert/DO NOT MERGE; keine Framework-Locks/Runtimeversionen.
+Branch `codex/stage41-p0`, Draft PR #16 auf `codex/first-use-roadmap`. Code-/Doku-Head `2f229d4334501ed7ab595145989d5df49c3fa7a5` mit drei erfolgreichen CI-Checks geprüft; abschließender Dokumentations-Head/CI im PR-Handoff. Ursprünglicher Workspace `codex/stage-4.1-dev-baseline` mit elf gestagten Dateien bleibt erhalten. PR #14 bleibt Draft, Framework-PR #6 isoliert/DO NOT MERGE; keine Framework-Locks/Runtimeversionen.
 
-**Einziger primärer nächster Schritt: P0-Choice-DEV-Abnahme von 30440**, nach konkreter Freigabe für Import ohne Publish All, Studio-Rebinding/Checker/gezielte App-Veröffentlichung und genau **einen zusätzlichen** synthetischen Asset-Save mit Title, zugelassenem DEV-Testkonto und stabil angezeigter Kritikalität „Hoch“. Vor Save müssen Anzeige und gewählter Schlüssel übereinstimmen; bei Rücksprung abbrechen. Danach genau ID und Titel in der Quelle prüfen: Title getrimmt, Owner korrekt, Criticality **Hoch**. Testdatensatz reversibel entfernen und Abwesenheit/Papierkorb belegen. Bei unklarer Save-Antwort zuerst lesen, kein blindes Wiederholen. P1 beginnt erst nach erfolgreicher P0-Abnahme.
+**Einziger primärer nächster Schritt: P1 · Datensatzkern**, Modellklasse `deep-reasoning`: echte Datensatzliste mit Suche/Seitenführung, Laden nach ID, Bearbeiten/Speichern für unterstützte Typen, ehrliche Provider-Capabilities sowie sichtbare Behandlung leerer Werte, Fehler und paralleler Änderungen. Round-Trip eines bestehenden Datensatzes nachweisen. Lokal-first umsetzen; neue Tenant-Writes separat freigeben. P2 ergänzt vollständige Asset-Feldmappings/Verantwortliche/Reviewtermine. P0-Abschluss bedeutet keine Stage-4.1-Integration oder Produktivfreigabe.

@@ -7,9 +7,9 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 ### Canvas Stage 4.1 – Entwicklungsbranch
 
 - P0: Provider-/Modus-/ID-/Busy-Guards und Pflicht-Title ohne Fallback; zwei zusätzliche Title-Metadaten, 1.012 vorhandene unverändert. Classic-Button-/Input-Verträge und Guards aller neun Eingabeereignisse. Textvalidierung live funktionsfähig.
-- DEV 30439 / Canvas 181 Live: Personenpicker nach unterstütztem Studio-Rebinding der kanonischen Items-Formel; private SearchItems-YAML ist unzulässig und durch negative Fixture gesperrt.
-- Genau ein Asset-Save mit bestätigtem getrimmtem Titel/Owner und reversibler Bereinigung; Choice-Anzeige/Quellenwert inkonsistent. P0 bleibt offen, ursprünglicher einzelner Speichertest verbraucht.
-- Lokaler Kandidat **30440**: feldbezogener Choice-Default, erfasster Choice-OnChange-Record, Übersetzung aller zehn bestehenden nativen Choice-Patches in Compiler-Anzeigenamen; unbekannte nicht leere Schlüssel sperren Save. Interne Schlüssel/Architektur unverändert. 347 tatsächliche Offline-Power-Fx-Assertions, Choice-Quell-/Compilervertrag und vier negative Personen-Fixtures; neue DEV-Abnahme einschließlich eines zusätzlichen Save braucht konkrete Freigabe.
+- DEV **30440 / Canvas 184 Live**: Import ohne Publish All, unterstütztes Studio-Rebinding der kanonischen Personensuche und gezielte Veröffentlichung. Studio-Checker ohne Formel-/Laufzeitbefund; Accessibility-/Leistungsgrenzen dokumentiert.
+- 30440: feldbezogener Choice-Default, erfasster Choice-OnChange-Record, alle zehn vorhandenen nativen Choice-Adapter verwenden Compiler-Anzeigenamen; unbekannte nicht leere Schlüssel sperren Save. Interne Schlüssel/Architektur unverändert. 347 tatsächliche Offline-Power-Fx-Assertions, Choice-Quell-/Compilervertrag und vier negative Personen-Fixtures.
+- **P0 technisch in DEV abgeschlossen (02.10.2026)**: nach früherem fehlerhaftem ID-8-Test genau ein zusätzlicher freigegebener Asset-Save ID 9 im frischen Player. Title getrimmt, Owner korrekt, Kritikalität Anzeige/Quelle Hoch; reversible Bereinigung/ID-Filter/Papierkorb und vier Bestandsassets verifiziert. Nächstes Paket P1 Datensatzkern; keine vollständige Asset-/Produktivfreigabe.
 
 - Read-only-DEV-Export mit dem lokalen Stage-4.1-Reconciliation-Stand abgeglichen; Personenfeld- und Asset-Speicherlogik in den kanonischen Canvas-Quellcode übernommen.
 - Diagnostisches Suchlabel aus dem Quellcode entfernt; Solution-Manifest auf die DEV-Baseline `1.0.0.30428` ausgerichtet und Canvas-/Solution-Paket lokal neu erstellt.
@@ -17,7 +17,7 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - Canvas-Version `1.0.0-alpha.4.1.0` zwischen Versionsdatei, App und Entwicklerkonfiguration abgeglichen.
 - Object-Provider-Registry in der Canvas-Runtime synchronisiert; Auswahl bindet den aktiven Provider und der Neu-Befehl prüft dessen Create-Fähigkeit.
 - Synchronisierer gegen eine fälschlich erkannte Provider-Bindung korrigiert; CI prüft Canvas-Version, Registry und Runtime ohne automatische Reparatur.
-- DEV-Baseline `30430` wurde am 28.09.2026 freigegeben importiert und als Canvas 165 Live geprüft; P0-Choice-Abnahme des aktuellen Kandidaten `30440` steht vor Stage-4.1-Integration aus.
+- DEV-Baseline `30430` wurde am 28.09.2026 freigegeben importiert und als Canvas 165 Live geprüft; P0-Choice-Abnahme `30440` ist abgeschlossen; Stage-4.1-Integration bleibt separat.
 
 ### Documentation and repository
 

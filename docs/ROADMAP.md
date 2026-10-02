@@ -1,6 +1,6 @@
 # Governance Portal Roadmap
 
-Stand: 2026-10-01 · Ziel: erste relevante Anwendungsfälle zügig und belastbar in der Power App nutzen
+Stand: 2026-10-02 · Ziel: erste relevante Anwendungsfälle zügig und belastbar in der Power App nutzen
 
 ## Zielbild und Ausgangslage
 
@@ -8,9 +8,9 @@ Der **erste produktive Umfang** umfasst Assets, Changes, Risks und Evidence in d
 
 Die Architektur definiert Listen, Bibliotheken und Metadaten; Datensatzliste/Laden/Bearbeiten fehlen weiterhin. Asset/System haben Patch-Zweige, Change/Risk keinen ausführbaren Save-Vertrag. Evidence und Reviews sind noch keine abgenommenen App-Abläufe.
 
-P0 ist bis **DEV 30439 / Canvas 181 Live** geprüft. Zwei Title-Metadaten sind angelegt, Titelvalidierung und Personensuche nach Studio-Rebinding funktionieren. Genau ein Asset wurde gespeichert und reversibel bereinigt; Title/Owner waren korrekt, der Choice-Quellenvergleich schlug fehl (Hoch gewählt, UI Niedrig, Quelle `Criticality:High`). **P0 bleibt offen.** Lokaler Kandidat **30440** korrigiert Choice-Default und zehn native Choice-Adapter, sperrt unbekannte Schlüssel und besteht 347 Offline-Power-Fx-Assertions. Kein zweiter Save und keine Live-Abnahme von 30440. [Belege und Grenzen](development/Stage-4.1-P0-Abnahme.md).
+**P0 ist technisch in DEV abgeschlossen: Solution 30440 / Canvas 184 Live.** Nach unterstütztem Studio-Rebinding/Checker und gezielter Veröffentlichung wurde genau ein zusätzlich freigegebenes Asset angelegt (ID 9): getrimmter Titel, zugelassenes Testkonto und Kritikalität **Hoch** stimmen in der Quelle; der Testdatensatz ist reversibel bereinigt, alle vier Bestandsassets erhalten. Der Test erfolgte im frischen Player; der alte Player wurde wegen Rücksprung ohne Save verworfen. 347 Offline-Power-Fx-Assertions und Projekt-Gates bestehen. Die erfolgreiche P0-Neuanlage ist keine vollständige Asset-/Produktivabnahme. [Belege und Grenzen](development/Stage-4.1-P0-Abnahme.md).
 
-**Primärer nächster Schritt: P0-Choice-DEV-Abnahme von 30440**, nach neuer konkreter Freigabe einschließlich genau eines zusätzlichen Save-/Quellen-/Bereinigungstests. Die ursprüngliche Einzel-Save-Freigabe ist verbraucht. P1 beginnt erst danach. P0 verwendet wegen belegter Galerie-/Host-/Compiler-/Connector-Kopplung und Datenintegritätsfehler `deep-reasoning`; übrige Paketklassen bleiben unverändert.
+**Primärer nächster Schritt: P1 · Datensatzkern.** Liste/Suche/Seitenführung, Laden nach ID, Bearbeiten/Speichern und ein belegter Round-Trip eines bestehenden Datensatzes. Modellklasse `deep-reasoning`; übrige Paketklassen bleiben unverändert. Stage-4.1-Integration/Merge und Produktivfreigabe sind eigenständige Entscheidungen.
 
 **Schnitt der Einführung:** Die vier genannten Anwendungsfälle und nötigen Querschnittsfunktionen werden vorgezogen. Ein Asset-Pilot ist ein Zwischenziel; weitere Listen werden mit ausführbarem Round-Trip nachfolgend eingebunden.
 
@@ -20,7 +20,7 @@ Die Modellwahl beschreibt die **Codex-Arbeit am Paket**, kein KI-Modell im Porta
 
 | Paket | Ergebnis und Abnahme | Abhängigkeit | Modellklasse / Empfehlung |
 |---|---|---|---|
-| **P0 · Stage 4.1 schließen** | DEV-Testdaten können sicher bereinigt werden; eine Asset-Neuanlage wird gespeichert, in der DEV-Datenquelle verifiziert und bereinigt. App-Checker-Hinweise werden nach Auswirkung bewertet; nicht speicherbare Provider führen nicht in einen scheinbar nutzbaren Speicherdialog. PR #14 bleibt bis zur Abnahme Draft. | aktueller DEV-Kandidat | `deep-reasoning`: belegte Host-/Compiler-/Connector-Kopplung und Datenintegritätsfehler |
+| **P0 · Stage 4.1 schließen** | DEV-Testdaten können sicher bereinigt werden; eine Asset-Neuanlage wird gespeichert, in der DEV-Datenquelle verifiziert und bereinigt. App-Checker-Hinweise werden nach Auswirkung bewertet; nicht speicherbare Provider führen nicht in einen scheinbar nutzbaren Speicherdialog. PR #14 bleibt bis zur Abnahme Draft. | **in DEV abgeschlossen (30440/184)** | `deep-reasoning`: belegte Host-/Compiler-/Connector-Kopplung und Datenintegritätsfehler |
 | **P1 · Datensatzkern** | Echte Datensatzliste mit Suche/Seitenführung, Laden nach ID, Bearbeiten und Speichern für unterstützte Typen. Provider-Capabilities und UI entsprechen den ausführbaren Pfaden. Fehler, leere Werte und parallele Änderungen werden sichtbar behandelt. Ein Round-Trip mit bestehendem Datensatz besteht. | P0 | `deep-reasoning` · **GPT-6 Astra, high**: Canvas, SharePoint, Provider und Datenintegrität greifen ineinander |
 | **P2 · Asset und Verantwortliche** | Asset anlegen, laden und ändern; Owner, Stellvertretung sowie fachlich/technisch Verantwortliche bleiben nach erneutem Öffnen korrekt. Status, Kritikalität und nächster Reviewtermin sind nutzbar. Nicht unterstützte Feldtypen werden implementiert oder bewusst aus dem Pilotformular entfernt. | P1 | `standard-reasoning` · **GPT-6 Sol, high**: begrenzter Fachtyp mit mehreren Feld- und Personenverträgen |
 | **P3 · Change** | Change anlegen, finden und ändern; Bezug zum betroffenen Asset, verantwortliche Person, Genehmiger, Planung, Risiko, Umsetzungs- und Rollback-Plan sowie Status werden gespeichert. Der fachliche Genehmigungsschritt ist eindeutig und nachvollziehbar; automatische Freigabe-Flows sind für den Start nicht nötig. | P1; P2 als Muster | `deep-reasoning` · **GPT-6 Astra, medium**: Lifecycle und Genehmigungssemantik |

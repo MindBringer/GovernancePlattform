@@ -79,7 +79,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 - `gblActiveProvider` wird bei Objekttypauswahl gesetzt.
 - **Neu** ist ohne passende Create-/Save-Capabilities deaktiviert; Save prüft Provider, Modus und ID.
 - `Test-CanvasCapabilities.ps1 -PowerFxDirectory <PAC-Library-Verzeichnis>` prüft die tatsächlichen Guard-/Revalidierungsformeln offline mit der Power-Fx-Engine (135 Assertions; ergänzend Test-CanvasChoiceContract.ps1 mit 212 Assertions am Kandidaten 30440). Die Engine-DLLs stammen aus der lokal installierten PAC-Toolchain; die bestehende CI führt diesen optionalen Engine-Test nicht aus.
-- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Der Build ist belegt; die Choice-Quellenabnahme von 30440 steht nach dem fehlerhaften ersten Speichertest noch aus.
+- Abschlusskriterium: vollständiger Build und DEV-Speicher-/Quellen-/Bereinigungstest müssen erfolgreich sein. Build und begrenzte P0-Choice-Quellenabnahme von 30440 sind erfolgreich; keine vollständige Asset-/Produktivabnahme.
 
 ## Historische P0-Baseline und Title-Reparatur
 
@@ -87,8 +87,10 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 ## P0-Host-/Choice-Abnahme: aktueller Kandidat 30440
 
-Die Text- und Ereignis-Reparatur 30435 ist im Player wirksam. DEV 30439 / Canvas 181 Live enthält nach unterstütztem Studio-Items-Rebinding einen funktionsfähigen Personenpicker; SourceCode-Import allein erzeugte eine private Beispiel-Suchregel. Kein privates YAML-/Pack-Hack wird als Quelle gepflegt.
+**DEV 30440 / Canvas 184 Live, P0 technisch abgeschlossen (02.10.2026).** Import ohne Publish All Exit 0, Postimport-msapp bytegleich mit Kandidat. Unterstütztes Studio-Items-Rebinding erhält die kanonische Formel; lesender Export bestätigt die generierte V2-Personensuche, feldbezogenen Choice-Default, AllowEmptySelection, zehn native Choice-Adapter und beide Save-Guards. Kein privater YAML-/Pack-Hack und kein Source-Takeover.
 
-Genau ein freigegebener Asset-Save ID 8: Title/Owner korrekt, Kritikalität inkonsistent (Hoch gewählt, UI Niedrig, Quelle `Criticality:High`). Datensatz reversibel bereinigt/verifiziert; vier vorhandene Assets sichtbar. P0 bleibt offen. **30440 lokal** behebt Choice-Default, erfassten OnChange-Record und alle zehn bestehenden nativen Choice-Adapter anhand feldbezogener DisplayNameDE-Werte. Unbekannte nicht leere Schlüssel sperren Save/Revalidierung; interne ChoiceKey-/Payload-Verträge und Architektur unverändert.
+Genau ein zusätzlicher ausdrücklich freigegebener Save ID 9 im frischen Player: Title getrimmt, Owner korrekt und Kritikalität stabil angezeigt/Quelle **Hoch**. Busy sperrte Save/Abbruch/Navigation. Ausschließlich ID 9 mit passendem synthetischem Titel reversibel bereinigt; ID-gefilterte Liste leer, Papierkorb/Herkunft Assets belegt, vier Bestandsassets erhalten. Historisch scheiterte ID 8 unter 30439 und wurde bereinigt; alter Player vor aktuellem Test ohne Save verworfen.
 
-347 Offline-Power-Fx-Assertions, Quell-/Compiler-/Personenverträge, Build und alle verfügbaren Projekt-Gates bestehen. Einziger nächster Schritt ist die [P0-Choice-DEV-Abnahme von 30440](Stage-4.1-P0-Abnahme.md) nach konkreter Freigabe inklusive genau eines zusätzlichen Speichertests; frühere Einzel-Save-Freigabe verbraucht. Keine erneute Title-Metadatenübernahme, kein P1-Start, keine Produktivfreigabe.
+Studio-184-Checker vor Veröffentlichung: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen, 56 Accessibility-Befunde und zwölf Leistungswarnungen. 347 Offline-Power-Fx-Assertions, Quell-/Compiler-/Personenverträge, Build und verfügbare Projekt-Gates bestehen. Reine Tastatur-Persistenz der Personenauswahl und vollständige Asset-/Rollen-/Reviewabnahme bleiben offen; Neu-Fokus nach Verwerfen nun beobachtet. Details: [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
+
+**Einziger primärer nächster Schritt: P1 · Datensatzkern**, Modellklasse `deep-reasoning`: Liste/Suche/Seitenführung, Laden nach ID, Bearbeiten/Speichern und bestehender Datensatz-Round-Trip. Vollständige Asset-Mappings/Verantwortliche/Reviewtermin folgen P2. Keine erneute Title-Metadatenübernahme, keine Produktivfreigabe oder implizite Stage-4.1-Integration.
