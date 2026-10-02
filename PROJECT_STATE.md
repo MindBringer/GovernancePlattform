@@ -1,6 +1,6 @@
 # Projektübergabe – GovernancePlattform
 
-Stand: 2026-10-02 · Branch `codex/stage41-p1`, Basis `5caee00823032b4306f0bdaa900ca9817a53610e` aus [P0-PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16). P1 wird als eigener Draft auf `codex/stage41-p0` zur Prüfung bereitgestellt. Fachlicher Zielzweig bleibt `feature/canvas-stage-4.1-provider-engine`; kein Merge.
+Stand: 2026-10-02 · Branch `codex/stage41-p1`, Basis `5caee00823032b4306f0bdaa900ca9817a53610e` aus [P0-PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16). [P1-Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) liegt auf `codex/stage41-p0` zur Prüfung bereit. Fachlicher Zielzweig bleibt `feature/canvas-stage-4.1-provider-engine`; kein Merge.
 
 ## Kandidat und belegter DEV-Stand
 
@@ -19,7 +19,7 @@ P0 ist technisch begrenzt abgeschlossen: ein ausdrücklich freigegebener Asset-S
 
 P1: **624 tatsächliche Offline-Power-Fx-Assertions / Exit 0** (137 Capability + 212 Choice + 275 Record Core); 51 mehrzeilige Formeln erfolgreich geparst. Recordtests verwenden die tatsächlichen Load-Projektionen, Hydrierung, Save-Payloads, Guards und Galerieabfragen; synthetische Voll-/Leerwerte sowie 3.000-Zeilen-Fixtures. Der lokale Fixture-Test ist kein Nachweis der Serverdelegation.
 
-PAC 2.9.3 Build / Exit 0; SourceCode-Pack/-Unpack vier YAMLs unverändert, Artefaktprüfung 4/4. Architektur/Konsistenz, PowerShell-Syntax, beide Title-Verträge, Registry/Runtime, Referenzen, Personenvertrag mit vier negativen Fixtures, Accessibility-Quellvertrag 20 Controls / fünf Galerien, Audit und Diff werden am finalen Kandidaten geprüft; Exit-Codes im P1-Handoff. CI-Ergebnis und exakter Head stehen am P1-Draft und in der lokalen Übergabe. Pester fehlt; PAC `canvas validate` nicht verfügbar; Studio, Rollen, echte Delegation und Connector-Konfliktverhalten offen.
+PAC 2.9.3 Build / Exit 0; SourceCode-Pack/-Unpack vier YAMLs unverändert, Artefaktprüfung 4/4. Architektur/Konsistenz, PowerShell-Syntax, beide Title-Verträge, Registry/Runtime, Referenzen, Personenvertrag mit vier negativen Fixtures, Accessibility-Quellvertrag 20 Controls / fünf Galerien, Audit und Diff bestehen am Kandidaten jeweils mit Exit 0; Exit-Codes im P1-Handoff. CI am Implementierungshead `ebdf97e1888fbf87fc4fa5e06f6cc30efb672499`: alle drei Checks erfolgreich (Provisioning Push/PR, Repository PR). Ergebnis des finalen Dokumentationsheads und exakter Head stehen am P1-Draft und in der lokalen Übergabe. Pester fehlt; PAC `canvas validate` nicht verfügbar; Studio, Rollen, echte Delegation und Connector-Konfliktverhalten offen.
 
 Ursprünglicher Workspace `codex/stage-4.1-dev-baseline` mit elf gestagten Dateien und P0-Branch unverändert. P1 im separaten lokalen Clone. Keine Framework-Locks/Runtimeversionen; PR #6 bleibt isoliert/DO NOT MERGE. Keine Secrets, Tenantsettings, Personen-/Log-/Buildausgaben neu versioniert; bestehendes versioniertes msapp als geprüftes Solution-Artefakt aktualisiert.
 

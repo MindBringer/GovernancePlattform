@@ -4,7 +4,7 @@ Stand: 2026-10-02. **Lokale Umsetzung bereit; keine P1-Live-Abnahme.** Primäres
 
 ## Kandidat und Grenzen
 
-- Branch `codex/stage41-p1`, Basis P0 `5caee00823032b4306f0bdaa900ca9817a53610e`, eigener Draft auf `codex/stage41-p0`.
+- Branch `codex/stage41-p1`, Basis P0 `5caee00823032b4306f0bdaa900ca9817a53610e`, [Draft-PR #17](https://github.com/MindBringer/GovernancePlattform/pull/17) auf `codex/stage41-p0`.
 - Solution **1.0.0.30441**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt.
 - Letzter belegter Live-Stand: **P0 30440 / Canvas 184**. Frühere P0-Neuanlage-/Save-Freigaben sind verbraucht. `weiter P1` beauftragt die lokale Umsetzung, Tests, Kandidat und Draft; kein neuer Import/Publish oder Tenant-Save.
 - Kanonische Bearbeitungsquelle bleibt `powerplatform/canvas/GovernancePortal/`; SourceCode-Round-Trip nur in ignoriertem Staging. Keine DEV→Git-Übernahme.
@@ -63,7 +63,7 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 
 **624 tatsächliche Offline-Power-Fx-Assertions.** Die Recordtests werten tatsächliche Projektionen, Hydrierung, Payloads, Guard- und Galerieformeln aus. Voll-/Leerwerte, Datumszeiten, native Personenalias-/Claims-Werte, optionales Leeren, unveränderte Defaults, unbekannte Choices, fehlende Metadaten, falsche Kontrolltypen, Modified-Konflikte und 3.000-Zeilen-Fixtures sind enthalten. Ein lokaler Fixture-Test beweist keine SharePoint-Serverdelegation.
 
-CI enthält Record-Quell-/Compilervertrag und beide Title-Gates; optionale Engine-DLL-Tests laufen lokal. Exakter Git-/CI-Head und URLs werden im Draft und ignorierten lokalen Handoff festgehalten, nach Push gegen den tatsächlichen Head geprüft. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Kein aktueller P1-Studio-Checker, Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis.
+CI enthält Record-Quell-/Compilervertrag und beide Title-Gates; optionale Engine-DLL-Tests laufen lokal. CI am Implementierungshead `ebdf97e1888fbf87fc4fa5e06f6cc30efb672499`: [Provisioning Push](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975015833), [Provisioning PR](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975067103) und [Repository PR](https://github.com/MindBringer/GovernancePlattform/actions/runs/36975067083) erfolgreich. Der finale Dokumentationshead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. Kein aktueller P1-Studio-Checker, Tenant-Round-Trip oder realer Rollen-/ETag-/Delegationsnachweis.
 
 ## Kandidaten-Hashes
 
