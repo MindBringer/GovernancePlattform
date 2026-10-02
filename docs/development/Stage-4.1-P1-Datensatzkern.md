@@ -1,12 +1,12 @@
 # P1 – Datensatzkern und DEV-Abnahme
 
-Stand: 2026-10-02. **DEV 30443/Canvas 191 Live; Personenbindung wiederhergestellt, Asset-Round-Trip und sequenzieller Konflikt begrenzt bestanden. System-Titel-Edit/Lookup-Auswahl offen, P1 nicht abgenommen.** Genau ein primäres Folgepaket: System-Save-/Lookup-Reparatur vor neuem konkretem Tenant-Testumfang. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
+Stand: 2026-10-02. **Reparaturkandidat 30444 lokal geprüft, nicht importiert/veröffentlicht. DEV zuletzt belegt 30443/191; System-Titel-Edit/Lookup offen, P1 nicht abgenommen.** Genau ein primäres Folgepaket: konkret begrenzte 30444-DEV-Abnahme nach neuer Freigabe. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
 
 ## Kandidat und Grenzen
 
 - Branch `codex/stage41-p1`, Basis P0 `5caee00823032b4306f0bdaa900ca9817a53610e`, [Draft-PR #17](https://github.com/MindBringer/GovernancePlattform/pull/17) auf `codex/stage41-p0`.
-- Freigegebener/importierter Kandidat: Solution **1.0.0.30443**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt. Import 188 Live, erster Studio-Schritt 189, öffentliche Personenwiederherstellung in Draft 190 und gezielt publiziert **191 Live**; kanonische Paketquellen unverändert.
-- Letzte erfolgreiche begrenzte Paketabnahme: **P0 30440 / Canvas 184**. Aktueller DEV-Stand: **30443 / Canvas 191 Live laut Maker**, Formelchecker ohne Fehler und Personen-Suchbindung exportbelegt. Der unten dokumentierte 30443-Testumfang ist ausgeführt: zwei Creates, zwei normale Edit-Versuche (einer erfolgreich), ein Konflikt-Quellen-Edit, ein blockierter App-Save und zwei reversible Löschungen. Keine automatische Freigabe für weitere Saves/neue Kandidaten; frühere P0-Save-Freigaben ebenfalls verbraucht.
+- Zuvor freigegebener/importierter Kandidat: Solution **1.0.0.30443**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`; Versionsreihen getrennt. Import 188 Live, erster Studio-Schritt 189, öffentliche Personenwiederherstellung in Draft 190 und gezielt publiziert **191 Live**; kanonische Paketquellen unverändert.
+- Letzte erfolgreiche begrenzte Paketabnahme: **P0 30440 / Canvas 184**. Letzter belegter DEV-Stand: **30443 / Canvas 191 Live laut Maker**, Formelchecker ohne Fehler und Personen-Suchbindung exportbelegt. Der unten dokumentierte 30443-Testumfang ist ausgeführt: zwei Creates, zwei normale Edit-Versuche (einer erfolgreich), ein Konflikt-Quellen-Edit, ein blockierter App-Save und zwei reversible Löschungen. Keine automatische Freigabe für weitere Saves/neue Kandidaten; frühere P0-Save-Freigaben ebenfalls verbraucht.
 - Kanonische Bearbeitungsquelle bleibt `powerplatform/canvas/GovernancePortal/`; SourceCode-Round-Trip nur in ignoriertem Staging. Keine DEV→Git-Übernahme.
 - P1 erhält die vorhandenen nativen Save-Verträge. Kein zusätzliches Asset-Fachmapping, neuer Provider, Evidence-/Reviewprozess oder Produktivrollout. Capabilities benennen ausführbare Pfade; Live-/Rollenabnahme bleibt separat.
 
@@ -16,7 +16,7 @@ Asset und System zeigen native Listen mit Titelanfangssuche oder genauer positiv
 
 Öffnen lädt nach `Refresh` den nativen Record mittels ID-Gleichheit. Geladene Werte werden in denselben Editor wie die Neuanlage übernommen. Fehlender/unzugänglicher Datensatz bleibt in der Liste mit Fehlermeldung. Fehlende/falsch typisierte Metadaten und unbekannte gespeicherte Choices sperren Save. Eine unbekannte Choice wird sichtbar als ungültiger Wert erhalten, bis eine gültige Auswahl getroffen wird.
 
-Unveränderte Defaults dürfen keine Felder als geändert markieren. Leere optionale Werte, `0`, `false` und Datum/Uhrzeit bleiben erhalten; unveränderte Personenobjekte behalten originale Claims, Email und Zusatzattribute. Ein bestehender Lookup wird auch außerhalb des bisherigen Lookup-Caches angezeigt. Die begrenzte Suche nach neuen Lookup-Zielen bleibt der bisherige Vertrag und ist kein Nachweis vollständiger Lookup-Auswahl bei großen Listen.
+Unveränderte Defaults dürfen keine Felder als geändert markieren. Leere optionale Werte, numerische `0`, `false` und Datum/Uhrzeit bleiben erhalten; Lookup-IDs ohne positives Ziel werden seit 30444 als leer normalisiert; unveränderte Personenobjekte behalten originale Claims, Email und Zusatzattribute. Ein bestehender Lookup wird auch außerhalb des bisherigen Lookup-Caches angezeigt. Die begrenzte Suche nach neuen Lookup-Zielen bleibt der bisherige Vertrag und ist kein Nachweis vollständiger Lookup-Auswahl bei großen Listen.
 
 Bearbeiten setzt eine positive ID, deren Übereinstimmung mit der geladenen ID, vollständige Hydrierung und echte Änderungen voraus. Speichern patcht den original geladenen nativen Record. Eine frische `Modified`-Prüfung sperrt vor dem Patch bei paralleler Änderung oder fehlendem Zeitstempel; fehlende Datensätze und Connectorfehler werden angezeigt. `ErrorKind.Conflict` sperrt erneutes blindes Speichern. Unklarer Save-Ausgang erfordert Quellenprüfung. Der Zeitstempelvergleich allein garantiert keine atomare Konfliktvermeidung zwischen Prüfung und Patch; Connector-/ETag-Verhalten ist ein DEV-Gate.
 
@@ -44,7 +44,7 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 
 1.014 andere generierte Zeilen bleiben unverändert. Der vollständige Plan liegt lokal ignoriert unter `artifacts/p1-20261002/system-title-plan.json`. Kein allgemeines Provisioning, Seed/Reset oder erneutes Schreiben der bereits übernommenen Asset-Title-Zeilen.
 
-## Offline-Gates am Kandidaten
+## Historische Offline-Gates am Kandidaten 30443
 
 | Gate | Ergebnis / Exit-Code |
 |---|---|
@@ -66,7 +66,7 @@ Die Offline-Ausführung des tatsächlichen Generators mit abgefangener Schreibgr
 
 CI enthält Record-Quell-/Compilervertrag, beide Title-Gates, YAML-Parser/Regression und den expliziten Aliasvertrag für den Formularfilter. Der optionale Engine-Test führt nun auch den tatsächlichen Formularfilter mit gemischten Asset-/System-/fremden Metadaten aus (sechs zusätzliche Assertions). Optionale Engine-DLL-Tests laufen lokal. Vor der Reparatur waren alle drei CI-Checks am Head `67a18e0049b75f468c826ca26a1e766206911cfd` erfolgreich; dieser grüne Stand erkannte den später belegten Studio-YAML-Fehler nicht. Der Reparaturhead wird nach Push erneut gegen den tatsächlichen PR-Head geprüft; exakter Head/URLs im Draft und ignorierten Handoff. Alle 18 verfügbaren Abschluss-Gates am 30443-Kandidaten Exit 0. Pester nicht installiert; PAC `canvas validate` in 2.9.3 nicht vorhanden. 30443/191 öffnet ohne Formelfehler, Personenbindung ist exportbelegt; keine vollständige Tenant-Round-Trip-/Rollen-/ETag-/Delegationsabnahme. Die historischen 30442-Formelbefunde und aktuelle 30443-Grenzen stehen unten.
 
-## Kandidaten-Hashes
+## Historische Kandidaten-Hashes 30443
 
 - `GovernancePortal_1.0.0.30443_1.0.0-alpha.4.1.0.zip`: SHA-256 `e2cea445e8a4e3e2cddb1cf96f21be8ccfda57807eb53cd02d6c815c2c313607`.
 - Versioniertes `gp_governanceportal_c93a1_DocumentUri.msapp`: SHA-256 `1d5fa3d1fea7c91f9df1feb2811f6d2611a40d87d7c23ea4c3e62a4a9b46803e`.
@@ -143,11 +143,34 @@ Lokale Diagnose ausschließlich mit synthetischem Fixture und den unveränderten
 
 Unveränderte 30443-Offlinebasis: alle 18 verfügbaren Kandidaten-Gates/Build/Round-Trip Exit 0, 630 Assertions/53 Formeln. Dokumentationsabschluss prüft Audit und Diff; tatsächlicher CI-Head/Exit-Codes im Draft/Handoff. Pester/PAC canvas validate fehlen weiterhin; Rollen, reale große Delegation, vollständige native Werte und atomare ETag-Garantie ungetestet. Historische Checkerzahlen 189 werden nicht als aktueller 191-Accessibility-Check ausgegeben. Screenshots, AX, Exporte, Downloadkopie und Diagnose ausschließlich ignoriert.
 
+## Lokaler Reparaturkandidat 30444
+
+Die unveränderte 30443-Load-Projektion reicht den synthetischen `LinkedAsset={Id:0,Value:""}` als gültig wirkende ID weiter. Der neue tatsächliche Load-Test scheitert daran vor Reparatur / Exit 1. 30444 normalisiert Lookup-ID und Text beim Load, Default und Save: nur positive IDs sind Ziele, 0/negative/Blank werden leere Referenzen. Pflichtreferenz prüft eine positive ID, Cache-Ergänzung und neue Items übernehmen keine ungültigen IDs. Alle 16 System-/17 Asset-Save-Felder und Personen-/Choice-/Capability-Verträge bleiben erhalten. Ein nicht veränderter positiver Lookup bleibt beim Titel-Edit erhalten.
+
+95 neue Assertions verwenden tatsächliche Projektions-, Hydrierungs-, Default-, Event- und Payloadformeln für vier Quellenfälle: Blank, 0, negative ID und positive ID. Sie prüfen sauberes Laden, Pflichtvalidierung, keine Phantomauswahl/Dirty-Events, Titel-Edit und die übrigen 14 Systemfelder sowie zieltyp-/aktiv-/ID-begrenzte Items, bestehende Mehrfachauswahl und stale ID 0 im Payload. Der Interpreter lehnte die alte Tabellenpunktprojektion im Mehrfachdefault ab; dieselbe Auswahl wird jetzt mit `ShowColumns(Filter(...),LookupId)` projiziert und durch tatsächliche Default-Auswertung geprüft. Kein fachlicher Mehrfach-Refactor. Die öffentliche Lookup-Suche verlangt explizit `DisplayFields=["DisplayText"]`, `SearchFields=["DisplayText","SecondaryText"]`, `IsSearchable=true`; CI-Quellgate verbietet eine private SearchItems-Property.
+
+**725 tatsächliche Offline-Assertions / Exit 0** (137 Capability, 212 Choice, 376 Record), 53 Formeln, vier YAML-Regressionstests. PAC 2.9.3 Build 30444 / Exit 0, SourceCode-Pack/-Unpack alle vier YAMLs identisch, Artefakt 4/4; alle 18 verfügbaren Kandidaten-Gates Exit 0. Dokumentationsabschluss: Audit/Diff Exit 0; CI am tatsächlichen PR-Head im Draft/Handoff belegen. Pester/PAC canvas validate fehlen. Keine Live-Reparatur oder neuer Tenant-Save ausgeführt; der vermutete Zusammenhang zwischen ID 0 und dem 191-Live-Savefehler muss weiterhin im DEV-Round-Trip belegt werden.
+
+- Solution **1.0.0.30444**, Canvas `1.0.0-alpha.4.1.0`, Provisioning `6.2.5`, Versionsreihen getrennt.
+- ZIP `GovernancePortal_1.0.0.30444_1.0.0-alpha.4.1.0.zip`, SHA-256 `afb99331fc7818a105933bf6de54ce28a361b9c2abba6d9da32d5644fb1406a0`.
+- Kanonisches gepacktes msapp SHA-256 `99d1ae433d31c70886e116b65af3e67ddd4edd80921feaede92778031c5bc579`.
+- Noch nicht importiert/veröffentlicht; letzte Maker-Evidenz 30443/191.
+
+**Host-Grenze:** Das neue SourceCode-Paket enthält die reparierte kanonische YAML, seine historischen Controls-JSONs aber weiterhin alte öffentliche/generated Bindungen einschließlich ComboBoxSample bei Person/Lookup. Pack-/YAML-Round-Trip ist deshalb kein Nachweis ausgeführter Such-/Payloadregeln. Nach Import muss Studio die Quellen verarbeiten und die beiden ComboBox-Bindungen über öffentliche Eigenschaften mit erhaltener Spaltenstruktur regenerieren. Keine private Regel im Paket oder im Tenant manuell schreiben. Ein gespeicherter Draft ist durch Studio-Download zu prüfen; Solution-Export vor Publish kann noch die alte publizierte Revision liefern.
+
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P1 · System-Save und Lookup-Bindung reparieren**, Modellklasse `deep-reasoning`: den fehlgeschlagenen System-Titel-Edit und den leeren Lookup-Wert `0;#` anhand tatsächlicher Load-/Hydrierungs-/Payloadformeln eingrenzen; Lookup-Suchbindung durch unterstützte öffentliche Studio-Eigenschaften regenerieren und lesend exportieren, keine private Regel schreiben. Zuerst lokalen Reparaturkandidaten mit Regressionen und vollständigen Gates vorbereiten. Für weitere Tenant-Saves oder eine neue Kandidatenübernahme ist danach ein neuer konkreter begrenzter Scope freizugeben; die bisherigen fachlichen Kontingente sind verbraucht. P2 erst nach belegtem P1-Round-Trip.
+**P1 · DEV-Abnahme von 30444 nach konkreter Freigabe**, Modellklasse `deep-reasoning`. Die 30443-Kontingente sind verbraucht; `weiter` deckt die lokale Reparatur, keinen Import/neuen Tenant-Save. Der folgende neue Scope muss ausdrücklich freigegeben werden:
 
-Der lokale Scope beginnt mit Reproduktion/Regression des Null-Sentinelpfads und belastbarer Abgrenzung vom Host-Suchbindungsfehler. Ein prüfbarer Source-/Build-Kandidat muss vor neuer Import-/Savefreigabe vorliegen; keine generierte private SearchItems-Regel authoren, keine stille Fachreparatur im Tenant, keine erneuten System-Title-Metadaten-Writes. Neues begrenztes Livekontingent erst aus diesem Ergebnis ableiten. Die fertige Personensuche und der bestandene Asset-Konflikt sind vorhandene Evidenz und müssen nicht ohne Anlass wiederholt werden.
+1. Vorzustand lesen: tatsächliche Solution/Live-Revision, optional gespeicherte Drafts, vorhandene Metadaten je ID 721, Assets 4–7/Systems leer und Kandidatenidentität. Vorabexport 191 als Vergleich, fremde Änderungen/Sitzungssperre nicht überschreiben. Andere tatsächliche Änderungen zuerst abgrenzen.
+2. **Ein Import ausschließlich 30444** unmanaged in dieselbe DEV-Umgebung, ohne `--publish-changes`/Publish All. Postexport/Identität prüfen; keine DEV→Git-Übernahme, Provisionierung, Seed oder Metadaten-Writes.
+3. Studio-Formeln/öffentliche Properties gegen den Kandidaten prüfen. Person/Lookup jeweils höchstens einen unterstützten Rebinding-Durchlauf: kurz eine strukturgleiche leere Items-Tabelle setzen (`FirstN(Table({DisplayName:"",UserPrincipalName:""}),0)` für Person; `FirstN(colLookupValues,0)` für Lookup), anschließend exakt die kanonischen Items und DisplayFields/SearchFields/IsSearchable wiederherstellen. Das erhält die Spaltenstruktur als Verfahrensannahme, muss im Host belegt werden. Keine private SearchItems-Regel authoren; bei Typ-/Property-/Formelfehler stoppen und lokal reparieren.
+4. **Ein gezieltes Studio-Save und nach geprüfter Draftkopie höchstens eine gezielte Veröffentlichung dieser App.** Draft muss reparierte Lookup-Load/Payload, korrekte automatisch generierte Suche statt ComboBoxSample und kanonische Personen-V2-Suche enthalten. Keine stillen anderen Fachänderungen. Maker-Live-Revision, publizierten Export und aktuellen Player belegen, bevor fachliche Saves beginnen.
+5. **Zwei synthetische Creates:** ein eindeutig markiertes Asset als Lookup-Ziel und ein System mit zunächst leerem LinkedAsset; zugelassenes Testkonto und repräsentative Choices. Quellen-IDs erfassen; nach Asset-Neuanlage frischen Player starten, damit der begrenzte Lookup-Cache das neue Ziel laden kann. System nach genauer ID unverändert/Save gesperrt öffnen.
+6. **Maximal fünf System-Edit-Saves, je genau einmal und mit Wiederöffnen/Quellenprüfung:** nur Titel bei leerem Lookup ändern → ausschließlich LinkedAsset auf das synthetische Asset setzen (Titelsuche muss exakten Marker liefern) → nur Titel bei positivem Lookup ändern → ausschließlich Lookup leeren → nur Titel nach dem Leeren ändern. Owner/Choices/alle anderen sichtbaren gemappten Quellenwerte bleiben erhalten; positive Lookup-ID und semantisch leere Referenz separat belegen, `0;#` nicht als Raw-Null ausgeben. Keine Asset-Edits, Bestands-/Konflikt-Writes oder automatischen Save-Retries.
+7. **Zwei reversible Löschungen ausschließlich dieser ID-/Marker-bestätigten Testdatensätze**, System zuerst. Normale Papierkorb-/Herkunfts-/ID-Filter-Evidenz und Vorbestand vergleichen. Kein Purge, Reset oder Bulk-Write.
+
+Maximal **ein Kandidatenimport, je ein Personen-/Lookup-Rebinding-Durchlauf, ein Studio-Save/eine gezielte App-Veröffentlichung, zwei Creates, fünf System-Edit-Saveversuche und zwei reversible Deletes**. Wird ein Edit unklar/fehlschlägt: zuerst Quelle/Version lesen, keine Wiederholung und keine abhängigen weiteren Edits; noch vorhandene Testdaten gemäß Cleanup-Scope entfernen. Bei Fremdänderungen, falscher Kandidatenidentität oder nicht korrekt generierter Suche keine Publikation/fachlichen Saves. Abweichender Fix/neuer Kandidat/weitere Writes separat konkret freigeben. P2 erst nach belegtem System-/Lookup-Round-Trip; Rollen/große Delegation/atomarer ETag bleiben eigene offene Gates.
 
 ## Technische Quellen und offene Host-Gates
 

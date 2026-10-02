@@ -684,7 +684,7 @@ Screens:
                                                       "Text", !IsBlank(Trim(loadedValue.ValueText)), "Note", !IsBlank(loadedValue.ValueText),
                                                       "Number", !IsBlank(loadedValue.ValueNumber), "Boolean", !IsBlank(loadedValue.ValueBoolean),
                                                       "Date", !IsBlank(loadedValue.ValueDate), "DateTime", !IsBlank(loadedValue.ValueDate),
-                                                      "Choice", !IsBlank(loadedChoiceKey), "Lookup", !IsBlank(loadedValue.ValueLookupId),
+                                                      "Choice", !IsBlank(loadedChoiceKey), "Lookup", Coalesce(loadedValue.ValueLookupId, 0) > 0,
                                                       "User", !IsBlank(loadedValue.ValuePersonClaims), !IsBlank(loadedValue.ValueText))),
                                                   ErrorMessage: If(editorField.ControlType = "Choice" && ":__unmapped__:" in loadedChoiceKey, "Gespeicherter Auswahlwert ist nicht mehr verfügbar. Gültigen Wert wählen.", editorField.IsRequired, "Pflichtfeld prüfen", "")
                                               }
@@ -694,7 +694,7 @@ Screens:
                                               )
                                           );
                                           /* Persisted lookup selections must remain visible even outside the old lookup cache. */
-                                          ForAll(Filter(colEditorValues, ControlType = "Lookup" && !IsBlank(ValueLookupId)) As loadedLookup,
+                                          ForAll(Filter(colEditorValues, ControlType = "Lookup" && Coalesce(ValueLookupId, 0) > 0) As loadedLookup,
                                               If(IsBlank(LookUp(colLookupValues, LookupObjectTypeKey = loadedLookup.LookupObjectTypeKey && LookupId = loadedLookup.ValueLookupId)),
                                                   Collect(colLookupValues, {LookupObjectTypeKey: loadedLookup.LookupObjectTypeKey, LookupId: loadedLookup.ValueLookupId, LookupKey: "", DisplayText: loadedLookup.ValueLookupText, SecondaryText: "", IsActiveValue: true})
                                               );
@@ -781,7 +781,7 @@ Screens:
                                           {FieldInternalName: "NextReviewDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblSystemRecord.NextReviewDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
                                           {FieldInternalName: "ReviewCycleMonths", NativeControlType: "Number", ValueText: "", ValueNumber: gblSystemRecord.ReviewCycleMonths, ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
                                           {FieldInternalName: "IsActive", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblSystemRecord.IsActive, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
-                                          {FieldInternalName: "LinkedAsset", NativeControlType: "Lookup", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: gblSystemRecord.LinkedAsset.Id, ValueLookupText: gblSystemRecord.LinkedAsset.Value, ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
+                                          {FieldInternalName: "LinkedAsset", NativeControlType: "Lookup", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Id, Blank()), ValueLookupText: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Value, ""), ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
                                       ));
                                                   Set(gblLoadedRecordId, gblSystemRecord.ID)
                                               ),
@@ -1423,7 +1423,7 @@ Screens:
                                                                     LinkedAsset: With(
                                                                         {lookupValue: LookUp(colEditorValues, FieldInternalName = "LinkedAsset")},
                                                                         If(
-                                                                            IsBlank(lookupValue.ValueLookupId),
+                                                                            Coalesce(lookupValue.ValueLookupId, 0) <= 0,
                                                                             Blank(),
                                                                             {
                                                                                 Id: lookupValue.ValueLookupId,
@@ -1889,13 +1889,16 @@ Screens:
                                                       Filter(
                                                           colLookupValues As lookupValue,
                                                           lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
-                                                              && lookupValue.LookupId in Filter(
-                                                                  colEditorLookupSelections,
-                                                                  EditorFieldKey = ThisItem.EditorFieldKey
-                                                              ).LookupId
+                                                              && lookupValue.LookupId in ShowColumns(
+                                                                  Filter(
+                                                                      colEditorLookupSelections,
+                                                                      EditorFieldKey = ThisItem.EditorFieldKey
+                                                                  ),
+                                                                  LookupId
+                                                              )
                                                       ),
                                                       If(
-                                                          IsBlank(ThisItem.ValueLookupId),
+                                                          Coalesce(ThisItem.ValueLookupId, 0) <= 0,
                                                           FirstN(colLookupValues, 0),
                                                           Filter(
                                                               colLookupValues As lookupValue,
@@ -1908,11 +1911,13 @@ Screens:
                                                 DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
+                                                IsSearchable: =true
                                                 Items: |-
                                                   =Filter(
                                                       colLookupValues As lookupValue,
                                                       lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
                                                           && lookupValue.IsActiveValue = true
+                                                          && lookupValue.LookupId > 0
                                                   )
                                                 OnChange: |-
                                                   =If(

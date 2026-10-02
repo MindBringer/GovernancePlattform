@@ -90,6 +90,15 @@ foreach ($fragment in @('gblEditorLoadComplete','gblLoadedRecordId = gblSelected
     if (-not $save.Contains($fragment) -and -not (Get-Property 'lblEditorSave' 'DisplayMode').Contains($fragment)) { throw "Missing edit safety: $fragment" }
 }
 if ($init -notmatch 'ControlType\) <> loadedValue.NativeControlType' -or $init -notmatch '__unmapped__' -or $init -notmatch 'IsDirty: false' -or $source -notmatch 'ShowNavigation: =true' -or $app -notmatch 'OnError: \|-') { throw 'Missing hydration/type, unmapped-choice, paging or data-error contract.' }
+$lookupControl = [regex]::Match($source, '(?ms)^ *- cmbEditorLookup:\r?\n(?<control>.*?)(?=^ {0,42}- \w+:|\z)').Groups['control'].Value
+if ($lookupControl -match '(?m)^ +SearchItems:') {
+    throw 'Lookup SearchItems is a private Studio-generated rule; restore public bindings in Studio and verify its export.'
+}
+if ($lookupControl -notmatch 'DisplayFields: =\["DisplayText"\]' -or
+    $lookupControl -notmatch 'SearchFields: =\["DisplayText", "SecondaryText"\]' -or
+    $lookupControl -notmatch 'IsSearchable: =true') {
+    throw 'Lookup public display/search contract must explicitly use DisplayText/SecondaryText and enable search.'
+}
 Write-Host 'Record core source/compiler passed: Asset 17 / System 16 fields; native lists, original Patch bases, capability and conflict contracts.'
 if (-not $PowerFxDirectory) { return }
 foreach ($dll in 'Microsoft.PowerFx.Core.dll','Microsoft.PowerFx.Interpreter.dll') { [void][Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $dll)) }
@@ -255,6 +264,61 @@ foreach ($key in @('Asset','System')) {
         Assert-Fx $conflict $true "$key refuses missing concurrency stamp"
         $engine.UpdateVariable("gbl${key}Current",(Eval ("Patch(gbl${key}Record, {ID: If(false, 0, Blank())})")))
         Assert-Fx ("IsBlank(gbl${key}Current.ID)") $true "$key detects deleted/inaccessible source"
+    }
+    if ($key -eq 'System') {
+        # Exercise the actual load/hydration/payload when SharePoint represents an
+        # empty lookup as Id=0. A title-only edit must never send that sentinel.
+        $lookupDefault = Get-Property 'cmbEditorLookup' 'DefaultSelectedItems'
+        $lookupItems = Get-Property 'cmbEditorLookup' 'Items'
+        $lookupHandler = Get-Property 'cmbEditorLookup' 'OnChange'
+        $lookupGuard = [regex]::Match($lookupHandler, '^If\(\s*(?<guard>[^\r\n]+),').Groups['guard'].Value.Replace('Self.','testControl.').Replace('DisplayMode.Edit','"Edit"')
+        $engine.UpdateVariable('colLookupValues',(Eval 'Table({LookupObjectTypeKey: "Asset", LookupId: 3001, DisplayText: "Synthetisches Ziel", SecondaryText: "SYN-3001", IsActiveValue: true}, {LookupObjectTypeKey: "System", LookupId: 3001, DisplayText: "Fremder Typ", SecondaryText: "", IsActiveValue: true}, {LookupObjectTypeKey: "Asset", LookupId: 3002, DisplayText: "Inaktiv", SecondaryText: "", IsActiveValue: false}, {LookupObjectTypeKey: "Asset", LookupId: 0, DisplayText: "", SecondaryText: "", IsActiveValue: true})'))
+        $engine.UpdateVariable('colEditorLookupSelections',(Eval 'FirstN(Table({EditorFieldKey: "System:LinkedAsset", LookupId: 3001}),0)'))
+        foreach ($case in @(
+            @{Name='zero sentinel'; Lookup='{Id: 0, Value: ""}'; Id=$null; Text=''},
+            @{Name='native blank'; Lookup='If(false,{Id: 3001, Value: "Synthetisches Ziel"},Blank())'; Id=$null; Text=''},
+            @{Name='negative invalid ID'; Lookup='{Id: -1, Value: "Kein gültiges Ziel"}'; Id=$null; Text=''},
+            @{Name='existing positive ID'; Lookup='{Id: 3001, Value: "Synthetisches Ziel"}'; Id=3001; Text='Synthetisches Ziel'}
+        )) {
+            $engine.UpdateVariable('gblSystemRecord',$nonemptyFixture)
+            $engine.UpdateVariable('gblSystemRecord',(Eval ('Patch(gblSystemRecord, {LinkedAsset: '+$case.Lookup+'})')))
+            $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
+            Assert-Fx 'LookUp(colRecordValues, FieldInternalName = "LinkedAsset", ValueLookupId)' $case.Id "System/$($case.Name) load normalizes lookup identity"
+            Assert-Fx 'LookUp(colRecordValues, FieldInternalName = "LinkedAsset", ValueLookupText)' $case.Text "System/$($case.Name) load normalizes lookup label"
+            $engine.UpdateVariable('colEditorValues',(Eval ('Table('+($metadata -join ',')+')')))
+            $engine.UpdateVariable('colEditorValues',(Eval ('ForAll(colRecordValues As loadedValue, Patch(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), '+$hydrate+'))')))
+            Assert-Fx 'CountRows(Filter(colEditorValues, IsDirty))' 0 "System/$($case.Name) hydration stays clean"
+            Assert-Fx 'CountRows(Filter(colEditorValues, !IsValid))' 0 "System/$($case.Name) optional lookup remains valid"
+            $engine.UpdateVariable('ThisItem',(Eval 'Patch(LookUp(colEditorValues, FieldInternalName = "LinkedAsset"), {AllowMultiple: false, LookupObjectTypeKey: "Asset"})'))
+            $defaults=Eval $lookupDefault
+            $engine.UpdateVariable('testLookupDefaults',$defaults)
+            $expectedCount=if($null -eq $case.Id){0}else{1}
+            Assert-Fx 'CountRows(testLookupDefaults)' $expectedCount "System/$($case.Name) default has no phantom target"
+            $engine.UpdateVariable('testControl',(Eval '{Visible: true, DisplayMode: "Edit", SelectedItems: testLookupDefaults}'))
+            Assert-Fx $lookupGuard $false "System/$($case.Name) default event does not dirty lookup"
+            $engine.UpdateVariable('loadedValue',(Eval 'LookUp(colRecordValues, FieldInternalName = "LinkedAsset")'))
+            $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "LinkedAsset", Patch(v, {IsRequired: true}), v))'))
+            $engine.UpdateVariable('testRequiredLookup',(Eval $hydrate))
+            Assert-Fx 'testRequiredLookup.IsValid' ($null -ne $case.Id) "System/$($case.Name) required lookup needs real identity"
+            $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "LinkedAsset", Patch(v, {IsRequired: false}), v))'))
+            $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Title", Patch(v, {ValueText: "  P1-LOOKUP-EDIT  ", IsDirty: true}), v))'))
+            $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+            Assert-Fx 'testSaved.Title' 'P1-LOOKUP-EDIT' "System/$($case.Name) title edit persists"
+            Assert-Fx 'testSaved.LinkedAsset.Id' $case.Id "System/$($case.Name) title edit never sends a lookup sentinel"
+            foreach($name in ($contract.Fields | Where-Object {$_ -notin @('Title','LinkedAsset')})) {
+                $field=@($contract.Schema.Fields | Where-Object InternalName -eq $name)[0]
+                $suffix=switch($field.Type){'Choice'{'.Value'}'User'{'.Claims'}default{''}}
+                Assert-Fx ('testSaved.'+$name+$suffix) ((Eval ('gblSystemRecord.'+$name+$suffix)).ToObject()) "System/$($case.Name) title edit retains $name"
+            }
+        }
+        Assert-Fx ('CountRows('+$lookupItems+')') 1 'Lookup Items exclude foreign, inactive and zero-ID targets'
+        $engine.UpdateVariable('ThisItem',(Eval 'Patch(ThisItem, {AllowMultiple: true})'))
+        $engine.UpdateVariable('colEditorLookupSelections',(Eval 'Table({EditorFieldKey: "System:LinkedAsset", LookupId: 3001}, {EditorFieldKey: "System:LinkedAsset", LookupId: 3002}, {EditorFieldKey: "OtherField", LookupId: 0})'))
+        Assert-Fx ('CountRows('+$lookupDefault+')') 2 'Multiple lookup defaults retain selected active and inactive identities, scoped by field/type'
+        # A stale editor value must not resurrect an invalid target at serialization.
+        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "LinkedAsset", Patch(v, {ValueLookupId: 0, ValueLookupText: ""}), v))'))
+        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+        Assert-Fx 'IsBlank(testSaved.LinkedAsset)' $true 'System payload rejects a stale zero lookup ID'
     }
     $engine.UpdateVariable("gbl${key}Record",$nonemptyFixture)
     $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
