@@ -28,6 +28,8 @@ Der lesende Export von Canvas 184 bestätigt die generierte Suchregel über den 
 
 **Nach jedem weiteren SourceCode-Import**: Items im Studio neu binden, kanonische Formel erhalten, Checker prüfen, gezielt veröffentlichen, frischen Player laden und benannten Treffer/Auswahl verifizieren. Lesender Export muss die erzeugte Suchregel belegen. Importerfolg oder Paketbytegleichheit allein genügt nicht.
 
+**Ergänzung aus P1/30443:** Eine leere `Table()` setzte im aktuellen Studio auch `DisplayFields`, `SearchFields` und `IsSearchable` zurück, obwohl die kanonische Items-Formel danach wieder vorhanden und der Checker ohne Formelfehler war. Deshalb vor künftiger gezielter Publikation alle drei öffentlichen Eigenschaften gegen den bestehenden Source-Vertrag prüfen/wiederherstellen (`["DisplayName"]`, `["DisplayName"]`, true) und die generierte V2-Suchregel lesend belegen. Ein bloßes Items-Rebinding ist kein Erfolgsnachweis. Die historische P0-Abnahme bleibt unverändert; aktuelle P1-Wiederherstellung und Schreibsperre stehen im [P1-Abnahmeplan](Stage-4.1-P1-Datensatzkern.md).
+
 ## Belegte Reparaturhistorie
 
 | Stand | Beobachtung und Grenze |
