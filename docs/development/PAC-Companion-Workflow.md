@@ -40,8 +40,8 @@ Der Export wird unter `artifacts/inbound/` abgelegt. Die Solution wird kontrolli
 
 1. Vollständigen Build ausführen.
 2. **Solution nach DEV importieren**.
-3. **Publish All** ausführen, falls nicht bereits beim Import geschehen.
-4. DEV-Smoke-Test durchführen.
+3. Import/Publikation nur im konkret freigegebenen Umfang: Stage 4.1 importiert ohne Publish All, prüft den Postexport und öffnet den Kandidaten im Studio. Personen-Items unterstützt neu binden, kanonische Formel erhalten, Checker prüfen; anschließend nur diese App gezielt speichern/veröffentlichen. Ein Import kann die Canvas-Version bereits als Live markieren, ohne dass Studio den SourceCode erfolgreich geladen hat.
+4. Frischen Player öffnen und den ausdrücklich freigegebenen DEV-Smoke-Test durchführen. Bei Studio-/Quellenfehler zuerst lokal einen neuen Kandidaten bauen; dessen DEV-Übernahme erneut konkret freigeben.
 5. Erst danach den vollständigen Git-Release starten.
 
 ## Sicherheitsgrenzen

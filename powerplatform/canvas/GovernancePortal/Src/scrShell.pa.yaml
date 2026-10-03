@@ -122,11 +122,14 @@ Screens:
                                     BorderThickness: =1
                                     Color: =gblTheme.ColorPrimary
                                     Fill: =gblTheme.ColorSurface
-                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                    DisplayMode: |-
+                                      =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy || gblCurrentPage = "editor", DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =FontWeight.Semibold
                                     OnSelect: |-
-                                      =Set(gblBusy, true);
+                                      =If(Self.DisplayMode = DisplayMode.Edit,
+                                      IfError(
+                                      Set(gblBusy, true);
                                       Set(gblBusyMessage, "Metadaten werden aktualisiert …");
                                       Refresh(PageDefinitions);
                                       Refresh(NavigationDefinitions);
@@ -138,7 +141,12 @@ Screens:
                                       Refresh(ValidationDefinitions);
                                       Set(gblLastRefresh, Now());
                                       Set(gblBusy, false);
-                                      Set(gblBusyMessage, Blank())
+                                      Set(gblBusyMessage, Blank());
+                                      Switch(gblObjectType, "Asset", Refresh(Assets), "System", Refresh(Systems));
+                                      Set(gblRecordError, ""),
+                                      Set(gblBusy, false); Set(gblBusyMessage, Blank()); Set(gblRecordError, "Aktualisierung fehlgeschlagen. " & FirstError.Message)
+                                      )
+                                      )
                                     Text: ="Aktualisieren"
                                     Width: =140
                                     X: =Parent.Width - Self.Width
@@ -160,7 +168,7 @@ Screens:
                                               || gblActiveProvider.ObjectTypeKey <> gblSelectedObjectTypeKey
                                               || !Coalesce(gblActiveProvider.SupportsCreate, false)
                                               || !Coalesce(gblActiveProvider.SupportsSave, false)
-                                              || gblSaveBusy || gblShowDiscardDialog,
+                                              || gblSaveBusy || gblLoadBusy || gblShowDiscardDialog || gblCurrentPage = "editor",
                                           DisplayMode.Disabled,
                                           DisplayMode.Edit
                                       )
@@ -173,17 +181,220 @@ Screens:
                                           Set(gblEditorMode, "New");
                                           Set(gblObjectType, gblSelectedObjectTypeKey);
                                           Set(gblSelectedRecordId, 0);
+                                          Set(gblLoadedRecordId, 0);
+                                          Set(gblEditorLoadComplete, false);
+                                          Set(gblEditorConflict, false);
+                                          Set(gblSaveError, "");
                                           Set(gblPreviousPage, gblCurrentPage);
+                                          Set(gblLoadBusy, true);
+                                          Clear(colRecordValues);
+                                          Select(lblEditorInitialize)
+                                      )
+                                    Text: ="Neu"
+                                    Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
+                                    Width: =80
+                                    X: =lblRefresh.X - Self.Width - 12
+                                    Y: =2
+                              - galDashboardCards:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =Min(220, Parent.Height - 80)
+                                    Items: =SortByColumns(colDashboardCards, "SortOrder", SortOrder.Ascending)
+                                    OnSelect: =Set(gblCurrentPage, ThisItem.TargetPage)
+                                    TemplatePadding: =8
+                                    TemplateSize: =190
+                                    Visible: =gblCurrentPage = "home"
+                                    Width: =Parent.Width
+                                    Y: =64
+                                  Children:
+                                    - lblDashboardValue:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorPrimary
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Bold
+                                          Height: =92
+                                          OnSelect: =Select(Parent)
+                                          Size: =28
+                                          Text: =Text(ThisItem.Value)
+                                          Width: =Parent.TemplateWidth - 16
+                                          X: =8
+                                          Y: =8
+                                    - lblDashboardTitle:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Align: =Align.Center
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =56
+                                          OnSelect: =Select(Parent)
+                                          Text: =ThisItem.Title
+                                          Width: =Parent.TemplateWidth - 16
+                                          X: =8
+                                          Y: =100
+                              - lblFrameworkIntro:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Color: =gblTheme.ColorTextMuted
+                                    Font: =Font.'Open Sans'
+                                    Height: =54
+                                    Text: ="Das Framework lädt Navigation, Objekttypen, Formulare, Felder und Validierungen aus den zentralen SharePoint-Metadatenlisten."
+                                    Visible: =gblCurrentPage = "home"
+                                    Width: =Parent.Width
+                                    Y: =292
+                              - galObjectTypes:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="Objekttyp auswählen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.DisplayNameDE, ThisItem.Title, ThisItem.ObjectTypeKey)
+                                    Selectable: =true
+                                    TabIndex: =-1
+                                    BorderColor: =RGBA(0, 18, 107, 1)
+                                    Height: =If(Parent.Width >= 760, Parent.Height - 124, 168)
+                                    Items: |-
+                                      =Switch(
+                                          gblCurrentNavigationKey,
 
-                                          Clear(colEditorValues);
+                                          "NavGovernance",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Asset",
+                                                  "System",
+                                                  "Contact"
+                                              ]
+                                          ),
+
+                                          "NavOperations",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Incident",
+                                                  "Problem",
+                                                  "Change"
+                                              ]
+                                          ),
+
+                                          "NavRiskCompliance",
+                                          Filter(
+                                              colObjectTypes,
+                                              ObjectTypeKey in [
+                                                  "Risk",
+                                                  "Control",
+                                                  "Measure"
+                                              ]
+                                          ),
+
+                                          FirstN(
+                                              colObjectTypes,
+                                              0
+                                          )
+                                      )
+                                    OnSelect: |-
+                                      =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty,
+                                      Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
+                                      Set(gblObjectType, ThisItem.ObjectTypeKey);
+                                      Set(
+                                          gblActiveProvider,
+                                          LookUp(
+                                              colObjectProviderRegistry,
+                                              ObjectTypeKey = ThisItem.ObjectTypeKey
+                                          )
+                                      );
+                                      Set(gblSelectedRecordId, 0);
+                                      Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, "");
+                                      Reset(txtRecordSearch); Reset(txtRecordId); Reset(galAssetRecords); Reset(galSystemRecords)
+                                      )
+                                    TemplateFill: |-
+                                      =If(
+                                          ThisItem.ObjectTypeKey = gblSelectedObjectTypeKey,
+                                          RGBA(230, 240, 250, 1),
+                                          RGBA(0, 0, 0, 0)
+                                      )
+                                    TemplatePadding: =4
+                                    TemplateSize: =72
+                                    Visible: =gblCurrentPage = "ObjectList"
+                                    Width: =If(Parent.Width >= 760, 260, Parent.Width)
+                                    Y: =64
+                                  Children:
+                                    - lblObjectTypeTitle:
+                                        Control: Classic/Button@2.2.0
+                                        Properties:
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorText
+                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: =Font.'Open Sans'
+                                          FontWeight: =FontWeight.Semibold
+                                          Height: =36
+                                          OnSelect: =Select(Parent)
+                                          PaddingLeft: =12
+                                          Text: |-
+                                            =Coalesce(
+                                                ThisItem.PluralNameDE,
+                                                ThisItem.Title,
+                                                ThisItem.ObjectTypeKey
+                                            )
+                                          Width: =Parent.TemplateWidth
+                                    - lblObjectTypeMeta:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Color: =gblTheme.ColorTextMuted
+                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                                          Font: =Font.'Open Sans'
+                                          Height: =28
+                                          OnSelect: =Select(Parent)
+                                          PaddingLeft: =12
+                                          Size: =10
+                                          Text: |-
+                                            =ThisItem.ObjectTypeKey
+                                                & " · "
+                                                & Coalesce(
+                                                    ThisItem.PluralNameDE,
+                                                    ThisItem.Title
+                                                )
+                                                & " · "
+                                                & CountRows(
+                                                    Filter(
+                                                        colFieldDefinitions,
+                                                        ObjectTypeKey = ThisItem.ObjectTypeKey
+                                                    )
+                                                )
+                                                & " Felder"
+                                          Width: =Parent.TemplateWidth
+                                          Y: =36
+                              - lblEditorInitialize:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Height: =1
+                                    Width: =1
+                                    Visible: =false
+                                    Text: =""
+                                    OnSelect: |-
+                                      =Set(gblPendingNavigationKey, "");
+                                      Clear(colEditorValues);
                                           Clear(colEditorLookupSelections);
                                           Clear(colEditorPersonSelections);
                                           Clear(colEditorChoiceOptions);
                                           ForAll(
                                               SortByColumns(
                                                   Filter(
-                                                      colFormFields,
-                                                      ObjectTypeKey = gblSelectedObjectTypeKey
+                                                      colFormFields As formField,
+                                                      formField.ObjectTypeKey = gblSelectedObjectTypeKey && Switch(gblObjectType, "Asset", formField.FieldInternalName in ["Title", "AssetType", "Owner", "DeputyOwner", "BusinessOwner", "TechnicalOwner", "DataSteward", "Criticality", "DataClassification", "LifecycleStatus", "ConfidentialityRequirement", "IntegrityRequirement", "AvailabilityRequirement", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive"], "System", formField.FieldInternalName in ["Title", "Description", "MonitoringStatus", "BackupStatus", "AuthenticationType", "SupportModel", "Owner", "GovernanceStatus", "Criticality", "SystemType", "Environment", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive", "LinkedAsset"], false)
                                                   ),
                                                   "SortOrder",
                                                   SortOrder.Ascending
@@ -448,194 +659,338 @@ Screens:
                                               )
                                           );
 
-                                          Set(gblEditorDirty, false);
-                                          Select(lblEditorRevalidate);
-                                          Set(gblCurrentPage, "editor");
-                                          SetFocus(lblEditorCancel)
-                                      )
-                                    Text: ="Neu"
-                                    Visible: =gblCurrentPage <> "home" && gblCurrentPage <> "editor"
-                                    Width: =80
-                                    X: =lblRefresh.X - Self.Width - 12
-                                    Y: =2
-                              - galDashboardCards:
-                                  Control: Gallery@2.15.0
-                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
-                                  Properties:
-                                    BorderColor: =RGBA(0, 18, 107, 1)
-                                    Height: =Min(220, Parent.Height - 80)
-                                    Items: =SortByColumns(colDashboardCards, "SortOrder", SortOrder.Ascending)
-                                    OnSelect: =Set(gblCurrentPage, ThisItem.TargetPage)
-                                    TemplatePadding: =8
-                                    TemplateSize: =190
-                                    Visible: =gblCurrentPage = "home"
-                                    Width: =Parent.Width
-                                    Y: =64
-                                  Children:
-                                    - lblDashboardValue:
-                                        Control: Label@2.5.1
-                                        Properties:
-                                          Align: =Align.Center
-                                          BorderColor: =RGBA(0, 18, 107, 1)
-                                          Color: =gblTheme.ColorPrimary
-                                          Fill: =gblTheme.ColorSurface
-                                          Font: =Font.'Open Sans'
-                                          FontWeight: =FontWeight.Bold
-                                          Height: =92
-                                          OnSelect: =Select(Parent)
-                                          Size: =28
-                                          Text: =Text(ThisItem.Value)
-                                          Width: =Parent.TemplateWidth - 16
-                                          X: =8
-                                          Y: =8
-                                    - lblDashboardTitle:
-                                        Control: Label@2.5.1
-                                        Properties:
-                                          Align: =Align.Center
-                                          BorderColor: =RGBA(0, 18, 107, 1)
-                                          Color: =gblTheme.ColorText
-                                          Fill: =gblTheme.ColorSurface
-                                          Font: =Font.'Open Sans'
-                                          FontWeight: =FontWeight.Semibold
-                                          Height: =56
-                                          OnSelect: =Select(Parent)
-                                          Text: =ThisItem.Title
-                                          Width: =Parent.TemplateWidth - 16
-                                          X: =8
-                                          Y: =100
-                              - lblFrameworkIntro:
+
+                                      If(
+                                          gblEditorMode = "Edit",
+                                          ForAll(colRecordValues As loadedValue,
+                                              With({editorInput: With(
+                                          {editorField: LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName)},
+                                          With(
+                                              {loadedChoiceKey: If(IsBlank(loadedValue.ValueText), "", Coalesce(LookUp(colChoiceValues As choiceValue, choiceValue.ChoiceSetKey = editorField.ChoiceSetKey && choiceValue.DisplayNameDE = loadedValue.ValueText && choiceValue.IsActive, choiceValue.ChoiceKey), editorField.ChoiceSetKey & ":__unmapped__:" & loadedValue.ValueText))},
+                                              {
+                                                  ValueText: loadedValue.ValueText,
+                                                  ValueNumber: loadedValue.ValueNumber,
+                                                  ValueBoolean: loadedValue.ValueBoolean,
+                                                  ValueDate: loadedValue.ValueDate,
+                                                  ValueChoiceKey: If(editorField.ControlType = "Choice", loadedChoiceKey, ""),
+                                                  ValueLookupId: loadedValue.ValueLookupId,
+                                                  ValueLookupText: loadedValue.ValueLookupText,
+                                                  ValuePersonEmail: loadedValue.ValuePersonEmail,
+                                                  ValuePersonClaims: loadedValue.ValuePersonClaims,
+                                                  ValuePersonDepartment: loadedValue.ValuePersonDepartment,
+                                                  ValuePersonJobTitle: loadedValue.ValuePersonJobTitle,
+                                                  IsDirty: false,
+                                                  IsValid: !(editorField.ControlType = "Choice" && !IsBlank(loadedValue.ValueText) && ":__unmapped__:" in loadedChoiceKey) && (!editorField.IsRequired || Switch(editorField.ControlType,
+                                                      "Text", !IsBlank(Trim(loadedValue.ValueText)), "Note", !IsBlank(loadedValue.ValueText),
+                                                      "Number", !IsBlank(loadedValue.ValueNumber), "Boolean", !IsBlank(loadedValue.ValueBoolean),
+                                                      "Date", !IsBlank(loadedValue.ValueDate), "DateTime", !IsBlank(loadedValue.ValueDate),
+                                                      "Choice", !IsBlank(loadedChoiceKey), "Lookup", Coalesce(loadedValue.ValueLookupId, 0) > 0,
+                                                      "User", !IsBlank(loadedValue.ValuePersonClaims), !IsBlank(loadedValue.ValueText))),
+                                                  ErrorMessage: If(editorField.ControlType = "Choice" && ":__unmapped__:" in loadedChoiceKey, "Gespeicherter Auswahlwert ist nicht mehr verfügbar. Gültigen Wert wählen.", editorField.IsRequired, "Pflichtfeld prüfen", "")
+                                              }
+                                          )
+                                      )},
+                                                  Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), editorInput)
+                                              )
+                                          );
+                                          /* Persisted lookup selections must remain visible even outside the old lookup cache. */
+                                          ForAll(Filter(colEditorValues, ControlType = "Lookup" && Coalesce(ValueLookupId, 0) > 0) As loadedLookup,
+                                              If(IsBlank(LookUp(colLookupValues, LookupObjectTypeKey = loadedLookup.LookupObjectTypeKey && LookupId = loadedLookup.ValueLookupId)),
+                                                  Collect(colLookupValues, {LookupObjectTypeKey: loadedLookup.LookupObjectTypeKey, LookupId: loadedLookup.ValueLookupId, LookupKey: "", DisplayText: loadedLookup.ValueLookupText, SecondaryText: "", IsActiveValue: true})
+                                              );
+                                              Collect(colEditorLookupSelections, {EditorFieldKey: loadedLookup.EditorFieldKey, LookupObjectTypeKey: loadedLookup.LookupObjectTypeKey, LookupId: loadedLookup.ValueLookupId, LookupKey: "", DisplayText: loadedLookup.ValueLookupText, SecondaryText: ""})
+                                          );
+                                          Set(gblEditorLoadComplete, CountRows(Filter(colRecordValues As loadedValue, IsBlank(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName)) || LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName, ControlType) <> loadedValue.NativeControlType)) = 0),
+                                          Set(gblEditorLoadComplete, true)
+                                      );
+                                      Set(gblEditorDirty, false);
+                                      Set(gblEditorCanSave, false);
+                                      Set(gblCurrentPage, "editor");
+                                      Set(gblLoadBusy, false);
+                                      Select(lblEditorRevalidate);
+                                      SetFocus(lblEditorCancel)
+                              - lblRecordLoad:
                                   Control: Label@2.5.1
                                   Properties:
-                                    BorderColor: =RGBA(0, 18, 107, 1)
-                                    Color: =gblTheme.ColorTextMuted
-                                    Font: =Font.'Open Sans'
-                                    Height: =54
-                                    Text: ="Das Framework lädt Navigation, Objekttypen, Formulare, Felder und Validierungen aus den zentralen SharePoint-Metadatenlisten."
-                                    Visible: =gblCurrentPage = "home"
-                                    Width: =Parent.Width
-                                    Y: =292
-                              - galObjectTypes:
+                                    Height: =1
+                                    Width: =1
+                                    Visible: =false
+                                    Text: =""
+                                    OnSelect: |-
+                                      =If(
+                                          !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty
+                                              && gblCurrentPage = "ObjectList" && gblSelectedRecordId > 0
+                                              && gblObjectType = gblActiveProvider.ObjectTypeKey
+                                              && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
+                                          Set(gblLoadBusy, true);
+                                          Set(gblRecordError, "");
+                                          Set(gblEditorLoadComplete, false);
+                                          Set(gblEditorConflict, false);
+                                          Set(gblLoadedRecordId, 0);
+                                          Set(gblEditorCanSave, false);
+                                          Clear(colRecordValues);
+                                          Switch(gblObjectType,
+                                          "Asset",
+                                          IfError(
+                                              Refresh(Assets);
+                                              Set(gblAssetRecord, LookUp(Assets, ID = gblSelectedRecordId));
+                                              If(IsBlank(gblAssetRecord.ID),
+                                                  Set(gblRecordError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                  ClearCollect(colRecordValues, Table(
+                                          {FieldInternalName: "Title", NativeControlType: "Text", ValueText: gblAssetRecord.Title, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "AssetType", NativeControlType: "Text", ValueText: gblAssetRecord.AssetType, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Owner", NativeControlType: "User", ValueText: gblAssetRecord.Owner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblAssetRecord.Owner.Claims), gblAssetRecord.Owner.Email, Last(Split(gblAssetRecord.Owner.Claims, "|")).Value), ValuePersonClaims: gblAssetRecord.Owner.Claims, ValuePersonDepartment: gblAssetRecord.Owner.Department, ValuePersonJobTitle: gblAssetRecord.Owner.JobTitle},
+                                          {FieldInternalName: "DeputyOwner", NativeControlType: "User", ValueText: gblAssetRecord.DeputyOwner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblAssetRecord.DeputyOwner.Claims), gblAssetRecord.DeputyOwner.Email, Last(Split(gblAssetRecord.DeputyOwner.Claims, "|")).Value), ValuePersonClaims: gblAssetRecord.DeputyOwner.Claims, ValuePersonDepartment: gblAssetRecord.DeputyOwner.Department, ValuePersonJobTitle: gblAssetRecord.DeputyOwner.JobTitle},
+                                          {FieldInternalName: "BusinessOwner", NativeControlType: "User", ValueText: gblAssetRecord.BusinessOwner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblAssetRecord.BusinessOwner.Claims), gblAssetRecord.BusinessOwner.Email, Last(Split(gblAssetRecord.BusinessOwner.Claims, "|")).Value), ValuePersonClaims: gblAssetRecord.BusinessOwner.Claims, ValuePersonDepartment: gblAssetRecord.BusinessOwner.Department, ValuePersonJobTitle: gblAssetRecord.BusinessOwner.JobTitle},
+                                          {FieldInternalName: "TechnicalOwner", NativeControlType: "User", ValueText: gblAssetRecord.TechnicalOwner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblAssetRecord.TechnicalOwner.Claims), gblAssetRecord.TechnicalOwner.Email, Last(Split(gblAssetRecord.TechnicalOwner.Claims, "|")).Value), ValuePersonClaims: gblAssetRecord.TechnicalOwner.Claims, ValuePersonDepartment: gblAssetRecord.TechnicalOwner.Department, ValuePersonJobTitle: gblAssetRecord.TechnicalOwner.JobTitle},
+                                          {FieldInternalName: "DataSteward", NativeControlType: "User", ValueText: gblAssetRecord.DataSteward.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblAssetRecord.DataSteward.Claims), gblAssetRecord.DataSteward.Email, Last(Split(gblAssetRecord.DataSteward.Claims, "|")).Value), ValuePersonClaims: gblAssetRecord.DataSteward.Claims, ValuePersonDepartment: gblAssetRecord.DataSteward.Department, ValuePersonJobTitle: gblAssetRecord.DataSteward.JobTitle},
+                                          {FieldInternalName: "Criticality", NativeControlType: "Choice", ValueText: gblAssetRecord.Criticality.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "DataClassification", NativeControlType: "Choice", ValueText: gblAssetRecord.DataClassification.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "LifecycleStatus", NativeControlType: "Choice", ValueText: gblAssetRecord.LifecycleStatus.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ConfidentialityRequirement", NativeControlType: "Choice", ValueText: gblAssetRecord.ConfidentialityRequirement.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "IntegrityRequirement", NativeControlType: "Choice", ValueText: gblAssetRecord.IntegrityRequirement.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "AvailabilityRequirement", NativeControlType: "Choice", ValueText: gblAssetRecord.AvailabilityRequirement.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "LastReviewDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblAssetRecord.LastReviewDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "NextReviewDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblAssetRecord.NextReviewDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ReviewCycleMonths", NativeControlType: "Number", ValueText: "", ValueNumber: gblAssetRecord.ReviewCycleMonths, ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "IsActive", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblAssetRecord.IsActive, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
+                                      ));
+                                                  Set(gblLoadedRecordId, gblAssetRecord.ID)
+                                              ),
+                                              Set(gblRecordError, "Der Datensatz konnte nicht geladen werden. " & FirstError.Message)
+                                          ),
+                                          "System",
+                                          IfError(
+                                              Refresh(Systems);
+                                              Set(gblSystemRecord, LookUp(Systems, ID = gblSelectedRecordId));
+                                              If(IsBlank(gblSystemRecord.ID),
+                                                  Set(gblRecordError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                  ClearCollect(colRecordValues, Table(
+                                          {FieldInternalName: "Title", NativeControlType: "Text", ValueText: gblSystemRecord.Title, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Description", NativeControlType: "Note", ValueText: gblSystemRecord.Description, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "MonitoringStatus", NativeControlType: "Text", ValueText: gblSystemRecord.MonitoringStatus, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "BackupStatus", NativeControlType: "Text", ValueText: gblSystemRecord.BackupStatus, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "AuthenticationType", NativeControlType: "Text", ValueText: gblSystemRecord.AuthenticationType, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "SupportModel", NativeControlType: "Text", ValueText: gblSystemRecord.SupportModel, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Owner", NativeControlType: "User", ValueText: gblSystemRecord.Owner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblSystemRecord.Owner.Claims), gblSystemRecord.Owner.Email, Last(Split(gblSystemRecord.Owner.Claims, "|")).Value), ValuePersonClaims: gblSystemRecord.Owner.Claims, ValuePersonDepartment: gblSystemRecord.Owner.Department, ValuePersonJobTitle: gblSystemRecord.Owner.JobTitle},
+                                          {FieldInternalName: "GovernanceStatus", NativeControlType: "Choice", ValueText: gblSystemRecord.GovernanceStatus.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Criticality", NativeControlType: "Choice", ValueText: gblSystemRecord.Criticality.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "SystemType", NativeControlType: "Choice", ValueText: gblSystemRecord.SystemType.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Environment", NativeControlType: "Choice", ValueText: gblSystemRecord.Environment.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "LastReviewDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblSystemRecord.LastReviewDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "NextReviewDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblSystemRecord.NextReviewDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ReviewCycleMonths", NativeControlType: "Number", ValueText: "", ValueNumber: gblSystemRecord.ReviewCycleMonths, ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "IsActive", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblSystemRecord.IsActive, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "LinkedAsset", NativeControlType: "Lookup", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Id, Blank()), ValueLookupText: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Value, ""), ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
+                                      ));
+                                                  Set(gblLoadedRecordId, gblSystemRecord.ID)
+                                              ),
+                                              Set(gblRecordError, "Der Datensatz konnte nicht geladen werden. " & FirstError.Message)
+                                          ),
+                                          Set(gblRecordError, "Für diesen Objekttyp ist das Öffnen noch nicht verfügbar.")
+                                          );
+                                          If(IsBlank(gblRecordError) && gblLoadedRecordId = gblSelectedRecordId,
+                                              Set(gblEditorMode, "Edit");
+                                              Set(gblSaveError, "");
+                                              Set(gblPreviousPage, "ObjectList");
+                                              Select(lblEditorInitialize),
+                                              Set(gblLoadBusy, false);
+                                              Notify(gblRecordError, NotificationType.Error)
+                                          )
+                                      )
+                              - galAssetRecords:
                                   Control: Gallery@2.15.0
                                   Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
                                   Properties:
-                                    AccessibleLabel: ="Objekttyp auswählen"
-                                    ItemAccessibleLabel: =Coalesce(ThisItem.DisplayNameDE, ThisItem.Title, ThisItem.ObjectTypeKey)
+                                    AccessibleLabel: ="Assets suchen und öffnen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
                                     Selectable: =true
                                     TabIndex: =-1
-                                    BorderColor: =RGBA(0, 18, 107, 1)
-                                    Height: =Parent.Height - 124
+                                    Height: =Parent.Height - Self.Y - 12
+                                    Width: =Parent.Width - Self.X
+                                    X: =If(Parent.Width >= 760, 280, 0)
+                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    TemplateSize: =76
+                                    TemplatePadding: =4
+                                    ShowNavigation: =true
+                                    NavigationStep: =Max(1, RoundDown(Self.Height / 80, 0))
+                                    ShowScrollbar: =true
+                                    LoadingSpinner: =LoadingSpinner.Data
+                                    Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && Coalesce(gblActiveProvider.SupportsList, false)
                                     Items: |-
-                                      =Switch(
-                                          gblCurrentNavigationKey,
-
-                                          "NavGovernance",
-                                          Filter(
-                                              colObjectTypes,
-                                              ObjectTypeKey in [
-                                                  "Asset",
-                                                  "System",
-                                                  "Contact"
-                                              ]
+                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && Coalesce(gblActiveProvider.SupportsList, false),
+                                          If(gblRecordQueryId <> 0,
+                                              SortByColumns(Filter(Assets, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              SortByColumns(Filter(Assets, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
                                           ),
-
-                                          "NavOperations",
-                                          Filter(
-                                              colObjectTypes,
-                                              ObjectTypeKey in [
-                                                  "Incident",
-                                                  "Problem",
-                                                  "Change"
-                                              ]
-                                          ),
-
-                                          "NavRiskCompliance",
-                                          Filter(
-                                              colObjectTypes,
-                                              ObjectTypeKey in [
-                                                  "Risk",
-                                                  "Control",
-                                                  "Measure"
-                                              ]
-                                          ),
-
-                                          FirstN(
-                                              colObjectTypes,
-                                              0
-                                          )
+                                          Blank()
                                       )
                                     OnSelect: |-
-                                      =Set(gblSelectedObjectTypeKey, ThisItem.ObjectTypeKey);
-                                      Set(gblObjectType, ThisItem.ObjectTypeKey);
-                                      Set(
-                                          gblActiveProvider,
-                                          LookUp(
-                                              colObjectProviderRegistry,
-                                              ObjectTypeKey = ThisItem.ObjectTypeKey
-                                          )
-                                      );
-                                      Set(gblSelectedRecordId, 0)
-                                    TemplateFill: |-
-                                      =If(
-                                          ThisItem.ObjectTypeKey = gblSelectedObjectTypeKey,
-                                          RGBA(230, 240, 250, 1),
-                                          RGBA(0, 0, 0, 0)
+                                      =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && gblActiveProvider.ObjectTypeKey = "Asset" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
+                                          Set(gblSelectedRecordId, ThisItem.ID);
+                                          Select(lblRecordLoad)
                                       )
-                                    TemplatePadding: =4
-                                    TemplateSize: =72
-                                    Visible: =gblCurrentPage = "ObjectList"
-                                    Width: =Min(420, Parent.Width)
-                                    Y: =64
                                   Children:
-                                    - lblObjectTypeTitle:
+                                    - btnAssetRecordOpen:
                                         Control: Classic/Button@2.2.0
                                         Properties:
+                                          Text: |-
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                          OnSelect: =Select(Parent)
+                                          DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: =Font.'Open Sans'
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          BorderColor: =gblTheme.ColorBorder
                                           FocusedBorderColor: =gblTheme.ColorText
                                           FocusedBorderThickness: =3
                                           TabIndex: =0
-                                          BorderColor: =RGBA(0, 18, 107, 1)
-                                          Color: =gblTheme.ColorText
-                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
-                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
-                                          Font: =Font.'Open Sans'
-                                          FontWeight: =FontWeight.Semibold
-                                          Height: =36
-                                          OnSelect: =Select(Parent)
-                                          PaddingLeft: =12
-                                          Text: |-
-                                            =Coalesce(
-                                                ThisItem.PluralNameDE,
-                                                ThisItem.Title,
-                                                ThisItem.ObjectTypeKey
-                                            )
-                                          Width: =Parent.TemplateWidth
-                                    - lblObjectTypeMeta:
+                                          Height: =42
+                                          Width: =Parent.TemplateWidth - 16
+                                    - lblAssetRecordDetail:
                                         Control: Label@2.5.1
                                         Properties:
-                                          BorderColor: =RGBA(0, 18, 107, 1)
+                                          Text: ="ID " & Text(ThisItem.ID) & " · Geändert " & Text(ThisItem.Modified, "dd.mm.yyyy hh:mm")
                                           Color: =gblTheme.ColorTextMuted
-                                          Fill: =If(ThisItem.ObjectTypeKey = gblObjectType, gblTheme.ColorSelected, gblTheme.ColorSurface)
                                           Font: =Font.'Open Sans'
-                                          Height: =28
-                                          OnSelect: =Select(Parent)
-                                          PaddingLeft: =12
                                           Size: =10
+                                          Height: =28
+                                          Width: =Parent.TemplateWidth - 16
+                                          Y: =44
+                              - galSystemRecords:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="Systeme suchen und öffnen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                    Selectable: =true
+                                    TabIndex: =-1
+                                    Height: =Parent.Height - Self.Y - 12
+                                    Width: =Parent.Width - Self.X
+                                    X: =If(Parent.Width >= 760, 280, 0)
+                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    TemplateSize: =76
+                                    TemplatePadding: =4
+                                    ShowNavigation: =true
+                                    NavigationStep: =Max(1, RoundDown(Self.Height / 80, 0))
+                                    ShowScrollbar: =true
+                                    LoadingSpinner: =LoadingSpinner.Data
+                                    Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "System" && Coalesce(gblActiveProvider.SupportsList, false)
+                                    Items: |-
+                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "System" && Coalesce(gblActiveProvider.SupportsList, false),
+                                          If(gblRecordQueryId <> 0,
+                                              SortByColumns(Filter(Systems, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              SortByColumns(Filter(Systems, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
+                                          ),
+                                          Blank()
+                                      )
+                                    OnSelect: |-
+                                      =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "System" && gblActiveProvider.ObjectTypeKey = "System" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
+                                          Set(gblSelectedRecordId, ThisItem.ID);
+                                          Select(lblRecordLoad)
+                                      )
+                                  Children:
+                                    - btnSystemRecordOpen:
+                                        Control: Classic/Button@2.2.0
+                                        Properties:
                                           Text: |-
-                                            =ThisItem.ObjectTypeKey
-                                                & " · "
-                                                & Coalesce(
-                                                    ThisItem.PluralNameDE,
-                                                    ThisItem.Title
-                                                )
-                                                & " · "
-                                                & CountRows(
-                                                    Filter(
-                                                        colFieldDefinitions,
-                                                        ObjectTypeKey = ThisItem.ObjectTypeKey
-                                                    )
-                                                )
-                                                & " Felder"
-                                          Width: =Parent.TemplateWidth
-                                          Y: =36
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                          OnSelect: =Select(Parent)
+                                          DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: =Font.'Open Sans'
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          BorderColor: =gblTheme.ColorBorder
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
+                                          Height: =42
+                                          Width: =Parent.TemplateWidth - 16
+                                    - lblSystemRecordDetail:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Text: ="ID " & Text(ThisItem.ID) & " · Geändert " & Text(ThisItem.Modified, "dd.mm.yyyy hh:mm")
+                                          Color: =gblTheme.ColorTextMuted
+                                          Font: =Font.'Open Sans'
+                                          Size: =10
+                                          Height: =28
+                                          Width: =Parent.TemplateWidth - 16
+                                          Y: =44
+                              - txtRecordSearch:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="Datensätze nach Titelanfang suchen"
+                                    HintText: ="Titelanfang suchen"
+                                    Default: =gblRecordQuery
+                                    DelayOutput: =true
+                                    DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
+                                    Visible: =gblCurrentPage = "ObjectList" && Coalesce(gblActiveProvider.SupportsList, false)
+                                    OnChange: |-
+                                      =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                          Set(gblRecordQuery, Trim(Self.Text)); Set(gblRecordQueryId, 0); Reset(txtRecordId);
+                                          Reset(galAssetRecords); Reset(galSystemRecords); Set(gblRecordError, "")
+                                      )
+                                    Font: =Font.'Open Sans'
+                                    Width: =Max(160, Parent.Width - Self.X - 180)
+                                    Height: =36
+                                    X: =If(Parent.Width >= 760, 280, 0)
+                                    Y: =If(Parent.Width >= 760, 70, 236)
+                                    TabIndex: =0
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                              - txtRecordId:
+                                  Control: Classic/TextInput@2.3.2
+                                  Properties:
+                                    AccessibleLabel: ="Datensatz mit genauer ID finden"
+                                    HintText: ="ID suchen"
+                                    Default: =If(gblRecordQueryId > 0, Text(gblRecordQueryId), "")
+                                    DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
+                                    Visible: =txtRecordSearch.Visible
+                                    OnChange: |-
+                                      =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                          With({requestedId: IfError(Value(Trim(Self.Text)), 0)},
+                                              If(IsBlank(Trim(Self.Text)), Set(gblRecordQueryId, 0); Set(gblRecordError, ""),
+                                                  requestedId > 0 && requestedId = RoundDown(requestedId, 0), Set(gblRecordQueryId, requestedId); Set(gblRecordError, ""),
+                                                  Set(gblRecordQueryId, -1); Set(gblRecordError, "Bitte eine positive ganze Datensatz-ID eingeben.")
+                                              )
+                                          ); Reset(galAssetRecords); Reset(galSystemRecords)
+                                      )
+                                    Font: =Font.'Open Sans'
+                                    Width: =160
+                                    Height: =36
+                                    X: =Parent.Width - 160
+                                    Y: =txtRecordSearch.Y
+                                    TabIndex: =0
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                              - lblRecordStatus:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: |-
+                                      =If(gblLoadBusy, "Datensatz wird geladen …", !IsBlank(gblRecordError), gblRecordError,
+                                          IsBlank(gblSelectedObjectTypeKey), "Wählen Sie einen Objekttyp.",
+                                          !Coalesce(gblActiveProvider.SupportsList, false), "Datensatzliste und Bearbeitung für diesen Objekttyp folgen im weiteren Ausbau.",
+                                          "Titelanfang oder genaue ID suchen. Mit den Pfeilen oder der Bildlaufleiste blättern."
+                                      )
+                                    Color: =If(IsBlank(gblRecordError), gblTheme.ColorTextMuted, gblTheme.ColorError)
+                                    Font: =Font.'Open Sans'
+                                    Size: =11
+                                    Height: =60
+                                    Width: =Parent.Width - Self.X
+                                    X: =If(Parent.Width >= 760, 280, 0)
+                                    Y: =If(Parent.Width >= 760, 110, 276)
+                                    Visible: =gblCurrentPage = "ObjectList"
+                              - lblRecordEmpty:
+                                  Control: Label@2.5.1
+                                  Properties:
+                                    Text: ="Keine passenden Datensätze gefunden. Suche ändern oder Daten aktualisieren."
+                                    Font: =Font.'Open Sans'
+                                    Color: =gblTheme.ColorTextMuted
+                                    Height: =44
+                                    Width: =Parent.Width - Self.X
+                                    X: =galAssetRecords.X
+                                    Y: =galAssetRecords.Y
+                                    Visible: =gblCurrentPage = "ObjectList" && !gblLoadBusy && IsBlank(gblRecordError) && Switch(gblObjectType, "Asset", IsEmpty(galAssetRecords.AllItems), "System", IsEmpty(galSystemRecords.AllItems), false)
                               - galMetadata:
                                   Control: Gallery@2.15.0
                                   Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -815,14 +1170,14 @@ Screens:
                                           BorderColor: =gblTheme.ColorBorder
                                           BorderThickness: =1
                                           Color: =gblTheme.ColorPrimary
-                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                          DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                           Fill: =gblTheme.ColorSurface
                                           Font: =Font.'Open Sans'
                                           Height: =34
                                           OnSelect: |-
                                             =If(
                                                 gblEditorDirty,
-                                                Set(gblShowDiscardDialog, true); SetFocus(lblDiscardStay),
+                                                Set(gblPendingNavigationKey, ""); Set(gblShowDiscardDialog, true); SetFocus(lblDiscardStay),
                                                 Clear(colEditorValues);
                                                 Clear(colEditorLookupSelections);
                                                 Clear(colEditorPersonSelections);
@@ -830,8 +1185,8 @@ Screens:
                                                 Set(gblEditorCanSave, false);
                                                 Set(gblCurrentPage, gblPreviousPage);
                                                 Set(gblEditorMode, "");
-                                                Set(gblObjectType, "");
-                                                Set(gblSelectedRecordId, 0)
+                                                Set(gblObjectType, gblSelectedObjectTypeKey);
+                                                Set(gblSelectedRecordId, 0); Set(gblLoadedRecordId, 0); Set(gblEditorLoadComplete, false); Set(gblEditorConflict, false); Set(gblSaveError, ""); Clear(colRecordValues)
                                             )
                                           Text: ="Abbrechen"
                                           Width: =100
@@ -849,15 +1204,16 @@ Screens:
                                           Color: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
                                           DisplayMode: |-
                                             =If(
-                                                gblEditorCanSave && !gblSaveBusy && !gblShowDiscardDialog
-                                                  && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                gblEditorCanSave && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog
+                                                  && CountRows(Filter(colEditorValues, IsValid = false)) = 0
+                                                  && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                   && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                   && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                   && Coalesce(gblActiveProvider.SupportsSave, false)
                                                   && Switch(
                                                       gblEditorMode,
                                                       "New", Coalesce(gblActiveProvider.SupportsCreate, false),
-                                                      "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                      "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0 && gblEditorLoadComplete && gblEditorDirty && gblLoadedRecordId = gblSelectedRecordId && !gblEditorConflict,
                                                       false
                                                   ),
                                                 DisplayMode.Edit,
@@ -893,7 +1249,20 @@ Screens:
                                                     )
                                                 );
 
-                                                Switch(
+                                                If(gblEditorMode = "Edit",
+                                                Switch(gblObjectType,
+                                                    "Asset", IfError(Refresh(Assets); Set(gblAssetCurrent, LookUp(Assets, ID = gblSelectedRecordId));
+                                                        If(IsBlank(gblAssetCurrent.ID), Set(gblSaveError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                            IsBlank(gblAssetCurrent.Modified) || IsBlank(gblAssetRecord.Modified) || gblAssetCurrent.Modified <> gblAssetRecord.Modified, Set(gblEditorConflict, true); Set(gblSaveError, "Der Datensatz wurde inzwischen geändert. Änderungen verwerfen und neu öffnen.")),
+                                                        Set(gblSaveError, "Der aktuelle Datenstand konnte nicht geprüft werden. " & FirstError.Message)),
+                                                    "System", IfError(Refresh(Systems); Set(gblSystemCurrent, LookUp(Systems, ID = gblSelectedRecordId));
+                                                        If(IsBlank(gblSystemCurrent.ID), Set(gblSaveError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                            IsBlank(gblSystemCurrent.Modified) || IsBlank(gblSystemRecord.Modified) || gblSystemCurrent.Modified <> gblSystemRecord.Modified, Set(gblEditorConflict, true); Set(gblSaveError, "Der Datensatz wurde inzwischen geändert. Änderungen verwerfen und neu öffnen.")),
+                                                        Set(gblSaveError, "Der aktuelle Datenstand konnte nicht geprüft werden. " & FirstError.Message))
+                                                )
+                                            );
+                                            If(IsBlank(gblSaveError),
+                                            Switch(
                                                     gblObjectType,
                                                     "Asset",
                                                     IfError(
@@ -903,12 +1272,12 @@ Screens:
                                                                 Assets,
                                                                 If(
                                                                     gblEditorMode = "Edit" && gblSelectedRecordId > 0,
-                                                                    LookUp(Assets, ID = gblSelectedRecordId),
+                                                                    gblAssetRecord,
                                                                     Defaults(Assets)
                                                                 ),
                                                                 {
                                                                     Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
-                                                                    Owner: With(
+                                                                    Owner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Owner", IsDirty), false), gblAssetRecord.Owner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -922,8 +1291,8 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    ),
-                                                                    DeputyOwner: With(
+                                                                    )),
+                                                                    DeputyOwner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "DeputyOwner", IsDirty), false), gblAssetRecord.DeputyOwner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "DeputyOwner")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -937,7 +1306,7 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    ),
+                                                                    )),
                                                                     Criticality: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
@@ -946,7 +1315,7 @@ Screens:
                                                                     ReviewCycleMonths: LookUp(colEditorValues, FieldInternalName = "ReviewCycleMonths", ValueNumber),
                                                                     IsActive: Coalesce(LookUp(colEditorValues, FieldInternalName = "IsActive", ValueBoolean), true),
                                                                     AssetType: LookUp(colEditorValues, FieldInternalName = "AssetType", ValueText),
-                                                                    BusinessOwner: With(
+                                                                    BusinessOwner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "BusinessOwner", IsDirty), false), gblAssetRecord.BusinessOwner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "BusinessOwner")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -960,8 +1329,8 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    ),
-                                                                    TechnicalOwner: With(
+                                                                    )),
+                                                                    TechnicalOwner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "TechnicalOwner", IsDirty), false), gblAssetRecord.TechnicalOwner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "TechnicalOwner")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -975,7 +1344,7 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    ),
+                                                                    )),
                                                                     DataClassification: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "DataClassification")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
@@ -991,7 +1360,7 @@ Screens:
                                                                     AvailabilityRequirement: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
-                                                                    DataSteward: With(
+                                                                    DataSteward: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "DataSteward", IsDirty), false), gblAssetRecord.DataSteward, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "DataSteward")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -1005,12 +1374,12 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    )
+                                                                    ))
                                                                 }
                                                             )
                                                         );
                                                         Set(gblSavedRecordId, gblSavedRecord.ID),
-                                                        Set(gblSaveError, FirstError.Message)
+                                                        Set(gblEditorConflict, FirstError.Kind = ErrorKind.Conflict); Set(gblSaveError, If(FirstError.Kind = ErrorKind.Conflict, "Der Datensatz wurde parallel geändert. Änderungen verwerfen und neu öffnen.", FirstError.Message))
                                                     ),
                                                     "System",
                                                     IfError(
@@ -1020,16 +1389,16 @@ Screens:
                                                                 Systems,
                                                                 If(
                                                                     gblEditorMode = "Edit" && gblSelectedRecordId > 0,
-                                                                    LookUp(Systems, ID = gblSelectedRecordId),
+                                                                    gblSystemRecord,
                                                                     Defaults(Systems)
                                                                 ),
                                                                 {
-                                                                    Title: LookUp(colEditorValues, FieldInternalName = "Title", ValueText),
+                                                                    Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
                                                                     Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
                                                                     GovernanceStatus: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
-                                                                    Owner: With(
+                                                                    Owner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Owner", IsDirty), false), gblSystemRecord.Owner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
                                                                             IsBlank(personValue.ValuePersonClaims),
@@ -1043,7 +1412,7 @@ Screens:
                                                                                 Picture: ""
                                                                             }
                                                                         )
-                                                                    ),
+                                                                    )),
                                                                     Criticality: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
@@ -1054,7 +1423,7 @@ Screens:
                                                                     LinkedAsset: With(
                                                                         {lookupValue: LookUp(colEditorValues, FieldInternalName = "LinkedAsset")},
                                                                         If(
-                                                                            IsBlank(lookupValue.ValueLookupId),
+                                                                            Coalesce(lookupValue.ValueLookupId, 0) <= 0,
                                                                             Blank(),
                                                                             {
                                                                                 Id: lookupValue.ValueLookupId,
@@ -1076,13 +1445,14 @@ Screens:
                                                             )
                                                         );
                                                         Set(gblSavedRecordId, gblSavedRecord.ID),
-                                                        Set(gblSaveError, FirstError.Message)
+                                                        Set(gblEditorConflict, FirstError.Kind = ErrorKind.Conflict); Set(gblSaveError, If(FirstError.Kind = ErrorKind.Conflict, "Der Datensatz wurde parallel geändert. Änderungen verwerfen und neu öffnen.", FirstError.Message))
                                                     ),
                                                     Set(
                                                         gblSaveError,
                                                         "Für den Objekttyp '" & gblObjectType & "' ist noch kein Save-Provider registriert."
                                                     )
                                                 );
+                                            );
 
                                                 If(
                                                     IsBlank(gblSaveError) && gblSavedRecordId > 0,
@@ -1097,7 +1467,9 @@ Screens:
                                                     Set(gblEditorDirty, false);
                                                     Set(gblEditorCanSave, false);
                                                     Set(gblShowDiscardDialog, false);
-                                                    Set(gblCurrentPage, gblPreviousPage),
+                                                    Set(gblCurrentPage, gblPreviousPage);
+                                                    Set(gblEditorMode, ""); Set(gblSelectedRecordId, 0); Set(gblLoadedRecordId, 0);
+                                                    Set(gblEditorLoadComplete, false); Clear(colRecordValues),
                                                     Notify(
                                                         Coalesce(gblSaveError, "Speichern fehlgeschlagen."),
                                                         NotificationType.Error
@@ -1123,6 +1495,18 @@ Screens:
                                           Width: =220
                                           X: =lblEditorSave.X - Self.Width - 12
                                           Y: =12
+                                    - lblEditorSaveError:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Text: =If(!gblEditorLoadComplete, "Der Datensatz konnte nicht vollständig zugeordnet werden. Bearbeitung ist gesperrt.", gblSaveError)
+                                          Color: =gblTheme.ColorError
+                                          Font: =Font.'Open Sans'
+                                          Size: =11
+                                          Height: =48
+                                          Width: =Parent.Width - 32
+                                          X: =16
+                                          Y: =48
+                                          Visible: =gblCurrentPage = "editor" && (!gblEditorLoadComplete || !IsBlank(gblSaveError))
                                     - lblEditorRevalidate:
                                         Control: Label@2.5.1
                                         Properties:
@@ -1135,16 +1519,16 @@ Screens:
                                             Set(
                                                 gblEditorCanSave,
                                                 CountRows(colEditorValues) > 0
-                                                    && (gblObjectType <> "Asset" || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                    && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                     && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
-                                                    && !gblSaveBusy
+                                                    && !gblSaveBusy && !gblLoadBusy
                                                     && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                     && Coalesce(gblActiveProvider.SupportsSave, false)
                                                     && Switch(
                                                         gblEditorMode,
                                                         "New", Coalesce(gblActiveProvider.SupportsCreate, false),
-                                                        "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0,
+                                                        "Edit", Coalesce(gblActiveProvider.SupportsEdit, false) && gblSelectedRecordId > 0 && gblEditorLoadComplete && gblEditorDirty && gblLoadedRecordId = gblSelectedRecordId && !gblEditorConflict,
                                                         false
                                                     )
                                             )
@@ -1160,7 +1544,7 @@ Screens:
                                           Selectable: =false
                                           TabIndex: =-1
                                           BorderColor: =RGBA(0, 18, 107, 1)
-                                          Height: =Parent.Height - 72
+                                          Height: =Parent.Height - Self.Y - 16
                                           Items: =SortByColumns(colEditorValues, "SortOrder", SortOrder.Ascending)
                                           TemplatePadding: =6
                                           TemplateSize: =112
@@ -1169,7 +1553,7 @@ Screens:
                                                 && gblObjectType <> ""
                                           Width: =Parent.Width - 32
                                           X: =16
-                                          Y: =56
+                                          Y: =If(lblEditorSaveError.Visible, 100, 56)
                                         Children:
                                           - lblEditorField:
                                               Control: Label@2.5.1
@@ -1230,7 +1614,7 @@ Screens:
                                                 TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 MaxLength: =If(ThisItem.FieldInternalName = "Title", 255, 0)
                                                 Font: =Font.'Open Sans'
                                                 HintText: =ThisItem.DisplayNameDE
@@ -1238,7 +1622,7 @@ Screens:
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.Text <> ThisItem.ValueText)),
                                                       With(
                                                           {
                                                               editorKey: ThisItem.EditorFieldKey,
@@ -1274,7 +1658,7 @@ Screens:
                                                 TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Height: =78
                                                 HintText: =ThisItem.DisplayNameDE
@@ -1283,7 +1667,7 @@ Screens:
                                                 Mode: =TextMode.MultiLine
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.Text <> ThisItem.ValueText)),
                                                       Patch(
                                                           colEditorValues,
                                                           ThisItem,
@@ -1313,7 +1697,7 @@ Screens:
                                                 TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =If(IsBlank(ThisItem.ValueNumber), "", Text(ThisItem.ValueNumber))
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 Format: =TextFormat.Number
                                                 HintText: ="0"
@@ -1321,7 +1705,7 @@ Screens:
                                                 HoverFill: =gblTheme.ColorSelected
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (IfError(Value(Self.Text), Blank()) <> ThisItem.ValueNumber)),
                                                       Patch(
                                                           colEditorValues,
                                                           ThisItem,
@@ -1351,13 +1735,13 @@ Screens:
                                                 TabIndex: =0
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 DefaultDate: =ThisItem.ValueDate
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.SelectedDate <> DateValue(ThisItem.ValueDate))),
                                                       Patch(
                                                           colEditorValues,
                                                           ThisItem,
@@ -1387,13 +1771,13 @@ Screens:
                                                 TabIndex: =0
                                                 BorderColor: =gblTheme.ColorBorder
                                                 Default: =ThisItem.ValueBoolean
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 FalseText: ="Nein"
                                                 Font: =Font.'Open Sans'
                                                 Height: =40
                                                 OnCheck: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.Value <> ThisItem.ValueBoolean)),
                                                       Patch(
                                                           colEditorValues,
                                                           ThisItem,
@@ -1408,7 +1792,7 @@ Screens:
                                                   )
                                                 OnUncheck: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.Value <> ThisItem.ValueBoolean)),
                                                       Patch(
                                                           colEditorValues,
                                                           ThisItem,
@@ -1445,7 +1829,7 @@ Screens:
                                                           && choiceOption.ChoiceKey = ThisItem.ValueChoiceKey,
                                                       choiceOption.DisplayNameDE
                                                   )
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
                                                 Items: |-
@@ -1460,7 +1844,7 @@ Screens:
                                                 Items.Value: =DisplayNameDE
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.Selected.ChoiceKey <> ThisItem.ValueChoiceKey && (!IsBlank(Self.Selected.ChoiceKey) || !(":__unmapped__:" in ThisItem.ValueChoiceKey)))),
                                                       With(
                                                           {
                                                               editorKey: ThisItem.EditorFieldKey,
@@ -1505,13 +1889,16 @@ Screens:
                                                       Filter(
                                                           colLookupValues As lookupValue,
                                                           lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
-                                                              && lookupValue.LookupId in Filter(
-                                                                  colEditorLookupSelections,
-                                                                  EditorFieldKey = ThisItem.EditorFieldKey
-                                                              ).LookupId
+                                                              && lookupValue.LookupId in ShowColumns(
+                                                                  Filter(
+                                                                      colEditorLookupSelections,
+                                                                      EditorFieldKey = ThisItem.EditorFieldKey
+                                                                  ),
+                                                                  LookupId
+                                                              )
                                                       ),
                                                       If(
-                                                          IsBlank(ThisItem.ValueLookupId),
+                                                          Coalesce(ThisItem.ValueLookupId, 0) <= 0,
                                                           FirstN(colLookupValues, 0),
                                                           Filter(
                                                               colLookupValues As lookupValue,
@@ -1521,18 +1908,20 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayText"]
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =gblTheme.ColorSelected
+                                                IsSearchable: =true
                                                 Items: |-
                                                   =Filter(
                                                       colLookupValues As lookupValue,
                                                       lookupValue.LookupObjectTypeKey = ThisItem.LookupObjectTypeKey
                                                           && lookupValue.IsActiveValue = true
+                                                          && lookupValue.LookupId > 0
                                                   )
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (First(Self.SelectedItems).LookupId <> ThisItem.ValueLookupId)),
                                                       RemoveIf(
                                                           colEditorLookupSelections,
                                                           EditorFieldKey = ThisItem.EditorFieldKey
@@ -1650,7 +2039,7 @@ Screens:
                                                       )
                                                   )
                                                 DisplayFields: =["DisplayName"]
-                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
                                                 Font: =Font.'Open Sans'
                                                 HoverFill: =RGBA(186, 202, 226, 1)
                                                 Items: |-
@@ -1669,7 +2058,7 @@ Screens:
                                                   )
                                                 OnChange: |-
                                                   =If(
-                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || ((IsEmpty(Self.SelectedItems) && !IsBlank(ThisItem.ValuePersonClaims)) || (!IsEmpty(Self.SelectedItems) && (First(Self.SelectedItems).UserPrincipalName <> ThisItem.ValuePersonEmail || First(Self.SelectedItems).DisplayName <> ThisItem.ValueText)))),
                                                       If(
                                                           IsEmpty(Self.SelectedItems),
 
@@ -1756,7 +2145,11 @@ Screens:
                               Height: =Parent.Height
                               Items: =SortByColumns(colNavigation, "SortOrder", SortOrder.Ascending)
                               OnSelect: |-
-                                =Set(gblCurrentNavigationKey, ThisItem.NavKey);
+                                =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog,
+                                    If(gblCurrentPage = "editor" && gblEditorDirty,
+                                        Set(gblPendingNavigationKey, ThisItem.NavKey); Set(gblPendingNavigationPage, ThisItem.TargetPage);
+                                        Set(gblShowDiscardDialog, true); SetFocus(lblDiscardStay),
+                                Set(gblCurrentNavigationKey, ThisItem.NavKey);
                                 Set(gblCurrentPage, ThisItem.TargetPage);
 
                                 Clear(colEditorValues);
@@ -1765,7 +2158,10 @@ Screens:
                                 Set(gblEditorMode, "");
                                 Set(gblObjectType, "");
                                 Set(gblSelectedObjectTypeKey, "");
-                                Set(gblSelectedRecordId, 0)
+                                Set(gblSelectedRecordId, 0); Set(gblLoadedRecordId, 0); Set(gblEditorLoadComplete, false); Set(gblEditorConflict, false); Set(gblSaveError, ""); Clear(colRecordValues);
+                                        Set(gblRecordError, ""); Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0)
+                                    )
+                                )
                               TemplateFill: |-
                                 =If(
                                     ThisItem.NavKey = gblCurrentNavigationKey,
@@ -1785,7 +2181,7 @@ Screens:
                                     BorderColor: =RGBA(0, 0, 0, 1)
                                     Color: =gblTheme.ColorText
                                     Fill: =If(ThisItem.Key = gblCurrentPage, gblTheme.ColorSelected, Color.Transparent)
-                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                                    DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, DisplayMode.Edit)
                                     Font: =Font.'Open Sans'
                                     FontWeight: =If(ThisItem.Key = gblCurrentPage, FontWeight.Semibold, FontWeight.Normal)
                                     Height: =Parent.TemplateHeight
@@ -1909,7 +2305,8 @@ Screens:
                               Fill: =gblTheme.ColorSurface
                               Font: =Font.'Open Sans'
                               Height: =36
-                              OnSelect: =Set(gblShowDiscardDialog, false); SetFocus(lblEditorCancel)
+                              OnSelect: |-
+                                =Set(gblShowDiscardDialog, false); Set(gblPendingNavigationKey, ""); SetFocus(lblEditorCancel)
                               Text: ="Weiter bearbeiten"
                               X: =Parent.Width - 326
                               Y: =132
@@ -1937,9 +2334,16 @@ Screens:
                                 Set(gblShowDiscardDialog, false);
                                 Set(gblCurrentPage, gblPreviousPage);
                                 Set(gblEditorMode, "");
-                                Set(gblObjectType, "");
-                                Set(gblSelectedRecordId, 0);
-                                SetFocus(lblNew)
+                                Set(gblObjectType, gblSelectedObjectTypeKey);
+                                Set(gblSelectedRecordId, 0); Set(gblLoadedRecordId, 0); Set(gblEditorLoadComplete, false); Set(gblEditorConflict, false); Set(gblSaveError, ""); Clear(colRecordValues);
+                                If(!IsBlank(gblPendingNavigationKey),
+                                    Set(gblCurrentNavigationKey, gblPendingNavigationKey); Set(gblCurrentPage, gblPendingNavigationPage);
+                                    Set(gblSelectedObjectTypeKey, ""); Set(gblObjectType, ""); Set(gblActiveProvider, Blank());
+                                    Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, "");
+                                    SetFocus(lblRefresh),
+                                    SetFocus(lblNew)
+                                );
+                                Set(gblPendingNavigationKey, "")
                               Text: ="Verwerfen"
                               Width: =130
                               X: =Parent.Width - 154

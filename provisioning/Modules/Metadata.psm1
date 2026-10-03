@@ -125,13 +125,13 @@ function Publish-GPMetadata {
    $allFields=@($Model.Fields|Where-Object{$baseKeys -contains $_.key})+@($Model.ObjectFields|Where-Object objectTypeKey -eq $o.key)
    $row=0
    foreach($f in $allFields){
-     $isAssetTitle=$o.key -eq 'Asset' -and $f.internalName -eq 'Title'
-     if(-not $isAssetTitle){$row++}
-     $fieldRow=if($isAssetTitle){0}else{$row}
-     $requiredIf=if($isAssetTitle -and $f.required){'true'}else{''}
+     $isNativeTitle=$o.key -in @('Asset','System') -and $f.internalName -eq 'Title'
+     if(-not $isNativeTitle){$row++}
+     $fieldRow=if($isNativeTitle){0}else{$row}
+     $requiredIf=if($isNativeTitle -and $f.required){'true'}else{''}
      $section=if($f.section){$f.section}elseif($f.internalName -in @('Owner','DeputyOwner','BusinessOwner','TechnicalOwner','DataSteward','DocumentOwner')){'Ownership'}elseif($f.internalName -in @('GovernanceID','GovernanceStatus','Criticality','ComplianceScope','LastReviewDate','NextReviewDate','ReviewCycleMonths','IsActive','Tags','DocumentStatus','DocumentReviewDate')){'Governance'}else{'General'}
      $key="$($o.key):Edit:$($f.internalName)";$formValues=@{Title=$f.displayNameDE;FormFieldDefinitionKey=$key;FormDefinitionKey=$formKey;ObjectTypeKey=$o.key;FormMode='Edit';SectionKey=$section;FieldInternalName=$f.internalName;RowNumber=$fieldRow;ColumnNumber=1;Width=1;SortOrder=$fieldRow*10;IsActive=$true}
-     if($isAssetTitle){$formValues.RequiredIf=$requiredIf}
+     if($isNativeTitle){$formValues.RequiredIf=$requiredIf}
      Set-GPSeedRow FormFieldDefinitions FormFieldDefinitionKey $formValues
    }
  }
