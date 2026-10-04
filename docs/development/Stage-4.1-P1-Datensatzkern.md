@@ -1,6 +1,6 @@
 # P1 – Datensatzkern und DEV-Abnahme
 
-Stand: 2026-10-03. **30444 / Canvas 193 Live; Host-Suche, Titeleingabe, Creates und unverändertes Wiederöffnen belegt. Freigegebene Monitor-Diagnose reproduziert den Description-Schreibschutzfehler beim System-Edit; Quelle Version 1.0/unverändert, Testsystem reversibel bereinigt. P1 nicht abgenommen.** Genau ein primäres Folgepaket: lokalen Schreibvertrag für Systems.Description mit Regression reparieren und konkreten DEV-Kandidaten vorbereiten. Diagnose-Create/Edit/Delete je 1/1 verbraucht, keine weiteren Live-Writes. Modellklasse `deep-reasoning` wegen Canvas-/Provider-/SharePoint-Kopplung und Datenintegrität.
+Stand: 2026-10-04. **DEV bleibt 30444 / Canvas 193 Live; P1 nicht abgenommen. Lokaler Quellenkandidat 30445 repariert den System-Beschreibungsvertrag und die Fehleranzeige. Der vollständige Build ist am neuen Connector-Schreibvertrags-Gate gesperrt: SystemDescription fehlt noch in der erzeugten Referenz.** Native lesende Feldprüfung belegt Description als Note, Sealed=true, ReadOnlyField=true; kein fehlerhaftes Connector-Recht. Genau ein primäres Folgepaket: die gezielte DEV-Voraussetzung für SystemDescription samt erzeugter Referenz nach separater Freigabe herstellen. [Reparatur, Gates und konkreter Scope](Stage-4.1-P1-SystemDescription.md). Diagnose-Create/Edit/Delete je 1/1 verbraucht; in diesem lokalen Paket keine Live-Writes. Modellklasse `deep-reasoning`.
 
 ## Kandidat und Grenzen
 
@@ -27,7 +27,7 @@ Load und Save sperren Eingaben, Suche und Navigation. Abbruch oder Navigation be
 | Typ | Geladene und geschriebene native Felder |
 |---|---|
 | Asset (17) | Title, AssetType, Owner, DeputyOwner, BusinessOwner, TechnicalOwner, DataSteward, Criticality, DataClassification, LifecycleStatus, ConfidentialityRequirement, IntegrityRequirement, AvailabilityRequirement, LastReviewDate, NextReviewDate, ReviewCycleMonths, IsActive |
-| System (16) | Title, Description, Owner, GovernanceStatus, Criticality, SystemType, Environment, LastReviewDate, NextReviewDate, ReviewCycleMonths, IsActive, LinkedAsset, MonitoringStatus, BackupStatus, AuthenticationType, SupportModel |
+| System (16, lokaler Kandidat 30445) | Title, SystemDescription, Owner, GovernanceStatus, Criticality, SystemType, Environment, LastReviewDate, NextReviewDate, ReviewCycleMonths, IsActive, LinkedAsset, MonitoringStatus, BackupStatus, AuthenticationType, SupportModel |
 
 Das aktuelle Formular zeigt ausschließlich diesen Umfang. Felder außerhalb dieser Payloads werden nicht geschrieben und behalten ihren Quellenwert. Vollständige Asset-Felder/Status, Verantwortliche und Reviewtermin-Abnahme folgen P2. Alle sieben anderen Registry-Typen melden List/Create/Edit/Save als false; Asset/System melden die vier implementierten Fähigkeiten als true.
 
@@ -215,13 +215,9 @@ Die 725 bestehenden Offline-Assertions und grüne CI ersetzen diese Connector-Pe
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P1 · lokalen Schreibvertrag für Systems.Description reparieren**, Modellklasse `deep-reasoning`: Architektur, kanonischen System-Save und die Connector-Feldmetadaten gegen den belegten Schreibschutzfehler abgleichen. Minimalen lokalen Reparaturkandidaten mit Regression für diesen Metadatenvertrag und sichtbare Speicherfehler erstellen; Beschreibung, native Record-/Personen-/Choice-/Lookup-Verträge und Konfliktschutz erhalten. Das fachliche Feld nicht entfernen und Tenantrechte nicht ungeprüft ändern. Der Diagnoseumfang ist verbraucht und bereinigt; keine weiteren Live-Writes. Build/Artefaktidentität und vollständige verfügbare Projekt-Gates prüfen, danach einen konkreten DEV-Übernahme-/Abnahmescope vorbereiten. Import, Rebinding, Studio-Save, Publish, Metadatenwrites und DEV→Git bleiben separat zu beauftragen. P2 erst nach P1-Abnahme.
+**P1 · DEV-Voraussetzung für SystemDescription und erzeugte Connector-Referenz herstellen**, Modellklasse `deep-reasoning`. Der lokale Quellenkandidat 30445 ist implementiert; der vollständige Build ist bis zur echten Referenz gesperrt. Nach separater konkreter Freigabe ausschließlich die eigene Systems-Note-Spalte und ihre zwei zusätzlichen Metadatenzeilen herstellen, native Typ-/Schreibschutzattribute lesen und die Systems-Datenquelle unterstützt aktualisieren. Nur das daraus generierte Referenzpaket über ignoriertes PAC-Staging in den kanonischen Tree übernehmen; aktuelle Src-Formeln erhalten. [Exakter Scope und Stop-Regeln](Stage-4.1-P1-SystemDescription.md).
 
-1. Belegte Description-Abweichung zwischen Architektur, gepackten/publizierten Connector-Metadaten und kanonischem System-Save gezielt klären; keine pauschale Feld-/Rechteänderung.
-2. Kleinste kohärente lokale Korrektur mit Regression für den tatsächlichen Metadaten-/Save-Vertrag erstellen. Originalen Connector-Record, Personenobjekte, Choices, leere/positive Lookups und Modified-/Conflict-Prüfung erhalten; Fehler im Editor nachvollziehbar anzeigen.
-3. Tatsächlichen Kandidaten inklusive Build-/Artefaktidentität mit allen verfügbaren Gates prüfen, dokumentieren und zur konkreten DEV-Übernahme vorbereiten. Diagnoseverbrauch bleibt Create/Edit/Delete je 1/1; ein späterer Live-Retest ist ein eigener konkreter Scope.
-
-Positive Lookup-Auswahl, Titel-Erhalt bei positivem Lookup und Leeren bleiben spätere P1-Abnahmeschritte. P2 nach vollständiger P1-Abnahme; Rollen, große Delegation, native Claims/Hidden-Werte und atomarer ETag bleiben eigene offene Gates.
+In diesem Vorbereitungspaket keine fachlichen Datensatzwrites, kein Import/Publish, kein globales Provisioning oder Seed, keine Änderung der versiegelten Description-Spalte. Danach vollständigen Build/Gates schließen und erst dann einen neuen getrennt freizugebenden Import-/Abnahmekandidaten erstellen. Positive Lookup-Auswahl, Titel-Erhalt bei positivem Lookup und Leeren bleiben spätere P1-Abnahmeschritte. P2 nach P1-Abnahme.
 
 ## Technische Quellen und offene Host-Gates
 

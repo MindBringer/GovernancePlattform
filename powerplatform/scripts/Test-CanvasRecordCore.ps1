@@ -81,6 +81,13 @@ foreach ($pair in @(@('Asset','Assets'),@('System','Systems'))) {
     }
     $records[$key] = @{Projection=$projection; Payload=$payload; Fields=$loadedNames; Schema=$native}
 }
+if ('SystemDescription' -notin $records.System.Fields -or 'Description' -in $records.System.Fields) {
+    throw 'System business description must round-trip through its own Note column; the native sealed Description column must not be patched.'
+}
+$errorLabel = [regex]::Match($source, '(?ms)- lblEditorSaveError:\r?\n(?<control>.*?)(?=^ {0,36}- \w+:|\z)').Groups['control'].Value
+if ($errorLabel -notmatch 'AutoHeight: =true' -or $errorLabel -notmatch 'Live: =Live.Assertive') {
+    throw 'Editor error must grow for long messages and announce them to assistive technology.'
+}
 $providers = (Get-Content (Join-Path $RepositoryRoot 'powerplatform/config/ObjectProviderRegistry.json') -Raw | ConvertFrom-Json).providers
 foreach ($p in $providers) {
     $supported = $p.objectTypeKey -in @('Asset','System')
@@ -319,6 +326,12 @@ foreach ($key in @('Asset','System')) {
         $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "LinkedAsset", Patch(v, {ValueLookupId: 0, ValueLookupText: ""}), v))'))
         $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
         Assert-Fx 'IsBlank(testSaved.LinkedAsset)' $true 'System payload rejects a stale zero lookup ID'
+        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "SystemDescription", Patch(v, {ValueText: "Zeile 1" & Char(10) & "Zeile 2 äöü", IsDirty: true}), v))'))
+        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+        Assert-Fx 'testSaved.SystemDescription' "Zeile 1`nZeile 2 äöü" 'System description preserves multiline text in the actual payload'
+        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "SystemDescription", Patch(v, {ValueText: "", IsDirty: true}), v))'))
+        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+        Assert-Fx 'IsBlank(testSaved.SystemDescription)' $true 'System description can be explicitly cleared'
     }
     $engine.UpdateVariable("gbl${key}Record",$nonemptyFixture)
     $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
@@ -341,6 +354,11 @@ foreach ($key in @('Asset','System')) {
     $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Criticality", Patch(v, testHydrated), v))'))
     Assert-Fx $saveGuard 'Disabled' "$key unknown persisted choice blocks stale CanSave"
     $engine.UpdateVariable('colEditorValues',$completeValues)
+    $engine.UpdateVariable('gblEditorMode','New')
+    $engine.UpdateVariable('gblEditorConflict',$true)
+    Assert-Fx $saveGuard 'Disabled' "$key uncertain create cannot be retried through stale CanSave"
+    $engine.UpdateVariable('gblEditorMode','Edit')
+    $engine.UpdateVariable('gblEditorConflict',$false)
     # Explicitly clearing an optional person must be distinguishable from untouched native identity.
     $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Owner", Patch(v, {ValuePersonClaims: "", ValuePersonEmail: "", ValueText: "", IsDirty: true}), v))'))
     $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
@@ -371,4 +389,48 @@ foreach ($key in @('Asset','System')) {
     $engine.UpdateVariable('gblRecordQueryId',0)
     Assert-Fx ('CountRows('+$items+')') 0 "$key empty search result distinct from error"
 }
+# Run the actual App.OnError behavior, including late errors after the button has
+# cleared gblSaveBusy. This uses the real interpreter and synthetic error data.
+$errorHandler = [regex]::Match($app, '(?ms)^    OnError: \|-\r?\n(?<formula>.*?)(?=^    OnStart:)').Groups['formula'].Value.Trim().TrimStart('=')
+if (-not $errorHandler) { throw 'Missing App.OnError formula.' }
+$config = [Microsoft.PowerFx.PowerFxConfig]::new()
+[Microsoft.PowerFx.PowerFxConfigExtensions]::EnableSetFunction($config)
+$engine = [Microsoft.PowerFx.RecalcEngine]::new($config)
+foreach ($case in @(
+    @{Name='late edit failure'; Page='editor'; Busy=$false; Mode='Edit'; Blocks=$true},
+    @{Name='late create failure'; Page='editor'; Busy=$false; Mode='New'; Blocks=$true},
+    @{Name='busy editor failure'; Page='editor'; Busy=$true; Mode='Edit'; Blocks=$true},
+    @{Name='busy save outside editor'; Page='ObjectList'; Busy=$true; Mode='Edit'; Blocks=$true},
+    @{Name='list read error'; Page='ObjectList'; Busy=$false; Mode='Edit'; Blocks=$false}
+)) {
+    $engine.UpdateVariable('gblCurrentPage',$case.Page)
+    $engine.UpdateVariable('gblEditorMode',$case.Mode)
+    $engine.UpdateVariable('gblSaveBusy',$case.Busy)
+    $engine.UpdateVariable('gblLoadBusy',$true)
+    $engine.UpdateVariable('gblEditorCanSave',$true)
+    $engine.UpdateVariable('gblEditorConflict',$false)
+    $engine.UpdateVariable('gblRecordError','')
+    $engine.UpdateVariable('gblSaveError','')
+    $engine.UpdateVariable('gblEditorLoadComplete',$true)
+    $engine.UpdateVariable('FirstError',(Eval '{Message: "SYNTHETIC COLUMN READ-ONLY", Source: "lblEditorSave.OnSelect"}'))
+    $result = $engine.Eval($errorHandler, $null, $parseOptions)
+    if ($result -is [Microsoft.PowerFx.Types.ErrorValue]) { throw "Actual App.OnError execution failed: $($case.Name)" }
+    Assert-Fx '!IsBlank(gblRecordError)' $true "$($case.Name) retains source error"
+    Assert-Fx 'gblEditorConflict' $case.Blocks "$($case.Name) blocks uncertain save"
+    Assert-Fx 'gblEditorCanSave' (-not $case.Blocks) "$($case.Name) invalidates CanSave"
+    Assert-Fx 'gblSaveBusy || gblLoadBusy' $false "$($case.Name) releases busy state"
+    Assert-Fx '!IsBlank(gblSaveError)' $case.Blocks "$($case.Name) retains editor error after busy flag reset"
+    Assert-Fx (Get-Property 'lblEditorSaveError' 'Visible') ($case.Page -eq 'editor') "$($case.Name) displays editor error on editor page"
+    if ($case.Blocks) {
+        Assert-Fx ('"SYNTHETIC COLUMN READ-ONLY" in '+(Get-Property 'lblEditorSaveError' 'Text')) $true "$($case.Name) displays concrete failure"
+        $engine.UpdateVariable('gblEditorLoadComplete',$false)
+        Assert-Fx ('"SYNTHETIC COLUMN READ-ONLY" in '+(Get-Property 'lblEditorSaveError' 'Text')) $true "$($case.Name) concrete save error takes precedence over load warning"
+    }
+}
+foreach ($height in @(48,140)) {
+    $engine.UpdateVariable('lblEditorSaveError',(Eval ('{Visible: true, Y: 48, Height: '+$height+'}')))
+    Assert-Fx (Get-Property 'galEditorFields' 'Y') (52+$height) "Error height $height moves fields below the entire message"
+}
+$engine.UpdateVariable('lblEditorSaveError',(Eval '{Visible: false, Y: 48, Height: 140}'))
+Assert-Fx (Get-Property 'galEditorFields' 'Y') 56 'No error retains the normal form position'
 Write-Host "Actual record core Power Fx passed: $checks assertions; $syntax behavior formulas parsed. Connector delegation/ETag/Studio still require DEV acceptance."

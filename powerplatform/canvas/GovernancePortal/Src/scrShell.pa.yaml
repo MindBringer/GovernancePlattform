@@ -394,7 +394,7 @@ Screens:
                                               SortByColumns(
                                                   Filter(
                                                       colFormFields As formField,
-                                                      formField.ObjectTypeKey = gblSelectedObjectTypeKey && Switch(gblObjectType, "Asset", formField.FieldInternalName in ["Title", "AssetType", "Owner", "DeputyOwner", "BusinessOwner", "TechnicalOwner", "DataSteward", "Criticality", "DataClassification", "LifecycleStatus", "ConfidentialityRequirement", "IntegrityRequirement", "AvailabilityRequirement", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive"], "System", formField.FieldInternalName in ["Title", "Description", "MonitoringStatus", "BackupStatus", "AuthenticationType", "SupportModel", "Owner", "GovernanceStatus", "Criticality", "SystemType", "Environment", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive", "LinkedAsset"], false)
+                                                      formField.ObjectTypeKey = gblSelectedObjectTypeKey && Switch(gblObjectType, "Asset", formField.FieldInternalName in ["Title", "AssetType", "Owner", "DeputyOwner", "BusinessOwner", "TechnicalOwner", "DataSteward", "Criticality", "DataClassification", "LifecycleStatus", "ConfidentialityRequirement", "IntegrityRequirement", "AvailabilityRequirement", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive"], "System", formField.FieldInternalName in ["Title", "SystemDescription", "MonitoringStatus", "BackupStatus", "AuthenticationType", "SupportModel", "Owner", "GovernanceStatus", "Criticality", "SystemType", "Environment", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive", "LinkedAsset"], false)
                                                   ),
                                                   "SortOrder",
                                                   SortOrder.Ascending
@@ -767,7 +767,7 @@ Screens:
                                                   Set(gblRecordError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
                                                   ClearCollect(colRecordValues, Table(
                                           {FieldInternalName: "Title", NativeControlType: "Text", ValueText: gblSystemRecord.Title, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
-                                          {FieldInternalName: "Description", NativeControlType: "Note", ValueText: gblSystemRecord.Description, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "SystemDescription", NativeControlType: "Note", ValueText: gblSystemRecord.SystemDescription, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
                                           {FieldInternalName: "MonitoringStatus", NativeControlType: "Text", ValueText: gblSystemRecord.MonitoringStatus, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
                                           {FieldInternalName: "BackupStatus", NativeControlType: "Text", ValueText: gblSystemRecord.BackupStatus, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
                                           {FieldInternalName: "AuthenticationType", NativeControlType: "Text", ValueText: gblSystemRecord.AuthenticationType, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
@@ -1204,7 +1204,7 @@ Screens:
                                           Color: =If(Self.DisplayMode = DisplayMode.Edit, gblTheme.ColorTextInverse, gblTheme.ColorTextMuted)
                                           DisplayMode: |-
                                             =If(
-                                                gblEditorCanSave && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog
+                                                gblEditorCanSave && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorConflict
                                                   && CountRows(Filter(colEditorValues, IsValid = false)) = 0
                                                   && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                   && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
@@ -1394,7 +1394,7 @@ Screens:
                                                                 ),
                                                                 {
                                                                     Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
-                                                                    Description: LookUp(colEditorValues, FieldInternalName = "Description", ValueText),
+                                                                    SystemDescription: LookUp(colEditorValues, FieldInternalName = "SystemDescription", ValueText),
                                                                     GovernanceStatus: {
                                                                         Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
                                                                     },
@@ -1498,7 +1498,10 @@ Screens:
                                     - lblEditorSaveError:
                                         Control: Label@2.5.1
                                         Properties:
-                                          Text: =If(!gblEditorLoadComplete, "Der Datensatz konnte nicht vollständig zugeordnet werden. Bearbeitung ist gesperrt.", gblSaveError)
+                                          Text: |-
+                                            =If(!IsBlank(gblSaveError), gblSaveError, "Der Datensatz konnte nicht vollständig zugeordnet werden. Bearbeitung ist gesperrt.")
+                                          AutoHeight: =true
+                                          Live: =Live.Assertive
                                           Color: =gblTheme.ColorError
                                           Font: =Font.'Open Sans'
                                           Size: =11
@@ -1506,7 +1509,8 @@ Screens:
                                           Width: =Parent.Width - 32
                                           X: =16
                                           Y: =48
-                                          Visible: =gblCurrentPage = "editor" && (!gblEditorLoadComplete || !IsBlank(gblSaveError))
+                                          Visible: |-
+                                            =gblCurrentPage = "editor" && (!gblEditorLoadComplete || !IsBlank(gblSaveError))
                                     - lblEditorRevalidate:
                                         Control: Label@2.5.1
                                         Properties:
@@ -1522,7 +1526,7 @@ Screens:
                                                     && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                     && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
-                                                    && !gblSaveBusy && !gblLoadBusy
+                                                    && !gblSaveBusy && !gblLoadBusy && !gblEditorConflict
                                                     && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                     && Coalesce(gblActiveProvider.SupportsSave, false)
                                                     && Switch(
@@ -1553,7 +1557,8 @@ Screens:
                                                 && gblObjectType <> ""
                                           Width: =Parent.Width - 32
                                           X: =16
-                                          Y: =If(lblEditorSaveError.Visible, 100, 56)
+                                          Y: |-
+                                            =If(lblEditorSaveError.Visible, lblEditorSaveError.Y + lblEditorSaveError.Height + 4, 56)
                                         Children:
                                           - lblEditorField:
                                               Control: Label@2.5.1

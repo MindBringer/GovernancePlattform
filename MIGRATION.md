@@ -1,5 +1,11 @@
 # Governance Portal – Migration to Canvas SourceCode
 
+## P1-Systembeschreibung – vorbereitet, nicht ausgeführt
+
+Der lokale Canvas-Quellenkandidat 30445 verwendet `Systems.SystemDescription` (Note, Anzeige Beschreibung). Die bisherige native `Description` ist lesend als versiegelt/schreibgeschützt belegt und bleibt erhalten. Kein Umstellen von ReadOnly/Sealed, keine Umbenennung oder Löschung; vorhandene Werte werden nicht überschrieben. Architektur-/Provisioning-Baseline bleibt 6.2.5, Canvas 1.0.0-alpha.4.1.0; die additive Änderung liegt unter Unreleased und ist nicht global provisioniert.
+
+Die begrenzte Vorbereitung ergänzt ausschließlich die eigene Systems-Spalte und die zwei Runtimezeilen `System:SystemDescription` / `System:Edit:SystemDescription`. Andere Schemafelder, Metadatenzeilen und Objekttypen bleiben erhalten. Es erfolgt keine automatische Datenmigration von Description; vor späterer fachlicher Migration Bestand und Semantik separat prüfen. Das echte generierte Connector-Referenzpaket ist noch zu aktualisieren; der neue Build-Schreibvertrags-Gate bleibt bis dahin gesperrt. [Freigabescope und Stop-Regeln](docs/development/Stage-4.1-P1-SystemDescription.md).
+
 ## Target structure
 
 ```text

@@ -1,7 +1,8 @@
 [CmdletBinding()]
 param(
     [string]$RepositoryRoot = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '../..')),
-    [string]$CanvasArtifactRelativePath = 'powerplatform/solution/CanvasApps/gp_governanceportal_c93a1_DocumentUri.msapp'
+    [string]$CanvasArtifactRelativePath = 'powerplatform/solution/CanvasApps/gp_governanceportal_c93a1_DocumentUri.msapp',
+    [string]$PythonCommand = 'python3'
 )
 
 Set-StrictMode -Version Latest
@@ -116,3 +117,7 @@ Keep the current Src/*.pa.yaml files unchanged and run Build.ps1 again.
 Write-Host "Canvas reference validation passed."
 Write-Host "  Artifact:   $canvasArtifact"
 Write-Host "  References: $($requiredReferences -join ', ')"
+
+# A named reference is insufficient: every actual Patch column must be writable.
+& $PythonCommand (Join-Path $RepositoryRoot 'tools/companion/verify_canvas_write_contract.py') --root $RepositoryRoot --artifact $CanvasArtifactRelativePath
+if ($LASTEXITCODE -ne 0) { throw "Canvas connector write contract failed (exit $LASTEXITCODE); build/deployment is blocked." }

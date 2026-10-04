@@ -10,7 +10,11 @@ App:
   Properties:
     OnError: |-
       =Set(gblRecordError, "Datenzugriff fehlgeschlagen. " & FirstError.Message);
-      If(gblSaveBusy, Set(gblSaveError, "Speicherergebnis unklar. Vor erneutem Speichern Datenstand prüfen."); Set(gblEditorConflict, true));
+      If(gblSaveBusy || gblCurrentPage = "editor",
+          Set(gblSaveError, gblRecordError & " Vor erneutem Speichern Datenstand prüfen.");
+          Set(gblEditorConflict, true);
+          Set(gblEditorCanSave, false)
+      );
       Set(gblLoadBusy, false);
       Set(gblSaveBusy, false)
     OnStart: |-
