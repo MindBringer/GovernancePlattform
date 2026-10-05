@@ -2,9 +2,15 @@
 
 Stand: 2026-10-05 · `codex/stage41-p1` · [Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) · Modellklasse `deep-reasoning`.
 
-## Ergebnis und Ursache
+## Aktuelle freigegebene DEV-Abnahme
 
-**Die konkret freigegebene DEV-Voraussetzung ist abgeschlossen; Deploymentkandidat 30445 ist vollständig gebaut. P1 bleibt bis zur getrennten DEV-Abnahme offen.** DEV zuletzt belegt: Solution 30444 / Canvas 193 Live, Draft 194 nicht veröffentlicht. Dieses Vorbereitungspaket enthält keinen Import, Publish oder fachlichen App-Save.
+**DEV enthält Solution 30445 / Canvas 195 Live durch den freigegebenen Solution-Import.** PAC Import und lesender Postexport jeweils Exit 0; das exportierte msapp ist bytegleich mit dem freigegebenen Kandidaten. Der Importaufruf enthielt weder Publish All noch `--publish-changes`; Maker weist dennoch 195 als Live aus. Ein separater gezielter Publish wurde nicht ausgeführt. Die Studio-Prüfung ist wegen nicht bedienbarem In-App-Frame und wiederholtem Wechsel des nativen Edge-Fensters noch offen. Kein manueller Save, Rebinding oder fachlicher Write. Der verbleibende Abnahmescope ist bereits freigegeben.
+
+Verbrauch 30445: Import **1/1**; Personen-/Lookup-Rebinding **je 0/1**, manuelles Save **0/1**, gezieltes Publish **0/1**, Creates **0/2**, System-Edits **0/5**, Konflikt-Quellen-Edit / blockierter App-Save **je 0/1**, reversible Deletes **0/2**. Schema-/Metadaten-/Bestands-Writes, Publish All und Import-Retries **0**. Alle drei Kandidaten-Hashes und CI am Kandidaten-Head `4ad92326028877ed1d381fdda9c647e27bce6af7` geprüft; drei Checks SUCCESS. Exporte, Zähler, Logs und Screenshots ignoriert unter `artifacts/p1-20261002/dev-abnahme-30445-20261005/`. Kein neuer Build oder DEV→Git.
+
+## Abgeschlossene Voraussetzung vor dem Import
+
+**Die konkret freigegebene DEV-Voraussetzung ist abgeschlossen; Deploymentkandidat 30445 ist vollständig gebaut. P1 bleibt bis zur getrennten DEV-Abnahme offen.** Stand am Ende der Vorbereitung: Solution 30444 / Canvas 193 Live, Draft 194 nicht veröffentlicht. Dieses Vorbereitungspaket enthält keinen Import, Publish oder fachlichen App-Save.
 
 Native lesende Prüfung belegt `Systems.Description` als Note mit ReadOnlyField=true und Sealed=true, Hidden=false / FromBaseType=false, Gruppe `_Hidden`. Der Connector-Schreibschutz entspricht dem nativen Feld. Die ursprüngliche Provisionierungshistorie ist nicht bewiesen. Description, seine Werte und sein Architekturvertrag bleiben erhalten; ReadOnly/Sealed und Connector-Permissions werden nicht umgestellt. Eine Datenmigration ist nicht Teil dieses Pakets.
 
@@ -42,7 +48,7 @@ ZIP enthält bytegleich das geprüfte msapp. Private Logs, native Vor-/Rücklese
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P1 · Kandidat 30445 in DEV übernehmen und begrenzt abnehmen.** Dieses neue Paket ist noch nicht freigegeben. Nach [AGENTS.md](../../AGENTS.md) sind Import/Publish und Live-Writes separat zu beauftragen. Exakter ZIP/msapp oben und folgende Grenzen bilden den konkreten nächsten Scope; die abgeschlossene Spalten-/Metadaten-/Referenzvorbereitung wird nicht wiederholt.
+**P1 · Rest der bereits freigegebenen 30445-DEV-Abnahme fortsetzen**, Modellklasse `deep-reasoning`. Import und Postexport sind abgeschlossen; kein weiterer Import. Nach freier nativer Edge-/Studio-Bedienung Checker, gespeicherten Host-/Quellvergleich, höchstens einen manuellen Save und ein gezieltes App-Publish prüfen, danach den unverändert freigegebenen synthetischen Round-Trip ausführen. Personen-/Lookup-Rebindings nur falls nötig, bisher jeweils 0/1. Diese Freigabe bleibt bestehen; Vorbereitung und verbrauchte Imports werden nicht wiederholt. P1 bleibt offen, P2 folgt danach. Die separate Freigabe ist am 05.10.2026 erteilt; der Import ist verbraucht. Nach [AGENTS.md](../../AGENTS.md) wird ausschließlich der verbleibende Scope ausgeführt. Exakter ZIP/msapp oben und folgende Grenzen bilden den konkreten nächsten Scope; die abgeschlossene Spalten-/Metadaten-/Referenzvorbereitung wird nicht wiederholt.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|
@@ -54,6 +60,6 @@ ZIP enthält bytegleich das geprüfte msapp. Private Logs, native Vor-/Rücklese
 | Konfliktprüfung | 1 zusätzlicher Quellen-Titel-Edit ausschließlich am synthetischen System; 1 anschließend blockierter App-Save, Quellenversion erhalten; kein stiller Retry |
 | Reversibles Cleanup | 2: ausschließlich neu erzeugte IDs, System vor Asset; keine Papierkorbleerung |
 
-Marker bei Freigabe: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler beginnen für dieses neue Paket bei 0; alte Freigaben gelten dafür nicht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
+Bereits freigegebene Marker: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler dieses neuen Pakets sind oben dokumentiert; alte Abnahme-/Diagnosekontingente bleiben verbraucht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
 
 P1 bleibt bis zur belegten DEV-Abnahme offen; P2 folgt danach. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.

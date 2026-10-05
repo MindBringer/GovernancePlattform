@@ -2,6 +2,12 @@
 
 Stand: 2026-10-05 · Branch `codex/stage41-p1`, Basis `5caee00823032b4306f0bdaa900ca9817a53610e` aus [P0-PR #16](https://github.com/MindBringer/GovernancePlattform/pull/16). [P1-Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) liegt auf `codex/stage41-p0` zur Prüfung bereit. Fachlicher Zielzweig bleibt `feature/canvas-stage-4.1-provider-engine`; kein Merge.
 
+## Aktueller freigegebener DEV-Stand 30445
+
+**DEV enthält Solution 30445 / Canvas 195 Live durch den freigegebenen Solution-Import.** PAC Import und lesender Postexport jeweils Exit 0; das exportierte msapp ist bytegleich mit dem freigegebenen Kandidaten. Der Importaufruf enthielt weder Publish All noch `--publish-changes`; Maker weist dennoch 195 als Live aus. Ein separater gezielter Publish wurde nicht ausgeführt. Die Studio-Prüfung ist wegen nicht bedienbarem In-App-Frame und wiederholtem Wechsel des nativen Edge-Fensters noch offen. Kein manueller Save, Rebinding oder fachlicher Write. Der verbleibende Abnahmescope ist bereits freigegeben.
+
+Verbrauch dieses neuen Pakets: Import **1/1**; Personen-/Lookup-Rebinding **je 0/1**, manueller Studio-Save **0/1**, gezieltes Publish **0/1**, Creates **0/2**, System-Edits **0/5**, Konflikt-Quellen-Edit und blockierter App-Save **je 0/1**, reversible Deletes **0/2**. Schema-/Metadaten-/Bestands-Writes und Publish All **0**. Noch keine neuen Testdatensätze, kein Cleanup erforderlich. Private Evidenz unter `artifacts/p1-20261002/dev-abnahme-30445-20261005/`; aktuelle Browser-/Quellenprüfung vor Fortsetzung erforderlich.
+
 ## Aktueller lokaler Deploymentkandidat 30445
 
 Die konkret freigegebene P1-DEV-Vorbereitung ist abgeschlossen: eigene Systems-Note-Spalte `SystemDescription` (Anzeige **Beschreibung**, Plain Text, acht Zeilen, optional/nicht indiziert, schreibbar/unversiegelt) und genau zwei neue Runtimezeilen `System:SystemDescription` / `System:Edit:SystemDescription` angelegt und zurückgelesen. 724 zuvor vorhandene Zeilen in den beiden betroffenen Metadatenlisten bleiben nach ID/Modified/Version unverändert. Die native versiegelte `Description` samt Schreibschutz bleibt erhalten; keine Datenmigration, Rechteänderung oder globale Provisionierung.
@@ -38,4 +44,4 @@ Ursprünglicher Workspace `codex/stage-4.1-dev-baseline` mit elf gestagten Datei
 
 ## Primäres nächstes Arbeitspaket
 
-**P1 · Kandidat 30445 in DEV übernehmen und begrenzt abnehmen**, Modellklasse `deep-reasoning`. Exakter ZIP-/msapp-Kandidat und neuer Scope sind in [SystemDescription](docs/development/Stage-4.1-P1-SystemDescription.md) dokumentiert: ein Import ohne Publish All, unterstützte Hostkompilierung, ein gezieltes App-Publish und begrenzter synthetischer Round-Trip für Beschreibung, Personen, Choices, leere/positive Lookups und Konflikte mit reversibler Bereinigung. Dieses neue Live-Paket ist noch nicht freigegeben. Die abgeschlossene Voraussetzung wird nicht wiederholt; alte Diagnosekontingente bleiben verbraucht. P1 bleibt bis zur DEV-Abnahme offen, P2 folgt danach.
+**P1 · Rest der bereits freigegebenen 30445-DEV-Abnahme fortsetzen**, Modellklasse `deep-reasoning`. Import und Postexport sind abgeschlossen; kein weiterer Import. Nach freier nativer Edge-/Studio-Bedienung Checker, gespeicherten Host-/Quellvergleich, höchstens einen manuellen Save und ein gezieltes App-Publish prüfen, danach den unverändert freigegebenen synthetischen Round-Trip ausführen. Personen-/Lookup-Rebindings nur falls nötig, bisher jeweils 0/1. Diese Freigabe bleibt bestehen; Vorbereitung und verbrauchte Imports werden nicht wiederholt. P1 bleibt offen, P2 folgt danach.
