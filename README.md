@@ -7,7 +7,7 @@ Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-alpha.4.1.0` | P0 abgenommen; DEV 30445/196 Live, Suchregeln und publizierter Host geprüft. P1: Creates und System-Edit 1/5 bestanden; weitere Edits, Konflikt/Cleanup nach exklusiver nativer Edge-Steuerung offen |
+| Canvas App | `1.0.0-alpha.4.1.0` | P0 und begrenzter P1-DEV-Round-Trip abgenommen; 30445/196 Live. Fünf System-Edits, Konfliktsperre und reversibles Cleanup bestanden; nächstes Paket P2 Asset/Verantwortliche |
 | Developer Workflow | `Stage 4.1` | lokales Profil 1.2.0; Framework-PR #6 bleibt isoliert |
 
 Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-Version. `powerplatform/solution/VERSION` spiegelt die Canvas-Version; die vierteilige Solution-Paketversion steht im Solution-Manifest. Die Stage-4.1-Änderungen sind noch nicht nach `main` integriert; `main` enthält Canvas `1.0.0-alpha.4.0.0`.
