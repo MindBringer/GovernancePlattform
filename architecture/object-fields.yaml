@@ -1128,6 +1128,29 @@
       "section": "General",
       "sortOrder": 0,
       "maxLength": 255
+    },
+    {
+      "objectTypeKey": "System",
+      "internalName": "Title",
+      "displayNameDE": "Titel",
+      "type": "Text",
+      "required": true,
+      "indexed": false,
+      "visible": true,
+      "section": "General",
+      "sortOrder": 0,
+      "maxLength": 255
+    },
+    {
+      "objectTypeKey": "System",
+      "internalName": "SystemDescription",
+      "displayNameDE": "Beschreibung",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "visible": true,
+      "section": "General",
+      "sortOrder": 15
     }
   ]
 }

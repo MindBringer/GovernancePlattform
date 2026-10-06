@@ -56,6 +56,12 @@ $engine.UpdateVariable('gblObjectType', 'Asset')
 $engine.UpdateVariable('gblEditorMode', 'New')
 $engine.UpdateVariable('gblSelectedRecordId', 0)
 $engine.UpdateVariable('gblSaveBusy', $false)
+$engine.UpdateVariable('gblLoadBusy', $false)
+$engine.UpdateVariable('gblCurrentPage', 'ObjectList')
+$engine.UpdateVariable('gblEditorLoadComplete', $true)
+$engine.UpdateVariable('gblEditorDirty', $true)
+$engine.UpdateVariable('gblLoadedRecordId', 42)
+$engine.UpdateVariable('gblEditorConflict', $false)
 $engine.UpdateVariable('gblShowDiscardDialog', $false)
 $engine.UpdateVariable('gblEditorCanSave', $true)
 $engine.UpdateVariable('colEditorChoiceOptions', $engine.Eval('Table({EditorFieldKey: "Asset:Criticality", ChoiceKey: "Criticality:High", DisplayNameDE: "Hoch"})', $null, $options))
@@ -122,8 +128,11 @@ $engine.UpdateVariable('gblEditorMode', 'New')
 $engine.UpdateVariable('gblSelectedRecordId', 0)
 $engine.UpdateVariable('gblObjectType', 'System')
 $engine.UpdateVariable('gblActiveProvider', $engine.Eval('{ObjectTypeKey: "System", SupportsCreate: true, SupportsEdit: true, SupportsSave: true}', $null, $options))
-Assert-Formula $saveFormula 'Edit' 'Asset Title guard preserves System capability contract'
-Assert-Formula $validityFormula $true 'System revalidation unchanged by Asset Title guard'
+Assert-Formula $saveFormula 'Disabled' 'Missing System Title metadata also blocks save'
+Assert-Formula $validityFormula $false 'Missing System Title revalidation'
+$engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "System:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "P1-SYSTEM"})', $null, $options))
+Assert-Formula $saveFormula 'Edit' 'Valid System Title permits native save'
+Assert-Formula $validityFormula $true 'Valid System Title revalidation'
 $engine.UpdateVariable('gblObjectType', 'Asset')
 $engine.UpdateVariable('gblActiveProvider', $engine.Eval('{ObjectTypeKey: "Asset", SupportsCreate: true, SupportsEdit: true, SupportsSave: true}', $null, $options))
 $engine.UpdateVariable('colEditorValues', $engine.Eval('Table({IsValid: true, ControlType: "Text", EditorFieldKey: "Asset:Title", ValueChoiceKey: "", FieldInternalName: "Title", ValueText: "' + ('X' * 255) + '"})', $null, $options))
@@ -153,6 +162,7 @@ Assert-Formula $newFormula 'Disabled' 'Missing provider'
 Assert-Formula $saveFormula 'Disabled' 'Missing save provider'
 # Hidden input instances share a gallery record but must never mutate it.
 # Evaluate every real handler's guard independently of Canvas event simulation.
+$engine.UpdateVariable('ThisItem', $engine.Eval('{EditorFieldKey: "Asset:Title", IsRequired: true, ValueText: "", ValueNumber: If(false, 0, Blank()), ValueDate: If(false, Now(), Blank()), ValueBoolean: false, ValueChoiceKey: "", ValueLookupId: If(false, 0, Blank()), ValuePersonClaims: "", ValuePersonEmail: ""}', $null, $options))
 foreach ($control in 'txtEditorText', 'txtEditorMultiline', 'txtEditorNumber', 'datEditorDate', 'togEditorBoolean', 'drpEditorChoice', 'cmbEditorLookup', 'cmbEditorPerson') {
     $events = if ($control -eq 'togEditorBoolean') { @('OnCheck', 'OnUncheck') } else { @('OnChange') }
     foreach ($event in $events) {
@@ -167,7 +177,7 @@ foreach ($control in 'txtEditorText', 'txtEditorMultiline', 'txtEditorNumber', '
             @{Visible=$true; Mode='View'; Expected=$false}
         )) {
             $visibleLiteral = ([string]$case.Visible).ToLowerInvariant()
-            $engine.UpdateVariable('testEditorControl', $engine.Eval('{Visible: ' + $visibleLiteral + ', DisplayMode: "' + $case.Mode + '"}', $null, $options))
+            $engine.UpdateVariable('testEditorControl', $engine.Eval('{Visible: ' + $visibleLiteral + ', DisplayMode: "' + $case.Mode + '", Text: "12", Value: true, SelectedDate: Date(2026,10,2), Selected: {ChoiceKey: "Criticality:High"}, SelectedItems: Table({LookupId: 42, UserPrincipalName: "test@example.invalid", DisplayName: "Synthetic Test"})}', $null, $options))
             Assert-Formula $guard $case.Expected "$control.$event visibility/editability guard"
         }
     }

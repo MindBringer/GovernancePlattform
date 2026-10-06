@@ -40,6 +40,8 @@ README-APPLY.md
 
 # Local refactoring/cache directories
 .refact/
+.venv-validation/
+__pycache__/
 
 artifacts/inbound/*
 artifacts/outbound/*

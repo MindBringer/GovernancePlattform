@@ -8,6 +8,16 @@ Entwicklungsstände werden nicht mehr als ZIP verteilt. Änderungen werden in Gi
 
 Git, Python 3, PowerShell 7 und Power Platform CLI.
 
+Die Canvas-Validierung benötigt den echten YAML-Parser aus `tools/companion/requirements-validation.txt`. Vor Build/Companion im Repository eine lokale Python-Umgebung aktivieren:
+
+```bash
+python3 -m venv .venv-validation
+source .venv-validation/bin/activate
+python3 -m pip install -r tools/companion/requirements-validation.txt
+```
+
+`Validate-CanvasSource.ps1` prüft damit alle kanonischen `*.pa.yaml` vor dem Pack. Syntaxprüfung, Power-Fx-Tests und bytegleicher Pack-/Unpack ersetzen das Öffnen im Studio nicht.
+
 ## Branch testen
 
 ```bash

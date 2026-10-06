@@ -8,6 +8,14 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install Canvas YAML validator and run regression checks
+        run: |
+          python3 -m pip install -r tools/companion/requirements-validation.txt
+          python3 -m unittest discover -s tools/companion -p test_verify_canvas_yaml.py
+          python3 -m unittest discover -s tools/companion -p test_verify_canvas_write_contract.py
       - name: PowerShell syntax and repository checks
         shell: pwsh
         run: |
@@ -34,3 +42,9 @@ jobs:
       - name: Validate Canvas choice source and compiler contract
         shell: pwsh
         run: ./powerplatform/scripts/Test-CanvasChoiceContract.ps1
+      - name: Validate additive System description schema and metadata contract
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-SystemDescriptionContract.ps1
+      - name: Validate record core source and compiler contract
+        shell: pwsh
+        run: ./powerplatform/scripts/Test-CanvasRecordCore.ps1
