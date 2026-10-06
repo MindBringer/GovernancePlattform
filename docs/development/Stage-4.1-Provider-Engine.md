@@ -1,5 +1,13 @@
 # Stage 4.1 – Runtime Provider Engine
 
+## Aktueller Stand (06.10.2026)
+
+**P2 ist lokal abgeschlossen (06.10.2026): Kandidat 30446, DEV-Abnahme offen.** Alle 17 Asset-Felder sind gegen die 31 Architekturfelder abgegrenzt. Owner, Stellvertretung, BusinessOwner, TechnicalOwner und DataSteward behalten ihre bestehende UPN-/Claims-Identität. Optionales Datum lässt sich über „Datum leeren“ entfernen; ein geänderter Kalenderwert wird explizit als DateTime übernommen, ein unveränderter nativer Zeitpunkt bleibt erhalten. 20/20 verfügbare Gates, Build, Pack/Unpack und Artefaktidentität bestehen; 2.349 tatsächliche Power-Fx-Assertions / 57 Formeln, 13 Python-Regressionen. DEV bleibt 30445 / Canvas 196 Live. [P2-Vertrag und separate Abnahme](Stage-4.1-P2-Asset-Verantwortliche.md).
+
+**P2 · begrenzte DEV-Abnahme von 30446**, Modellklasse `standard-reasoning`. Den lokal geprüften Asset-Kandidaten nach eigener Freigabe einmal in DEV übernehmen, unterstützt in Studio kompilieren und gezielt veröffentlichen. An genau einem synthetischen Asset alle fünf Personenfelder, Status/Kritikalität, Reviewtermine und optionale Leerwerte mit nativer Rückleseprüfung und sauberem Wiederöffnen abnehmen; anschließend reversibel bereinigen. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md). P1-Abnahme und Bestandsdaten bleiben abgeschlossen; P3 beginnt erst nach bestandener P2-Abnahme. Keine aktuelle Freigabe für Import, Publish oder fachliche Tenant-Writes.
+
+Die folgenden Versionsberichte sind historische Evidenz; die aktuelle Arbeitsgrenze steht oben und in PROJECT_STATE.md.
+
 ## Ziel
 
 Stage 4.1 überführt die statische `ObjectProviderRegistry.json` in eine typisierte Canvas-Laufzeitcollection. Die Registry wird damit nicht nur dokumentiert und validiert, sondern steuert sichtbare Fähigkeiten der App.
@@ -68,7 +76,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 - Datenquellen werden weiterhin statisch in Power Fx adressiert; Power Apps erlaubt keine dynamische Dereferenzierung aus Textwerten.
 - Die Registry steuert Fähigkeiten und Providerauflösung, ersetzt aber noch nicht die statischen Save-Zweige.
-- Der Datensatzkern (Roadmap P1) ergänzt Liste, Laden und Bearbeiten für Asset/System. DEV 30444/193 Live, beide generierten Suchbindungen und native Formelprüfung belegt; Titeleingabe, beide Creates und unverändertes Wiederöffnen bestanden. Erster System-Edit nicht persistiert, Quelle Version 1.0/unverändert, Folge-Edits gestoppt und beide Testdatensätze reversibel bereinigt. 725 Assertions/Build/Round-Trip/18 Gates gelten für unveränderten Quellkandidaten; System-/Lookup-Round-Trip offen. Die anschließende freigegebene Monitor-Diagnose belegt den Description-Schreibschutzfehler im Edit; Testsystem ID 4 bereinigt, Diagnoseverbrauch je 1/1. Nächstes Paket: lokale Reparatur des Schreibvertrags mit Regression; DEV-Übernahme separat. Change folgt P3, Incident/Problem später.
+- Der Datensatzkern (Roadmap P1) ergänzt Liste, Laden und Bearbeiten für Asset/System. DEV 30444/193 Live, beide generierten Suchbindungen und native Formelprüfung belegt; Titeleingabe, beide Creates und unverändertes Wiederöffnen bestanden. Erster System-Edit nicht persistiert, Quelle Version 1.0/unverändert, Folge-Edits gestoppt und beide Testdatensätze reversibel bereinigt. 725 Assertions/Build/Round-Trip/18 Gates gelten für unveränderten Quellkandidaten; System-/Lookup-Round-Trip offen. Die anschließende freigegebene Monitor-Diagnose belegt den Description-Schreibschutzfehler im Edit; Testsystem ID 4 bereinigt, Diagnoseverbrauch je 1/1. Der damals offene Schreibvertrag wurde in P1/30445 repariert und abgenommen; der aktuelle P2-Scope steht oben. Change folgt P3, Incident/Problem später.
 
 ## Abnahmekriterien
 
@@ -85,7 +93,7 @@ Für den Git-Kandidaten wurde ein diagnostisches Label mit festem Suchwert aus d
 
 30431 / Canvas 168 belegte den erforderlichen Studio-Verarbeitungsschritt nach SourceCode-Import; die direkte Importversion führte noch alte interne Regeln aus. Die `.msapr`-Pack-Baseline behält historische Controls/SARIF und ist keine aktuelle Maker-Abnahme. 30432 ergänzte den nativen verpflichtenden Asset-Title und genau zwei Metadatenzeilen. Seine unzulässigen Classic-Button-Properties wurden in 30433 korrigiert; 30434/35 reparierten Galerieereignisse. Details und Versionen stehen historisch in der [P0-Abnahme](Stage-4.1-P0-Abnahme.md); aktueller Stand und einziges Folgepaket folgen unten.
 
-## P0-Host-/Choice-Abnahme: aktueller Kandidat 30440
+## Historische P0-Host-/Choice-Abnahme 30440
 
 **DEV 30440 / Canvas 184 Live, P0 technisch abgeschlossen (02.10.2026).** Import ohne Publish All Exit 0, Postimport-msapp bytegleich mit Kandidat. Unterstütztes Studio-Items-Rebinding erhält die kanonische Formel; lesender Export bestätigt die generierte V2-Personensuche, feldbezogenen Choice-Default, AllowEmptySelection, zehn native Choice-Adapter und beide Save-Guards. Kein privater YAML-/Pack-Hack und kein Source-Takeover.
 
@@ -93,7 +101,7 @@ Genau ein zusätzlicher ausdrücklich freigegebener Save ID 9 im frischen Player
 
 Studio-184-Checker vor Veröffentlichung: keine Formel-/Laufzeitbefunde; zwei ungenutzte Quellen, 56 Accessibility-Befunde und zwölf Leistungswarnungen. 347 Offline-Power-Fx-Assertions, Quell-/Compiler-/Personenverträge, Build und verfügbare Projekt-Gates bestehen. Reine Tastatur-Persistenz der Personenauswahl und vollständige Asset-/Rollen-/Reviewabnahme bleiben offen; Neu-Fokus nach Verwerfen nun beobachtet. Details: [P0-Abnahme](Stage-4.1-P0-Abnahme.md).
 
-## P1: Datensatzkern, DEV 30444 und offene Abnahme
+## Historischer P1-Datensatzkern und DEV-Fehler 30444
 
 Native Asset-/System-Galerien verwenden direkte Titelanfangsfilter oder ID-Gleichheit und ID-Sortierung; die Galerie lädt weitere Datensätze beim Blättern. Keine lokale Gesamtzahl oder vorgeschaltete begrenzte Datensatzcollection. Load speichert den originalen nativen Record und hydriert genau den vorhandenen Patch-Vertrag (Asset 17 / System 16 Felder). Metadatentyp/-vollständigkeit und unbekannte Choices sperren Save; unveränderte Personenobjekte bleiben erhalten. Edit benötigt geladene ID, vollständigen Load, echte Änderung und konfliktfreien Stand. Frische Modified-Prüfung und `ErrorKind.Conflict` geben sichtbare Fehler; der atomare Connector-Konfliktschutz ist in DEV zu prüfen.
 
@@ -107,4 +115,4 @@ Die sieben bisher nicht ausführbaren Registry-Typen melden nun auch List/Create
 
 Die konkret freigegebene Monitor-Diagnose auf unverändert 30444/193 ist abgeschlossen: genau ein System-Create, ein Titel-Edit und ein reversibles Cleanup, je 1/1, kein Retry. Neuanlage ID 4/Version 1.0 und unverändertes Wiederöffnen mit Testkonto/Entwurf/Hoch/Aktiv und leerem LinkedAsset bestehen. Native Return-Aktivierung nach bestätigtem Save-Fokus startet beide Speicherereignisse. Create: Monitor `patchCreateRow` und `createRow`/HTTP 201 Created. Edit: `lblEditorSave.OnSelect` meldet bei `Patch` **„[Systems] Spalte Description ist schreibgeschützt und kann nicht geändert werden“**; kein `updateRow` im aufgezeichneten Monitor, Quelle alter Titel/Version 1.0 und alle sichtbaren Felder unverändert. Lokales 30444-msapp und publizierter 193-Export deklarieren `Systems.Description` als `x-ms-permission: read-only`; der kanonische System-Save enthält das Feld auch beim reinen Titel-Edit, Architekturtyp ist Note. Ursprung des Schreibschutzes in nativer Liste/Connector-Metadaten noch offen. Testsystem ID 4 mit Marker/Herkunft Systems im Papierkorb, Alle Elemente/Systems leer, vier Bestandsassets sichtbar; keine Asset-Writes. Fehler erscheint nach Verwerfen auf der Datensatzliste, während der Editor vorher dirty blieb. Monitor zum Handoff Getrennt; 1.605 aufgezeichnete Ereignisse. P1 bleibt offen.
 
-**P1 · lokalen Schreibvertrag für Systems.Description reparieren**, Modellklasse `deep-reasoning`: Architektur, kanonischen System-Save und die Connector-Feldmetadaten gegen den belegten Schreibschutzfehler abgleichen. Minimalen lokalen Reparaturkandidaten mit Regression für diesen Metadatenvertrag und sichtbare Speicherfehler erstellen; Beschreibung, native Record-/Personen-/Choice-/Lookup-Verträge und Konfliktschutz erhalten. Das fachliche Feld nicht entfernen und Tenantrechte nicht ungeprüft ändern. Der Diagnoseumfang ist verbraucht und bereinigt; keine weiteren Live-Writes. Build/Artefaktidentität und vollständige verfügbare Projekt-Gates prüfen, danach einen konkreten DEV-Übernahme-/Abnahmescope vorbereiten. Import, Rebinding, Studio-Save, Publish, Metadatenwrites und DEV→Git bleiben separat zu beauftragen. P2 erst nach P1-Abnahme. [P1-Plan und Grenzen](Stage-4.1-P1-Datensatzkern.md).
+Der damalige Description-Blocker wurde in P1/30445 behoben und begrenzt in DEV abgenommen. Dieser historische Reparaturauftrag ist abgeschlossen; aktueller P2-Kandidat und einziges nächstes Paket stehen oben.

@@ -68,7 +68,7 @@ Die sichtbare Konfliktmeldung im Editor ist belegt. Späte unhandled Errors, Scr
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P2 · Asset und Verantwortliche lokal vervollständigen**, Modellklasse `standard-reasoning`. Den Asset-Pilotumfang gegen die führende Architektur und die bestehenden 17 Save-Felder abgleichen; belegte Lücken für Owner, Stellvertretung, fachliche/technische Verantwortliche, Status, Kritikalität und nächsten Reviewtermin in Load, Formular und Save schließen. Personenidentität und leere optionale Werte erhalten, passende lokale Regressionen und den konkreten DEV-Abnahmekandidaten vorbereiten. Die abgeschlossene P1-Abnahme wird nicht wiederholt. Weitere Tenant-Writes, Import/Publish und Produktivfreigabe sind separat zu beauftragen.
+**P2 · begrenzte DEV-Abnahme von 30446**, Modellklasse `standard-reasoning`. Den lokal geprüften Asset-Kandidaten nach eigener Freigabe einmal in DEV übernehmen, unterstützt in Studio kompilieren und gezielt veröffentlichen. An genau einem synthetischen Asset alle fünf Personenfelder, Status/Kritikalität, Reviewtermine und optionale Leerwerte mit nativer Rückleseprüfung und sauberem Wiederöffnen abnehmen; anschließend reversibel bereinigen. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md). P1-Abnahme und Bestandsdaten bleiben abgeschlossen; P3 beginnt erst nach bestandener P2-Abnahme. Keine aktuelle Freigabe für Import, Publish oder fachliche Tenant-Writes.
 
 ## Abgeschlossene P1-Freigabe und Grenzen
 
@@ -86,4 +86,4 @@ Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgefüh
 
 Bereits freigegebene Marker: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler dieses neuen Pakets sind oben dokumentiert; alte Abnahme-/Diagnosekontingente bleiben verbraucht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
 
-P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 folgt als lokale Umsetzung. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.
+P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 ist lokal als 30446 vorbereitet; dessen DEV-Abnahme folgt separat. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.

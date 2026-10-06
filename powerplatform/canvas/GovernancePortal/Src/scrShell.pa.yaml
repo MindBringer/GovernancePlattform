@@ -464,8 +464,8 @@ Screens:
                                                           ValueDate: If(
                                                               Coalesce(fieldDefinition.ControlType, "") in ["Date", "DateTime"]
                                                                   && !IsBlank(fieldDefinition.DefaultValue),
-                                                              DateValue(fieldDefinition.DefaultValue),
-                                                              If(false, Today(), Blank())
+                                                              DateTimeValue(fieldDefinition.DefaultValue),
+                                                              If(false, Now(), Blank())
                                                           ),
                                                           ValueChoiceKey: Coalesce(
                                                               LookUp(
@@ -1751,7 +1751,7 @@ Screens:
                                                           colEditorValues,
                                                           ThisItem,
                                                           {
-                                                              ValueDate: Self.SelectedDate,
+                                                              ValueDate: If(IsBlank(Self.SelectedDate), If(false, Now(), Blank()), Self.SelectedDate + Time(0, 0, 0)),
                                                               IsDirty: true,
                                                               IsValid: !ThisItem.IsRequired || !IsBlank(Self.SelectedDate),
                                                               ErrorMessage: If(
@@ -1766,6 +1766,39 @@ Screens:
                                                 Visible: =ThisItem.ControlType in ["Date", "DateTime"]
                                                 Width: =Parent.TemplateWidth * 0.30
                                                 X: =Parent.TemplateWidth * 0.36
+                                                Y: =12
+                                          - btnEditorDateClear:
+                                              Control: Classic/Button@2.2.0
+                                              Properties:
+                                                BorderColor: =gblTheme.ColorBorder
+                                                Color: =gblTheme.ColorText
+                                                Fill: =gblTheme.ColorSurface
+                                                FocusedBorderColor: =gblTheme.ColorText
+                                                FocusedBorderThickness: =3
+                                                Font: =Font.'Open Sans'
+                                                TabIndex: =0
+                                                Text: ="Datum leeren"
+                                                Tooltip: =ThisItem.DisplayNameDE & " leeren"
+                                                DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly || IsBlank(ThisItem.ValueDate), DisplayMode.Disabled, DisplayMode.Edit))
+                                                OnSelect: |-
+                                                  =If(
+                                                      Self.Visible && Self.DisplayMode = DisplayMode.Edit && !ThisItem.IsRequired && !IsBlank(ThisItem.ValueDate),
+                                                      Patch(
+                                                          colEditorValues,
+                                                          ThisItem,
+                                                          {
+                                                              ValueDate: If(false, Now(), Blank()),
+                                                              IsDirty: true,
+                                                              IsValid: true,
+                                                              ErrorMessage: ""
+                                                          }
+                                                      );
+                                                      Reset(datEditorDate);
+                                                      Select(lblEditorRevalidate)
+                                                  )
+                                                Visible: =ThisItem.ControlType in ["Date", "DateTime"] && !ThisItem.IsRequired
+                                                Width: =Parent.TemplateWidth * 0.30
+                                                X: =Parent.TemplateWidth * 0.68
                                                 Y: =12
                                           - togEditorBoolean:
                                               Control: Classic/Toggle@2.1.0

@@ -106,6 +106,13 @@ if ($lookupControl -notmatch 'DisplayFields: =\["DisplayText"\]' -or
     $lookupControl -notmatch 'IsSearchable: =true') {
     throw 'Lookup public display/search contract must explicitly use DisplayText/SecondaryText and enable search.'
 }
+$dateClear = Get-Property 'btnEditorDateClear' 'OnSelect'
+foreach ($token in @('!ThisItem.IsRequired','!IsBlank(ThisItem.ValueDate)','ValueDate: If(false, Now(), Blank())','Reset(datEditorDate)','Select(lblEditorRevalidate)')) {
+    if (-not $dateClear.Contains($token)) { throw "Missing optional date clear contract: $token" }
+}
+if ((Get-Property 'datEditorDate' 'OnChange') -notmatch 'ValueDate: If\(IsBlank\(Self.SelectedDate\), If\(false, Now\(\), Blank\(\)\), Self.SelectedDate \+ Time\(0, 0, 0\)\)') {
+    throw 'Date picker must explicitly update the DateTime editor contract and retain typed blank.'
+}
 Write-Host 'Record core source/compiler passed: Asset 17 / System 16 fields; native lists, original Patch bases, capability and conflict contracts.'
 if (-not $PowerFxDirectory) { return }
 foreach ($dll in 'Microsoft.PowerFx.Core.dll','Microsoft.PowerFx.Interpreter.dll') { [void][Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $dll)) }
@@ -163,6 +170,30 @@ foreach ($control in @('txtEditorText','txtEditorMultiline','txtEditorNumber','d
         }
     }
 }
+# P2: evaluate presence changes through the actual numeric event guard,
+# including zero/blank; do not infer behavior from Power Fx coercion rules.
+$numberHandler = Get-Property 'txtEditorNumber' 'OnChange'
+$numberGuard = [regex]::Match($numberHandler,'^If\(\s*(?<guard>[^\r\n]+),').Groups['guard'].Value.Replace('Self.','testControl.').Replace('DisplayMode.Edit','"Edit"')
+$engine.UpdateVariable('ThisItem',(Eval $baseline))
+$engine.UpdateVariable('testControl',(Eval '{Visible: true, DisplayMode: "Edit", Text: ""}'))
+Assert-Fx $numberGuard $true 'Optional numeric zero can be explicitly cleared'
+$engine.UpdateVariable('ThisItem',(Eval 'Patch(ThisItem, {ValueNumber: If(false,0,Blank())})'))
+$engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Text: "0"})'))
+Assert-Fx $numberGuard $true 'Optional blank and numeric zero remain distinct'
+$engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Text: ""})'))
+Assert-Fx $numberGuard $false 'Hydrated blank number remains clean'
+$engine.UpdateVariable('ThisItem',(Eval $baseline))
+# Initial editor values must use the same DateTime column type as hydration.
+$dateDefaultStart = $init.IndexOf('ValueDate: If(') + 'ValueDate: If'.Length
+$dateDefault = 'If' + (Get-Balanced $init $dateDefaultStart '(' ')')
+$engine.UpdateVariable('fieldDefinition',(Eval '{ControlType: "DateTime", DefaultValue: ""}'))
+$engine.UpdateVariable('testDateDefault',(Eval ('Patch({ValueDate: Date(2026,10,1)+Time(13,14,15)}, {ValueDate: '+$dateDefault+'})')))
+Assert-Fx 'IsBlank(testDateDefault.ValueDate)' $true 'Empty review default retains typed DateTime blank'
+$engine.UpdateVariable('fieldDefinition',(Eval 'Patch(fieldDefinition, {DefaultValue: "2026-11-30T13:14:15"})'))
+$engine.UpdateVariable('testDateDefault',(Eval ('Patch({ValueDate: Date(2026,10,1)+Time(13,14,15)}, {ValueDate: '+$dateDefault+'})')))
+Assert-Fx 'Hour(testDateDefault.ValueDate)' 13 'DateTime metadata default retains its hour'
+Assert-Fx 'Minute(testDateDefault.ValueDate)' 14 'DateTime metadata default retains its minute'
+Assert-Fx 'Second(testDateDefault.ValueDate)' 15 'DateTime metadata default retains its second'
 # Complete native rows, synthetic identities only, including alias email vs claims principal.
 foreach ($key in @('Asset','System')) {
     $engine = [Microsoft.PowerFx.RecalcEngine]::new()
@@ -346,6 +377,123 @@ foreach ($key in @('Asset','System')) {
     $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "Owner", Patch(v, {ControlType: "Text"}), v))'))
     Assert-Fx $complete $false "$key incorrect metadata type blocks hydration"
     $engine.UpdateVariable('colEditorValues',$completeValues)
+    if ($key -eq 'Asset') {
+        # P2 uses actual control update records and actual load/hydrate/save
+        # expressions with synthetic directory identities. No connector writes.
+        function EventGuard([string]$Handler) {
+            [regex]::Match($Handler,'^If\(\s*(?<guard>[^\r\n]+),').Groups['guard'].Value.Replace('Self.','testControl.').Replace('DisplayMode.Edit','"Edit"')
+        }
+        function UpdateRecord([string]$Handler, [int]$Index = 0) {
+            $patches = @([regex]::Matches($Handler,'Patch\(\s*colEditorValues,\s*ThisItem,\s*'))
+            if ($patches.Count -le $Index) { throw 'Missing actual field event update record.' }
+            Get-Balanced $Handler ($patches[$Index].Index + $patches[$Index].Length) '{' '}'
+        }
+        function ApplyFieldUpdate([string]$Update) {
+            $engine.UpdateVariable('colEditorValues',(Eval ('ForAll(colEditorValues As row, If(row.EditorFieldKey = ThisItem.EditorFieldKey, Patch(row, '+$Update+'), row))')))
+            $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+        }
+        function AssertOtherAssetFields([string]$ChangedField, [string]$Context) {
+            foreach ($other in ($contract.Fields | Where-Object { $_ -ne $ChangedField })) {
+                $f = @($contract.Schema.Fields | Where-Object InternalName -eq $other)[0]
+                $suffixes = switch ($f.Type) {
+                    'User' { @('.Claims','.DisplayName','.Email','.Department','.JobTitle','.Picture') }
+                    'Choice' { @('.Value') }
+                    default { @('') }
+                }
+                foreach ($suffix in $suffixes) {
+                    $base = if ((Eval 'gblEditorMode').ToObject() -eq 'New') {'testBaseline.'} else {'gblAssetRecord.'}
+                    Assert-Fx ('testSaved.'+$other+$suffix) ((Eval ($base+$other+$suffix)).ToObject()) "$Context preserves $other$suffix"
+                }
+            }
+            Assert-Fx 'CountRows(Filter(colEditorValues, IsDirty))' 1 "$Context changes exactly one editor row"
+        }
+        $personHandler = Get-Property 'cmbEditorPerson' 'OnChange'
+        $personDefault = Get-Property 'cmbEditorPerson' 'DefaultSelectedItems'
+        foreach ($personField in @('Owner','DeputyOwner','BusinessOwner','TechnicalOwner','DataSteward')) {
+            foreach ($mode in @('Edit','New')) {
+                foreach ($clear in @($false,$true)) {
+                    $engine.UpdateVariable('gblEditorMode',$mode)
+                    $engine.UpdateVariable('gblAssetRecord',$nonemptyFixture)
+                    $engine.UpdateVariable('colEditorValues',$completeValues)
+                    $engine.UpdateVariable('testBaseline',(Eval $contract.Payload))
+                    $engine.UpdateVariable('ThisItem',(Eval ('LookUp(colEditorValues, FieldInternalName = '+(FxString $personField)+')')))
+                    $engine.UpdateVariable('testControl',(Eval '{Visible: true, DisplayMode: "Edit", SelectedDate: Date(2026,11,30), Selected: {ChoiceKey: "", DisplayNameDE: ""}, SelectedItems: Table({UserPrincipalName: "Changed.Person@tenant.invalid", DisplayName: "Andere synthetische Person"})}'))
+                    if ($clear) { $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {SelectedItems: FirstN(testControl.SelectedItems,0)})')) }
+                    Assert-Fx (EventGuard $personHandler) $true "Asset/$personField/$mode clear=$clear explicit event"
+                    $update = (UpdateRecord $personHandler $(if ($clear) {0} else {1})).Replace('Self.','testControl.')
+                    if (-not $clear) { $engine.UpdateVariable('selectedPerson',(Eval 'First(testControl.SelectedItems)')) }
+                    ApplyFieldUpdate $update
+                    if ($clear) {
+                        Assert-Fx ('IsBlank(testSaved.'+$personField+')') $true "Asset/$personField/$mode clear writes native blank"
+                    } else {
+                        Assert-Fx ('testSaved.'+$personField+'.Claims') 'i:0#.f|membership|changed.person@tenant.invalid' "Asset/$personField/$mode uses normalized UPN identity"
+                        Assert-Fx ('testSaved.'+$personField+'.Email') 'Changed.Person@tenant.invalid' "Asset/$personField/$mode retains selected principal"
+                        Assert-Fx ('testSaved.'+$personField+'.DisplayName') 'Andere synthetische Person' "Asset/$personField/$mode selected display name"
+                        Assert-Fx ('IsBlank(testSaved.'+$personField+'.Department)') $true "Asset/$personField/$mode old department cannot leak"
+                        Assert-Fx ('IsBlank(testSaved.'+$personField+'.JobTitle)') $true "Asset/$personField/$mode old job title cannot leak"
+                    }
+                    AssertOtherAssetFields $personField "Asset/$personField/$mode clear=$clear"
+                    # Local saved-value round-trip; it is not a SharePoint/Studio acceptance.
+                    $engine.UpdateVariable('gblAssetRecord',(Eval 'Patch(gblAssetRecord, testSaved)'))
+                    $engine.UpdateVariable('gblEditorMode','Edit')
+                    $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
+                    $engine.UpdateVariable('colEditorValues',(Eval ('ForAll(colRecordValues As loadedValue, Patch(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), '+$hydrate+'))')))
+                    Assert-Fx 'CountRows(Filter(colEditorValues, IsDirty || !IsValid))' 0 "Asset/$personField/$mode clean valid reopen"
+                    $engine.UpdateVariable('ThisItem',(Eval ('LookUp(colEditorValues, FieldInternalName = '+(FxString $personField)+')')))
+                    $engine.UpdateVariable('testDefault',(Eval $personDefault))
+                    if ($clear) { Assert-Fx 'IsBlank(testDefault)' $true "Asset/$personField/$mode cleared default" }
+                    else { Assert-Fx 'First(testDefault).UserPrincipalName' 'changed.person@tenant.invalid' "Asset/$personField/$mode reopened claims principal" }
+                }
+            }
+        }
+        $engine.UpdateVariable('gblEditorMode','Edit')
+        $engine.UpdateVariable('gblAssetRecord',$nonemptyFixture)
+        $dateHandler = Get-Property 'datEditorDate' 'OnChange'
+        $dateClearHandler = Get-Property 'btnEditorDateClear' 'OnSelect'
+        if ($dateClearHandler -notmatch 'Reset\(datEditorDate\);\s*Select\(lblEditorRevalidate\)') { throw 'Date clear must reset the picker and revalidate the editor.' }
+        foreach ($dateField in @('LastReviewDate','NextReviewDate')) {
+            foreach ($clear in @($false,$true)) {
+                $engine.UpdateVariable('colEditorValues',$completeValues)
+                $engine.UpdateVariable('ThisItem',(Eval ('LookUp(colEditorValues, FieldInternalName = '+(FxString $dateField)+')')))
+                $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Visible: true, DisplayMode: "Edit", SelectedDate: Date(2026,11,30)})'))
+                $handler = if ($clear) {$dateClearHandler} else {$dateHandler}
+                Assert-Fx (EventGuard $handler) $true "Asset/$dateField clear=$clear explicit event"
+                ApplyFieldUpdate ((UpdateRecord $handler).Replace('Self.','testControl.'))
+                if ($clear) { Assert-Fx ('IsBlank(testSaved.'+$dateField+')') $true "Asset/$dateField persists native blank" }
+                else { Assert-Fx ('testSaved.'+$dateField) ((Eval 'Date(2026,11,30)').ToObject()) "Asset/$dateField explicitly sets a calendar date" }
+                AssertOtherAssetFields $dateField "Asset/$dateField clear=$clear"
+            }
+            $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {DisplayMode: "Disabled"})'))
+            Assert-Fx (EventGuard $dateClearHandler) $false "Asset/$dateField busy/read-only clear blocked"
+            $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {DisplayMode: "Edit", Visible: false})'))
+            Assert-Fx (EventGuard $dateClearHandler) $false "Asset/$dateField hidden clear blocked"
+            $engine.UpdateVariable('testControl',(Eval 'Patch(testControl, {Visible: true})'))
+            $engine.UpdateVariable('ThisItem',(Eval 'Patch(ThisItem, {IsRequired: true})'))
+            Assert-Fx (EventGuard $dateClearHandler) $false "Asset/$dateField required clear blocked"
+            $engine.UpdateVariable('ThisItem',(Eval 'Patch(ThisItem, {IsRequired: false, ValueDate: If(false,Now(),Blank())})'))
+            Assert-Fx (EventGuard $dateClearHandler) $false "Asset/$dateField already blank clear blocked"
+        }
+        $choiceHandler = Get-Property 'drpEditorChoice' 'OnChange'
+        $choiceStart = $choiceHandler.IndexOf('editorInput:') + 'editorInput:'.Length
+        $choiceUpdate = Get-Balanced $choiceHandler ($choiceHandler.IndexOf('{',$choiceStart)) '{' '}'
+        foreach ($choiceField in @('Criticality','DataClassification','LifecycleStatus','ConfidentialityRequirement','IntegrityRequirement','AvailabilityRequirement')) {
+            $set = @($model.ChoiceSets | Where-Object key -eq $choiceCases[$choiceField].Set)[0]
+            foreach ($clear in @($false,$true)) {
+                $engine.UpdateVariable('colEditorValues',$completeValues)
+                $engine.UpdateVariable('ThisItem',(Eval ('LookUp(colEditorValues, FieldInternalName = '+(FxString $choiceField)+')')))
+                $selection = if ($clear) {'{ChoiceKey: "", DisplayNameDE: ""}'} else {'{ChoiceKey: '+(FxString ($set.key+':'+$set.values[0][0]))+', DisplayNameDE: '+(FxString $set.values[0][1])+'}'}
+                $engine.UpdateVariable('testControl',(Eval ('Patch(testControl, {Visible: true, DisplayMode: "Edit", Selected: '+$selection+'})')))
+                Assert-Fx (EventGuard $choiceHandler) $true "Asset/$choiceField clear=$clear explicit event"
+                ApplyFieldUpdate ($choiceUpdate.Replace('Self.','testControl.'))
+                if ($clear) { Assert-Fx ('IsBlank(testSaved.'+$choiceField+'.Value)') $true "Asset/$choiceField clears connector choice Value" }
+                else { Assert-Fx ('testSaved.'+$choiceField+'.Value') $set.values[0][1] "Asset/$choiceField persists architecture choice label" }
+                AssertOtherAssetFields $choiceField "Asset/$choiceField clear=$clear"
+            }
+        }
+        $engine.UpdateVariable('gblAssetRecord',$nonemptyFixture)
+        $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
+        $engine.UpdateVariable('colEditorValues',$completeValues)
+    }
     $engine.UpdateVariable('loadedValue',(Eval 'Patch(LookUp(colRecordValues, FieldInternalName = "Criticality"), {ValueText: "UNKNOWN-NATIVE-VALUE"})'))
     $engine.UpdateVariable('testHydrated',(Eval $hydrate))
     Assert-Fx 'testHydrated.IsValid' $false "$key unknown persisted choice invalid"
