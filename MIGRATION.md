@@ -10,7 +10,7 @@ Die am 04.10.2026 konkret freigegebene Vorbereitung hat ausschließlich die eige
 
 30446 ergänzt die optionale Datum-Leeren-Aktion und typisierte DateTime-Aktualisierung. Es wurde einmal importiert, unterstützt gespeichert und als Canvas 198 gezielt veröffentlicht; der Host-Export stimmt mit dem geprüften Draft überein. Seine Asset-Abnahme stoppt vor Create: der gemeinsame einzeilige Text-Control erzeugt für AssetType `maxlength="0"` und verhindert echte Tastatureingabe. Der ungespeicherte Entwurf wurde verworfen; alle nativen Bestandswerte bleiben unverändert.
 
-30447 korrigiert lokal genau diese Control-Grenze auf 255, erhält Title, Note-Control und sämtliche 17/16 Load-/Patch-Felder. Architektur, Spalten, Runtime-Metadaten und Connectorbindungen bleiben gleich; keine Migration, Provisionierung oder DEV→Git-Übernahme erforderlich. Build/Pack/Unpack und Red-/Green-Regression sind geprüft. **30447 ist noch nicht in DEV; neue konkrete Freigabe für seine begrenzte Abnahme erforderlich.** [P2-Kandidat, Umfang und Stop-Regeln](docs/development/Stage-4.1-P2-Asset-Verantwortliche.md).
+30447 korrigiert lokal genau diese Control-Grenze auf 255, erhält Title, Note-Control und sämtliche 17/16 Load-/Patch-Felder. Architektur, Spalten, Runtime-Metadaten und Connectorbindungen bleiben gleich; keine Migration, Provisionierung oder DEV→Git-Übernahme erforderlich. Build/Pack/Unpack und Red-/Green-Regression sind geprüft. **30447 wurde nach eigener Freigabe genau einmal in DEV importiert; Postexport bytegleich, Canvas 199 Live. Studio-Verarbeitung und fachliche Restabnahme sind noch offen, alle entsprechenden Schreibkontingente ungenutzt.** [P2-Kandidat, Umfang und Stop-Regeln](docs/development/Stage-4.1-P2-Asset-Verantwortliche.md).
 
 ## Target structure
 
