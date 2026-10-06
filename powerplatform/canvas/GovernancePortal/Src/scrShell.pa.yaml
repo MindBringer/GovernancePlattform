@@ -1620,7 +1620,7 @@ Screens:
                                                 BorderColor: =If(ThisItem.IsValid, gblTheme.ColorBorder, gblTheme.ColorError)
                                                 Default: =ThisItem.ValueText
                                                 DisplayMode: =If(gblShowDiscardDialog || gblSaveBusy || gblLoadBusy, DisplayMode.Disabled, If(ThisItem.IsReadOnly, DisplayMode.View, DisplayMode.Edit))
-                                                MaxLength: =If(ThisItem.FieldInternalName = "Title", 255, 0)
+                                                MaxLength: =255
                                                 Font: =Font.'Open Sans'
                                                 HintText: =ThisItem.DisplayNameDE
                                                 HoverBorderColor: =gblTheme.ColorPrimary

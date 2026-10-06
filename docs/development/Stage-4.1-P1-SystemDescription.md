@@ -68,11 +68,11 @@ Die sichtbare Konfliktmeldung im Editor ist belegt. Späte unhandled Errors, Scr
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P2 · bereits freigegebene DEV-Abnahme von 30446 fortsetzen**, Modellklasse `standard-reasoning`. Nach Wiederherstellung der nativen Studio-Bedienbarkeit richtigen Servicekonto-/App-/Draft-Stand erneut prüfen, den exportgeprüften Draft 198 genau einmal gezielt veröffentlichen und den publizierten Host vergleichen. Danach genau ein synthetisches Asset, 14 begrenzte App-Edit-Versuche mit nativer Rückleseprüfung und sauberem Wiederöffnen sowie ein reversibles Cleanup. Import, manueller Save und beide Rebindings sind verbraucht und werden nicht wiederholt. Der unveränderte Restumfang bleibt ausdrücklich autorisiert; keine erneute Freigabe dafür anfordern. P1 ist abgeschlossen; P3 folgt erst nach bestandener P2-Abnahme. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md).
+**P2 · begrenzte DEV-Abnahme des reparierten Kandidaten 30447**, Modellklasse `standard-reasoning`. Der geänderte Kandidat benötigt eine separate konkrete Freigabe: genau ein Import, ein manueller Studio-Save-Versuch, bedarfsweise je ein öffentliches Personen-/Lookup-Rebinding und ein gezieltes Publish. Danach ein synthetisches Asset, 14 App-Edit-Versuche und ein reversibles Cleanup, jeweils mit nativer Rückleseprüfung und sauberem Wiederöffnen. Vor Create echte AssetType-Tastatureingabe und positive Textlänge am gespeicherten/publizierten Host prüfen. Die verbrauchten 30446-Aktionen werden nicht wiederholt oder auf 30447 übertragen. P3 folgt erst nach bestandener P2-Abnahme. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md).
 
 ## Abgeschlossene P1-Freigabe und Grenzen
 
-Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist der separat freigegebene Rest der P2-DEV-Abnahme; die nachfolgende P1-Freigabe bleibt verbraucht.
+Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist die separate DEV-Abnahme des reparierten P2-Kandidaten 30447; die nachfolgende P1-Freigabe bleibt verbraucht.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|
@@ -86,4 +86,4 @@ Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgefüh
 
 Bereits freigegebene Marker: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler dieses neuen Pakets sind oben dokumentiert; alte Abnahme-/Diagnosekontingente bleiben verbraucht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
 
-P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 ist lokal als 30446 vorbereitet; dessen DEV-Abnahme folgt separat. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.
+P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 30446 wurde veröffentlicht, seine Asset-Abnahme stoppte vor Create; reparierter Kandidat 30447 benötigt eigene DEV-Abnahme. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.

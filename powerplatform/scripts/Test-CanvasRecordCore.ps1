@@ -19,7 +19,11 @@ function Get-Property([string]$Control, [string]$Property) {
     $end = [regex]::Match($tail, "(?m)^ {0,$($m.Groups['indent'].Value.Length)}- \w+:")
     if ($end.Success) { $tail = $tail.Substring(0, $end.Index) }
     $p = [regex]::Match($tail, "(?m)^(?<indent> *)${Property}: \|-\r?`n(?<formula>(?:\k<indent> +[^\r\n]*\r?`n|\r?`n)+)")
-    if (-not $p.Success) { throw "Missing formula $Control.$Property" }
+    if (-not $p.Success) {
+        $inline = [regex]::Match($tail, "(?m)^ *${Property}: =(?<formula>[^\r\n]+)")
+        if ($inline.Success) { return $inline.Groups['formula'].Value.Trim() }
+        throw "Missing formula $Control.$Property"
+    }
     return $p.Groups['formula'].Value.Trim().TrimStart('=')
 }
 function Get-Balanced([string]$Text, [int]$Start, [char]$Open, [char]$Close) {
@@ -132,6 +136,20 @@ function Assert-Fx([string]$Formula, $Expected, [string]$Context) {
     $script:checks++
 }
 function FxString([string]$Value) { '"'+$Value.Replace('"','""')+'"' }
+# The browser treats maxlength=0 as zero characters, not an unlimited input.
+# Evaluate the actual control property for every mapped native Text column.
+$textMaxLength = Get-Property 'txtEditorText' 'MaxLength'
+foreach ($key in @('Asset','System')) {
+    foreach ($field in $records[$key].Schema.Fields | Where-Object { $_.Type -eq 'Text' -and $_.InternalName -in $records[$key].Fields }) {
+        $nativeLimit = if ($field.ContainsKey('maxLength')) { [int]$field.maxLength } else { 255 }
+        $limit = 'With({ThisItem: {FieldInternalName: '+(FxString $field.InternalName)+'}}, '+$textMaxLength+')'
+        Assert-Fx ('Len("P2 Synthetic Test") <= ('+$limit+')') $true "$key/$($field.InternalName) accepts ordinary keyboard input"
+        Assert-Fx ('('+ $limit +') <= '+$nativeLimit) $true "$key/$($field.InternalName) input respects the native text limit"
+        if ($field.InternalName -eq 'Title') {
+            Assert-Fx ('255 <= ('+$limit+')') $true "$key native Title accepts its full 255-character boundary"
+        }
+    }
+}
 foreach ($text in @($source,$app)) {
     foreach ($m in [regex]::Matches($text,'(?m)^(?<indent> *)(?<key>\w+): \|-\r?\n(?<formula>(?:\k<indent> +[^\r\n]*\r?\n|\r?\n)+)')) {
         $formula=$m.Groups['formula'].Value.Trim().TrimStart('=')
