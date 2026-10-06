@@ -68,11 +68,11 @@ Die sichtbare Konfliktmeldung im Editor ist belegt. Späte unhandled Errors, Scr
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P2 · begrenzte DEV-Abnahme von 30446**, Modellklasse `standard-reasoning`. Den lokal geprüften Asset-Kandidaten nach eigener Freigabe einmal in DEV übernehmen, unterstützt in Studio kompilieren und gezielt veröffentlichen. An genau einem synthetischen Asset alle fünf Personenfelder, Status/Kritikalität, Reviewtermine und optionale Leerwerte mit nativer Rückleseprüfung und sauberem Wiederöffnen abnehmen; anschließend reversibel bereinigen. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md). P1-Abnahme und Bestandsdaten bleiben abgeschlossen; P3 beginnt erst nach bestandener P2-Abnahme. Keine aktuelle Freigabe für Import, Publish oder fachliche Tenant-Writes.
+**P2 · bereits freigegebene DEV-Abnahme von 30446 fortsetzen**, Modellklasse `standard-reasoning`. Nach Wiederherstellung der nativen Studio-Bedienbarkeit richtigen Servicekonto-/App-/Draft-Stand erneut prüfen, den exportgeprüften Draft 198 genau einmal gezielt veröffentlichen und den publizierten Host vergleichen. Danach genau ein synthetisches Asset, 14 begrenzte App-Edit-Versuche mit nativer Rückleseprüfung und sauberem Wiederöffnen sowie ein reversibles Cleanup. Import, manueller Save und beide Rebindings sind verbraucht und werden nicht wiederholt. Der unveränderte Restumfang bleibt ausdrücklich autorisiert; keine erneute Freigabe dafür anfordern. P1 ist abgeschlossen; P3 folgt erst nach bestandener P2-Abnahme. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md).
 
 ## Abgeschlossene P1-Freigabe und Grenzen
 
-Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Nach [AGENTS.md](../../AGENTS.md) bleibt die lokale P2-Umsetzung das einzige nächste Paket.
+Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist der separat freigegebene Rest der P2-DEV-Abnahme; die nachfolgende P1-Freigabe bleibt verbraucht.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|

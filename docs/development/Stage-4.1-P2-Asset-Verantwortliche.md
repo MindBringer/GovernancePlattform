@@ -2,7 +2,7 @@
 
 Stand: 2026-10-06 · `codex/stage41-p2` · Basis P1 `a894b386632ed1128a2ff69a4620896d08f77bcd` · Modellklasse `standard-reasoning`.
 
-**Lokal abgeschlossen: Solution 1.0.0.30446. DEV-Abnahme offen; DEV bleibt 30445 / Canvas 196 Live.** P2 bereitet den Asset-Pilot mit dem vorhandenen 17-Felder-Vertrag vor. Es erweitert weder Schema noch Save-Mapping oder Provider-Capabilities. Die P1-Abnahme ist abgeschlossen und wird nicht wiederholt.
+**P2 30446 ist einmal in DEV importiert und der gespeicherte Host geprüft (06.10.2026); fachliche Abnahme offen.** Postexport Exit 0, Kandidaten-msapp bytegleich. Canvas **197 Live durch den Solution-Import**, **198 gespeicherter Draft, noch nicht gezielt veröffentlicht**. 84 authored Controls einschließlich Datum-Leeren und DateTime-Regeln stimmen semantisch mit dem kanonischen Source überein; 46 ausgelassene YAML-Defaults sind im kompilierten Host gleichwertig. Alle 19 Datenquellen-/Metadatensnapshots unverändert, 33 Patch-Spalten writable. Formel-/Laufzeitchecker und Parser/Binding ohne Fehler; 72 Accessibility-, zwölf Leistungs- und zwei Datenquellenwarnungen bleiben. Je ein öffentliches Personen-/Lookup-Rebinding regeneriert die echten Suchregeln; ausschließlich beide generierten SearchItems ändern sich, keine private Regel authoriert. Der Mac wurde erneut gesperrt; gezieltes Publish und sämtliche Asset-Testwrites stehen aus. Assets 4–7/v1.0 mit allen nativen Ausgangswerten unverändert, Systems leer. Kein neuer Build/Kandidat oder DEV→Git. P2 bereitet den Asset-Pilot mit dem vorhandenen 17-Felder-Vertrag vor. Es erweitert weder Schema noch Save-Mapping oder Provider-Capabilities. Die P1-Abnahme ist abgeschlossen und wird nicht wiederholt.
 
 ## Architektur und Pilotumfang
 
@@ -14,7 +14,7 @@ Führend sind `architecture/platform.yaml`, `fields.yaml`, `object-fields.yaml`,
 | Verantwortliche | Owner, DeputyOwner, BusinessOwner, TechnicalOwner, DataSteward | Einzelperson; Claims-Principal aus UPN. Unveränderte native Objekte mit Email-Alias, Department und JobTitle bleiben erhalten; Wechsel verwendet ausgewählte UPN, Leeren schreibt Blank |
 | Einstufung und Status | Criticality, DataClassification, LifecycleStatus | Nur aktive Architektur-Choices, feldbezogene Schlüssel. Status im Pilot ist LifecycleStatus; DataClassification behält bewusst den bestehenden Criticality-ChoiceSet-Vertrag |
 | Schutzbedarf | ConfidentialityRequirement, IntegrityRequirement, AvailabilityRequirement | Bestehender Criticality-ChoiceSet; optionale Auswahl kann geleert werden |
-| Reviewplanung | LastReviewDate, NextReviewDate, ReviewCycleMonths | Kalenderdatum im Picker; unveränderte native DateTime-Werte behalten Uhrzeit. Geändertes Datum wird DateTime zu 00:00 App-Lokalzeit, explizites Leeren typisiert Blank. Zyklus optional; Architekturgrenzen 1–120 Monate, native Durchsetzung ist in DEV zu prüfen |
+| Reviewplanung | LastReviewDate, NextReviewDate, ReviewCycleMonths | Kalenderdatum im Picker; unveränderte native DateTime-Werte behalten Uhrzeit. Geändertes Datum wird DateTime zu 00:00 App-Lokalzeit, explizites Leeren typisiert Blank. Zyklus optional; Architekturgrenzen 1–120 Monate, native Spalte am 06.10.2026 ohne Min-/Max-Attribute; Durchsetzung vor Produktivfreigabe separat klären |
 | Aktivität | IsActive | Boolean; false bleibt erhalten |
 
 Bewusst außerhalb des Pilotformulars bleiben **14 Felder**: GovernanceID, GovernanceStatus, Description, ComplianceScope, Tags, SourceChannel, CorrelationID, ValidationStatus, LastValidationAt, SearchKeywords, BusinessCritical, RecoveryPriority, RTOHours und RPOHours. Dazu gehören Metadaten/Automationswerte, das native Description-Feld, Mehrfachauswahl und zusätzliche Wiederanlaufplanung. Sie werden nicht in den Patch aufgenommen. Für diesen Pilot gibt es keine automatischen Governance-ID-/Statusregeln, Reviews, Historieneinträge oder Evidence-Bezüge. Das wird erst in den späteren Paketen eingebunden.
@@ -43,9 +43,9 @@ Toolchain: PAC 2.9.3, PowerShell 7.6.3, Python 3.14/PyYAML 6.0.2. Erster Build E
 
 Private Logs, Gate-Befehle/Exit-Codes, Kandidatenhashes und Round-Trip unter `artifacts/p2-local-30446/`; keine Logs, Tenantsettings, Personen oder ZIP-Ausgaben versioniert. Die historischen Controls/SARIF im msapr/Pack sind keine Maker-Abnahme von P2. Das bestehende versionierte msapp ist das geprüfte Solution-Artefakt.
 
-## Genau ein primäres nächstes Paket: begrenzte P2-DEV-Abnahme
+## DEV-Zwischenstand und verbleibender freigegebener Scope
 
-Dieser Scope ist **vorbereitet, noch nicht freigegeben**. [AGENTS.md](../../AGENTS.md) verlangt separate Beauftragung für Live-Writes, Import und Veröffentlichung. P1-Write-Kontingente sind verbraucht und werden nicht wiederverwendet. Modellklasse `standard-reasoning`; bei belegter komplexer Host-/Connector-Ursache neu bewerten.
+Der unten konkret vorbereitete Scope ist durch die menschliche **„Freigabe“ vom 06.10.2026 ausdrücklich beauftragt**. Verbrauch: Import **1/1**, manueller Studio-Save-Versuch **1/1**, öffentliche Personen-/Lookup-Rebindings **je 1/1**; gezieltes Publish **0/1**, Asset-Create **0/1**, Asset-Edits **0/14**, reversibles Cleanup **0/1**. Andere Writes **0**. Der erfolgreiche Import wird nicht wiederholt. Checker ohne Formel-/Laufzeitfehler, gespeicherter Host exportgeprüft und echte Suchregeln hergestellt; Veröffentlichung erst nach lesender Prüfung des unveränderten Drafts und Wiederherstellung der nativen Fenstersteuerung. Erste Studio-Initialisierung scheiterte am Umgebungs-API-Aufruf, danach geladen; Sitzungs-Schreibschutz des eigenen Servicekontos anschließend gelöst. Erneute Mac-Sperre blockiert die weitere native Bedienung. Private Freigabe-/Export-/Quellen-/Versionsnachweise und Zähler unter `artifacts/p2-20261006/dev-abnahme-30446-20261006/`. Keine zweite Autorisierung des unveränderten Restumfangs nötig; [AGENTS.md](../../AGENTS.md) bleibt maßgeblich für alle darüber hinausgehenden Writes. Modellklasse `standard-reasoning`; bei belegter komplexer Host-/Connector-Ursache neu bewerten.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|
@@ -71,3 +71,9 @@ Vor Writes aktuellen App-/Solution-/Quellenstand lesend prüfen. Ein natives Bas
 Jeder Save verlangt vorher die erwartete ID/Version und nachher native Werte/Version sowie „Keine Änderungen“ und gesperrtes Save beim Wiederöffnen. Bei Fehler, unklarem Ausgang, Formelbefund oder abweichendem Versionsstand stoppen und lesend klären; keine Save-/Delete-/Publish-Retries. Keine künstlichen Berechtigungs-/Schemafehler erzeugen. Bestehende P1-Konfliktprüfung nicht wiederholen; atomarer ETag-Schutz, große Datenmengen, Screenreader und reale Produktivrollen sind nicht dadurch abgenommen.
 
 Nach bestandener P2-DEV-Abnahme folgt P3 Change. Erst die getrennte Rollen-/Betriebsfreigabe erlaubt einen produktiven Asset-Pilot; P2 allein ist keine Produktivfreigabe.
+
+## Genau ein primäres nächstes Arbeitspaket
+
+**P2 · bereits freigegebene DEV-Abnahme von 30446 fortsetzen**, Modellklasse `standard-reasoning`. Nach Wiederherstellung der nativen Studio-Bedienbarkeit richtigen Servicekonto-/App-/Draft-Stand erneut prüfen, den exportgeprüften Draft 198 genau einmal gezielt veröffentlichen und den publizierten Host vergleichen. Danach genau ein synthetisches Asset, 14 begrenzte App-Edit-Versuche mit nativer Rückleseprüfung und sauberem Wiederöffnen sowie ein reversibles Cleanup. Import, manueller Save und beide Rebindings sind verbraucht und werden nicht wiederholt. Der unveränderte Restumfang bleibt ausdrücklich autorisiert; keine erneute Freigabe dafür anfordern. P1 ist abgeschlossen; P3 folgt erst nach bestandener P2-Abnahme.
+
+Die native ReviewCycleMonths-Spalte enthält keine Min-/Max-Grenzen. Es wurde kein Schema-Write oder unzulässiger Live-Grenzwerttest ausgeführt. Diese belegte Abweichung bleibt vor einer Produktivfreigabe zu klären; die begrenzte P2-Abnahme ersetzt diesen Nachweis nicht.
