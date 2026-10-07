@@ -1307,9 +1307,13 @@ Screens:
                                                                             }
                                                                         )
                                                                     )),
-                                                                    Criticality: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
+                                                                    Criticality: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
                                                                     LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
                                                                     NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
                                                                     ReviewCycleMonths: LookUp(colEditorValues, FieldInternalName = "ReviewCycleMonths", ValueNumber),
@@ -1345,21 +1349,41 @@ Screens:
                                                                             }
                                                                         )
                                                                     )),
-                                                                    DataClassification: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "DataClassification")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
-                                                                    LifecycleStatus: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "LifecycleStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
-                                                                    ConfidentialityRequirement: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
-                                                                    IntegrityRequirement: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
-                                                                    AvailabilityRequirement: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
+                                                                    DataClassification: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "DataClassification", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "DataClassification")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
+                                                                    LifecycleStatus: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "LifecycleStatus", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "LifecycleStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
+                                                                    ConfidentialityRequirement: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ConfidentialityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
+                                                                    IntegrityRequirement: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "IntegrityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
+                                                                    AvailabilityRequirement: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "AvailabilityRequirement")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
                                                                     DataSteward: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "DataSteward", IsDirty), false), gblAssetRecord.DataSteward, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "DataSteward")},
                                                                         If(
@@ -1395,9 +1419,13 @@ Screens:
                                                                 {
                                                                     Title: Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText)),
                                                                     SystemDescription: LookUp(colEditorValues, FieldInternalName = "SystemDescription", ValueText),
-                                                                    GovernanceStatus: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
+                                                                    GovernanceStatus: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "GovernanceStatus", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "GovernanceStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
                                                                     Owner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Owner", IsDirty), false), gblSystemRecord.Owner, With(
                                                                         {personValue: LookUp(colEditorValues, FieldInternalName = "Owner")},
                                                                         If(
@@ -1413,9 +1441,13 @@ Screens:
                                                                             }
                                                                         )
                                                                     )),
-                                                                    Criticality: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
+                                                                    Criticality: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "Criticality", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Criticality")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
                                                                     LastReviewDate: LookUp(colEditorValues, FieldInternalName = "LastReviewDate", ValueDate),
                                                                     NextReviewDate: LookUp(colEditorValues, FieldInternalName = "NextReviewDate", ValueDate),
                                                                     ReviewCycleMonths: LookUp(colEditorValues, FieldInternalName = "ReviewCycleMonths", ValueNumber),
@@ -1431,12 +1463,20 @@ Screens:
                                                                             }
                                                                         )
                                                                     ),
-                                                                    SystemType: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "SystemType")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
-                                                                    Environment: {
-                                                                        Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Environment")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
-                                                                    },
+                                                                    SystemType: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "SystemType", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "SystemType")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
+                                                                    Environment: If(
+                                                                        IsBlank(LookUp(colEditorValues, FieldInternalName = "Environment", ValueChoiceKey)),
+                                                                        Blank(),
+                                                                        {
+                                                                            Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "Environment")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))
+                                                                        }
+                                                                    ),
                                                                     MonitoringStatus: LookUp(colEditorValues, FieldInternalName = "MonitoringStatus", ValueText),
                                                                     BackupStatus: LookUp(colEditorValues, FieldInternalName = "BackupStatus", ValueText),
                                                                     AuthenticationType: LookUp(colEditorValues, FieldInternalName = "AuthenticationType", ValueText),

@@ -283,6 +283,9 @@ foreach ($key in @('Asset','System')) {
             $suffix = switch($field.Type){'Choice'{'.Value'}'User'{'.Claims'}'Lookup'{'.Id'}default{''}}
             $expected=(Eval ("gbl${key}Record.$name"+$suffix)).ToObject()
             Assert-Fx ('testSaved.'+$name+$suffix) $expected "$key/$name unchanged native round-trip (blank=$empty)"
+            if($field.Type -eq 'Choice' -and $empty) {
+                Assert-Fx ('IsBlank(testSaved.'+$name+')') $true "$key/$name optional choice sends a blank connector field, not a record with blank Value"
+            }
             if($field.Type -eq 'User' -and -not $empty) {
                 Assert-Fx ('testSaved.'+$name+'.Email') 'alias@example.invalid' "$key/$name untouched native email retained"
                 Assert-Fx ('testSaved.'+$name+'.Department') 'TEST' "$key/$name department retained"
@@ -503,7 +506,10 @@ foreach ($key in @('Asset','System')) {
                 $engine.UpdateVariable('testControl',(Eval ('Patch(testControl, {Visible: true, DisplayMode: "Edit", Selected: '+$selection+'})')))
                 Assert-Fx (EventGuard $choiceHandler) $true "Asset/$choiceField clear=$clear explicit event"
                 ApplyFieldUpdate ($choiceUpdate.Replace('Self.','testControl.'))
-                if ($clear) { Assert-Fx ('IsBlank(testSaved.'+$choiceField+'.Value)') $true "Asset/$choiceField clears connector choice Value" }
+                if ($clear) {
+                    Assert-Fx ('IsBlank(testSaved.'+$choiceField+'.Value)') $true "Asset/$choiceField clears connector choice Value"
+                    Assert-Fx ('IsBlank(testSaved.'+$choiceField+')') $true "Asset/$choiceField explicit clear sends a blank connector field"
+                }
                 else { Assert-Fx ('testSaved.'+$choiceField+'.Value') $set.values[0][1] "Asset/$choiceField persists architecture choice label" }
                 AssertOtherAssetFields $choiceField "Asset/$choiceField clear=$clear"
             }
