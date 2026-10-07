@@ -1,6 +1,6 @@
 # P1 – Systembeschreibung und sichtbare Speicherfehler
 
-Stand: 2026-10-06 · `codex/stage41-p1` · [Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) · Modellklasse `deep-reasoning`.
+Stand: 2026-10-07 · `codex/stage41-p1` · [Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) · Modellklasse `deep-reasoning`.
 
 ## Aktuelle freigegebene DEV-Abnahme
 
@@ -68,11 +68,11 @@ Die sichtbare Konfliktmeldung im Editor ist belegt. Späte unhandled Errors, Scr
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P2 · bereits freigegebene Restabnahme von 30447**, Modellklasse `standard-reasoning`. Nach Wiederherstellung der Studio-Bedienbarkeit ein manueller Studio-Save-Versuch, falls erforderlich je ein öffentliches Personen-/Lookup-Rebinding und ein gezieltes App-Publish; alle diese Kontingente stehen bei 0/1. Den erfolgreichen Import 1/1 nicht wiederholen. Gespeicherte/publizierte Controls, Suchregeln und Quellen exportprüfen, danach echte AssetType-Tastatureingabe mit DOM-MaxLength 255 vor Create bestätigen. Anschließend ein synthetisches Asset, 14 App-Edit-Versuche und genau dessen reversibles Cleanup, jeweils mit nativer ID/Version/Werten und sauberem Wiederöffnen. Create 0/1, Edits 0/14, Cleanup 0/1. Der unveränderte Restscope bleibt autorisiert; dieselbe Freigabe nicht erneut anfordern. Keine Schema-/Metadaten-/Bestands-/System-Writes, keine DEV→Git-Übernahme. P3 folgt erst nach bestandener P2-Abnahme. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md).
+**P2 · bereits freigegebene Restabnahme von 30447**, Modellklasse `standard-reasoning`. Im frei bedienbaren Dienstkonto-Fenster die beiden begonnenen öffentlichen Rebinding-Durchläufe durch IsSearchable aus/ein abschließen; Items nicht erneut umstellen und keine privaten Suchregeln authorieren. Gespeicherten Host, echte generierte Suchregeln und unveränderte Quellen exportprüfen; danach genau ein gezieltes App-Publish und dessen Exportvergleich. Import und manuellen Save-Versuch 1/1 nicht wiederholen; Personen-/Lookup-Rebinding je 1/1 reserviert und in Bearbeitung, keine neuen Durchläufe. Vor Create echte AssetType-Tastatureingabe und DOM-MaxLength 255 im frischen Player bestätigen. Anschließend ein synthetisches Asset, 14 App-Edit-Versuche und genau dessen reversibles Cleanup mit nativer ID/Version/Werten und sauberem Wiederöffnen. Publish 0/1, Create 0/1, Edits 0/14, Cleanup 0/1. Der unveränderte Restscope bleibt autorisiert; dieselbe Freigabe nicht erneut anfordern. Keine Schema-/Metadaten-/Bestands-/System-Writes oder DEV→Git-Übernahme. P3 folgt erst nach bestandener P2-Abnahme. [Kandidat, genaue Schrittfolge, Höchstzahlen und Stop-Regeln](Stage-4.1-P2-Asset-Verantwortliche.md).
 
 ## Abgeschlossene P1-Freigabe und Grenzen
 
-Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist die separate DEV-Abnahme des reparierten P2-Kandidaten 30447; die nachfolgende P1-Freigabe bleibt verbraucht.
+Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist die bereits freigegebene P2-Restabnahme von 30447; die nachfolgende P1-Freigabe bleibt verbraucht.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|
@@ -86,4 +86,4 @@ Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgefüh
 
 Bereits freigegebene Marker: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler dieses neuen Pakets sind oben dokumentiert; alte Abnahme-/Diagnosekontingente bleiben verbraucht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
 
-P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 30446 wurde veröffentlicht, seine Asset-Abnahme stoppte vor Create; reparierter Kandidat 30447 benötigt eigene DEV-Abnahme. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.
+P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 30446 wurde veröffentlicht, seine Asset-Abnahme stoppte vor Create; 30447 ist im eigenen freigegebenen DEV-Scope in Bearbeitung (Live 199, Draft 200); P2 bleibt fachlich offen. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.
