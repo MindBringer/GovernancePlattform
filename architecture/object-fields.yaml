@@ -1151,6 +1151,43 @@
       "visible": true,
       "section": "General",
       "sortOrder": 15
+    },
+    {
+      "objectTypeKey": "Change",
+      "internalName": "Title",
+      "displayNameDE": "Titel",
+      "type": "Text",
+      "required": true,
+      "indexed": false,
+      "visible": true,
+      "section": "General",
+      "sortOrder": 0,
+      "maxLength": 255
+    },
+    {
+      "objectTypeKey": "Change",
+      "internalName": "LinkedAsset",
+      "displayNameDE": "Betroffenes Asset",
+      "type": "Lookup",
+      "required": false,
+      "indexed": true,
+      "visible": true,
+      "section": "Relations",
+      "sortOrder": 116,
+      "lookupObject": "Asset"
+    },
+    {
+      "objectTypeKey": "Change",
+      "internalName": "ChangeStatus",
+      "displayNameDE": "Change-Status",
+      "type": "Choice",
+      "required": false,
+      "indexed": true,
+      "visible": true,
+      "section": "Governance",
+      "sortOrder": 117,
+      "choiceSet": "ChangeStatus",
+      "default": "ChangeStatus:Draft"
     }
   ]
 }

@@ -57,6 +57,29 @@ class CanvasWriteContractRegression(unittest.TestCase):
         with self.assertRaises(ValueError):
             patch_fields('Patch(Systems, Defaults(Systems), {\n  Title: "x"\n})')
 
+    def test_change_patch_cannot_escape_the_connector_write_gate(self):
+        source = '''Patch(Assets, Defaults(Assets), {
+    Title: "SYNTHETIC"
+}); Patch(Systems, Defaults(Systems), {
+    Title: "SYNTHETIC"
+}); Patch(Changes, gblChangeRecord, {
+    Title: "SYNTHETIC",
+    LinkedAsset: {\n        Id: 42,\n        Value: "SYNTHETIC"\n    },
+    ChangeStatus: {\n        Value: "Entwurf"\n    }
+});'''
+        contracts = patch_fields(source)
+        self.assertEqual(contracts["Changes"], ["Title", "LinkedAsset", "ChangeStatus"])
+        self.assertEqual(validate(fixture(), {"Changes": contracts["Changes"]}),
+                         ["Changes: expected one native data source"])
+
+    def test_change_architecture_does_not_grant_connector_permissions(self):
+        sources = fixture("read-only", "ChangeStatus")
+        sources[0]["Name"] = "Changes"
+        self.assertEqual(validate(sources, {"Changes": ["ChangeStatus"]}),
+                         ["Changes.ChangeStatus: connector permission read-only, expected read-write"])
+        self.assertEqual(validate(sources, {"Changes": ["LinkedAsset"]}),
+                         ["Changes.LinkedAsset: missing generated connector field"])
+
     def test_zip_paths_support_canonical_and_studio_separators(self):
         for name in ("msapp/References/DataSources.json", "References\\DataSources.json"):
             with self.subTest(name=name), tempfile.TemporaryDirectory() as directory:

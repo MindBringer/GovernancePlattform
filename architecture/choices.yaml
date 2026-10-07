@@ -658,6 +658,46 @@
           40
         ]
       ]
+    },
+    {
+      "key": "ChangeStatus",
+      "values": [
+        [
+          "Draft",
+          "Entwurf",
+          10
+        ],
+        [
+          "Submitted",
+          "Eingereicht",
+          20
+        ],
+        [
+          "Approved",
+          "Genehmigt",
+          30
+        ],
+        [
+          "Scheduled",
+          "Geplant",
+          40
+        ],
+        [
+          "Implemented",
+          "Umgesetzt",
+          50
+        ],
+        [
+          "Rejected",
+          "Abgelehnt",
+          60
+        ],
+        [
+          "Closed",
+          "Geschlossen",
+          70
+        ]
+      ]
     }
   ]
 }

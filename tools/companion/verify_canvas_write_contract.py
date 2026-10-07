@@ -19,7 +19,7 @@ ARTIFACT = Path("powerplatform/solution/CanvasApps/gp_governanceportal_c93a1_Doc
 
 def patch_fields(source: str) -> dict[str, list[str]]:
     contracts = {}
-    for match in re.finditer(r"\bPatch\(\s*(Assets|Systems)\s*,", source):
+    for match in re.finditer(r"\bPatch\(\s*(Assets|Systems|Changes)\s*,", source):
         name = match[1]
         start = source.index("{", match.end())
         depth = 0
@@ -50,8 +50,8 @@ def patch_fields(source: str) -> dict[str, list[str]]:
         if name in contracts:
             raise ValueError(f"Ambiguous {name} Patch contract")
         contracts[name] = fields
-    if set(contracts) != {"Assets", "Systems"}:
-        raise ValueError("Expected exactly the native Asset/System Patch providers")
+    if not {"Assets", "Systems"}.issubset(contracts):
+        raise ValueError("Required native Asset/System Patch providers are missing")
     return contracts
 
 
