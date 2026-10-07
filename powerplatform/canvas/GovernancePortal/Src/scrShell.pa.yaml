@@ -1784,6 +1784,7 @@ Screens:
                                                 Font: =Font.'Open Sans'
                                                 IconBackground: =gblTheme.ColorPrimary
                                                 IconFill: =gblTheme.ColorTextInverse
+                                                InputTextPlaceholder: =""
                                                 OnChange: |-
                                                   =If(
                                                       Self.Visible && Self.DisplayMode = DisplayMode.Edit && (gblEditorMode <> "Edit" || (Self.SelectedDate <> DateValue(ThisItem.ValueDate))),
