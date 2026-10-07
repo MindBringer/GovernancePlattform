@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 # Button schema/name contract: https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/controls/control-button
 $source = Get-Content (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal/Src/scrShell.pa.yaml') -Raw
-$buttons = @('lblRefresh','lblNew','lblEditorCancel','lblEditorSave','lblDiscardStay','lblDiscardConfirm','lblNavigationItem','lblObjectTypeTitle','btnAssetRecordOpen','btnSystemRecordOpen')
+$buttons = @('lblRefresh','lblNew','lblEditorCancel','lblEditorSave','lblDiscardStay','lblDiscardConfirm','lblNavigationItem','lblObjectTypeTitle','btnAssetRecordOpen','btnSystemRecordOpen','btnEditorDateClear')
 $inputs = @('txtEditorText','txtEditorMultiline','txtEditorNumber','datEditorDate','togEditorBoolean','drpEditorChoice','cmbEditorLookup','cmbEditorPerson','txtRecordSearch','txtRecordId')
 foreach ($control in $buttons + $inputs) {
     $match = [regex]::Match($source, "(?m)^(?<indent> *)- ${control}:\r?`n")
@@ -25,7 +25,7 @@ foreach ($control in $buttons + $inputs) {
     foreach ($property in @('TabIndex: =0\r?$', 'FocusedBorderThickness: =3\r?$', 'FocusedBorderColor: =gblTheme.ColorText\r?$')) {
         if ($block -notmatch "(?m)^ *$property") { throw "Missing core accessibility contract: $control/$property" }
     }
-    if ($control -in $inputs) {
+    if ($control -in $inputs -or $control -eq 'btnEditorDateClear') {
         $busyPattern = if ($control -in @('txtRecordSearch','txtRecordId')) {
             'DisplayMode: =If\(gblSaveBusy \|\| gblLoadBusy \|\| gblShowDiscardDialog, DisplayMode.Disabled,'
         } else {
@@ -38,4 +38,4 @@ foreach ($control in @('galNavigation','galObjectTypes','galEditorFields','galAs
     $match = [regex]::Match($source, "(?ms)- ${control}:\r?`n.*?Properties:\r?`n(?<properties>.*?)Children:")
     if (-not $match.Success -or $match.Groups['properties'].Value -notmatch 'AccessibleLabel:' -or $match.Groups['properties'].Value -notmatch 'ItemAccessibleLabel:') { throw "Missing gallery context: $control" }
 }
-Write-Host 'Asset editor source accessibility contract passed: 20 core controls / 5 galleries. Studio and keyboard acceptance still required.'
+Write-Host 'Asset editor source accessibility contract passed: 21 core controls / 5 galleries. Studio and keyboard acceptance still required.'

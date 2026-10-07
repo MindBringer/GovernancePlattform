@@ -1,6 +1,6 @@
 # P1 – Systembeschreibung und sichtbare Speicherfehler
 
-Stand: 2026-10-06 · `codex/stage41-p1` · [Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) · Modellklasse `deep-reasoning`.
+Stand: 2026-10-07 · `codex/stage41-p1` · [Draft #17](https://github.com/MindBringer/GovernancePlattform/pull/17) · Modellklasse `deep-reasoning`.
 
 ## Aktuelle freigegebene DEV-Abnahme
 
@@ -68,11 +68,11 @@ Die sichtbare Konfliktmeldung im Editor ist belegt. Späte unhandled Errors, Scr
 
 ## Genau ein primäres nächstes Arbeitspaket
 
-**P2 · Asset und Verantwortliche lokal vervollständigen**, Modellklasse `standard-reasoning`. Den Asset-Pilotumfang gegen die führende Architektur und die bestehenden 17 Save-Felder abgleichen; belegte Lücken für Owner, Stellvertretung, fachliche/technische Verantwortliche, Status, Kritikalität und nächsten Reviewtermin in Load, Formular und Save schließen. Personenidentität und leere optionale Werte erhalten, passende lokale Regressionen und den konkreten DEV-Abnahmekandidaten vorbereiten. Die abgeschlossene P1-Abnahme wird nicht wiederholt. Weitere Tenant-Writes, Import/Publish und Produktivfreigabe sind separat zu beauftragen.
+**P3 · Change – lokale Implementierung und Abnahmevertrag**, Modellklasse `deep-reasoning`. Den führenden Architekturvertrag für Change und die vorhandenen Provider-/Personen-/Choice-/Lookup-Verträge lesen, den ersten nutzbaren Formularumfang mit Asset-Bezug, Verantwortlichen/Genehmiger, Planung, Risiko, Umsetzungs-/Rollback-Plan und Status festlegen. List/Create/Load/Edit/Save samt nachvollziehbarer manueller Genehmigungssemantik lokal umsetzen und tatsächliche Formeln/Mappings prüfen; automatische Freigabe-Flows folgen später. Kandidat bauen, verfügbare Abschluss-Gates ausführen und einen konkreten, begrenzten DEV-Scope vorbereiten. P2 ist im DEV-Scope abgeschlossen; alle Kontingente der 30449-Abnahme sind verbraucht. `weiter` beauftragt dieses lokale P3-Paket. Import, Publikation, fachliche DEV-Writes, Merge/Release und Produktivfreigabe bleiben separat freizugeben.
 
 ## Abgeschlossene P1-Freigabe und Grenzen
 
-Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Nach [AGENTS.md](../../AGENTS.md) bleibt die lokale P2-Umsetzung das einzige nächste Paket.
+Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgeführt und verbraucht; sie autorisiert keine weiteren Writes. Der einzige aktuelle nächste Schritt ist das lokale P3-Change-Paket nach abgeschlossener P2/30449-Abnahme; die nachfolgende P1-Freigabe bleibt verbraucht.
 
 | Aktion | Höchstzahl / Grenze |
 |---|---|
@@ -86,4 +86,4 @@ Die nachfolgend dokumentierte Freigabe vom 05.10.2026 ist vollständig ausgefüh
 
 Bereits freigegebene Marker: `GP-P1-30445-20261005-ASSET` / `GP-P1-30445-20261005-SYSTEM`; Titel-Edits ausschließlich an diesen neu erzeugten IDs. Zähler dieses neuen Pakets sind oben dokumentiert; alte Abnahme-/Diagnosekontingente bleiben verbraucht. Vor jedem Save Quell-ID/Version und geladene Werte prüfen; danach native Quelle und erneutes Öffnen einschließlich unveränderter Person/Choices belegen. Bei Fehler, unklarem Ausgang oder Versionsabweichung stoppen und Quellen prüfen. Keine Bestandsdatensätze, Rollen, Schema/Metadaten oder weitere Provider ändern. Fehleranzeige im Host nur als belegt ausweisen, wenn tatsächlich beobachtet; keine neuen künstlichen Berechtigungs-/Schemafehler erzeugen.
 
-P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 folgt als lokale Umsetzung. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.
+P1 ist innerhalb dieses begrenzten DEV-Scope abgenommen. P2 30446 wurde veröffentlicht, seine Asset-Abnahme stoppte vor Create; 30447/200 Live belegte Personen und Reviewwerte und scheiterte beim Choice-Leeren; die separat freigegebene 30449/202-Abnahme belegt native Leerwerte, sauberes Wiederöffnen und reversibles Cleanup. P2 ist im begrenzten DEV-Scope abgeschlossen. Merge/Integration und Produktivfreigabe bleiben eigene Schritte.

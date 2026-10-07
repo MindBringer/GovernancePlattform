@@ -7,10 +7,12 @@ Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-alpha.4.1.0` | P0 und begrenzter P1-DEV-Round-Trip abgenommen; 30445/196 Live. Fünf System-Edits, Konfliktsperre und reversibles Cleanup bestanden; nächstes Paket P2 Asset/Verantwortliche |
+| Canvas App | `1.0.0-alpha.4.1.0` | P0/P1/P2 im begrenzten DEV-Scope abgenommen; 30449 / Canvas 202 Live. Produktivfreigabe bleibt P7 |
 | Developer Workflow | `Stage 4.1` | lokales Profil 1.2.0; Framework-PR #6 bleibt isoliert |
 
 Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-Version. `powerplatform/solution/VERSION` spiegelt die Canvas-Version; die vierteilige Solution-Paketversion steht im Solution-Manifest. Die Stage-4.1-Änderungen sind noch nicht nach `main` integriert; `main` enthält Canvas `1.0.0-alpha.4.0.0`.
+
+**P2-DEV-Abnahme abgeschlossen (07.10.2026): Solution 30449 / Canvas 202 Live und gespeichert.** Der separat freigegebene Save am synthetischen Asset 13 leert alle sechs Choices als native null und erhöht die Version von 16.0 auf 17.0; die übrigen 25 deklarierten Felder bleiben erhalten. Sauberes Wiederöffnen zeigt leere Auswahlen, beide Reviewpicker mit leerem DOM-value und placeholder, „Keine Änderungen“ und gesperrtes Save. Asset 13 anschließend genau einmal reversibel bereinigt und nach Marker, Listenherkunft und ID im ersten Papierkorb nachgewiesen. Der vollständige ursprüngliche Bestand ist wiederhergestellt: Assets 4–7 mit sämtlichen nativen Werten/Versionen unverändert, Systems leer. Der erfolgreiche Create und alle fünf Personenwechsel/-Leerungen sowie Review-/Zyklus-/Boolean-Tests unter 30447 bleiben Teil der P2-Evidenz. Gespeicherter und veröffentlichter Host sind in vier Controls-/DataSources-Dateien bytegleich; 84 kanonische/92 kompilierte Controls, beide echten Suchregeln und 19 unveränderte Quellen geprüft. Formel-/Laufzeitchecker ohne Fehler; 72/12/2 Warnungen bleiben. Native ReviewCycleMonths-Min/Max, Produktivrollen und atomarer ETag-Konfliktschutz bleiben für P7 offen; P2 ist keine Produktivfreigabe. [P2-Vertrag und separate Abnahme](docs/development/Stage-4.1-P2-Asset-Verantwortliche.md).
 
 ## Architektur in Kürze
 
@@ -82,6 +84,7 @@ Build-Ausgaben entstehen unter `artifacts/` und gehören nicht in Git.
 - [Developer Companion Stage 3.7](docs/development/Stage-3.7-Developer-Companion.md)
 - [Runtime Provider Engine Stage 4.1](docs/development/Stage-4.1-Provider-Engine.md)
 - [P1-Datensatzkern und konkrete DEV-Abnahme](docs/development/Stage-4.1-P1-Datensatzkern.md)
+- [P2 Asset, Verantwortliche und konkrete DEV-Abnahme](docs/development/Stage-4.1-P2-Asset-Verantwortliche.md)
 - [PAC-Workflow](docs/development/PAC-Companion-Workflow.md)
 - [Roadmap](docs/ROADMAP.md)
 - [Aktuelle Projektübergabe](PROJECT_STATE.md)
