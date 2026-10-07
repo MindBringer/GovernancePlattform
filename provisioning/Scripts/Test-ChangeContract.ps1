@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$PlanPath)
+param([string]$PlanPath, [string]$NativeSnapshotPath)
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
@@ -22,9 +22,21 @@ if ($fields.Count -ne 3 -or $change.Fields.Count -ne 34 -or -not $change.Setting
 $title = @($fields | Where-Object InternalName -eq 'Title')[0]
 $lookup = @($fields | Where-Object InternalName -eq 'LinkedAsset')[0]
 $status = @($fields | Where-Object InternalName -eq 'ChangeStatus')[0]
+$nativeIndexCount = $null
+$addedIndexes = @($fields | Where-Object { $_.InternalName -ne 'Title' -and $_.Indexed }).Count
+if ($NativeSnapshotPath) {
+    $native = Get-Content $NativeSnapshotPath -Raw | ConvertFrom-Json
+    if ($native.List -ne 'Changes') { throw 'Index-budget snapshot must describe Changes.' }
+    $nativeIndexCount = @($native.Schema | Where-Object Indexed).Count
+    $missingIndexedFields = @($fields | Where-Object { $_.InternalName -ne 'Title' -and $_.Indexed -and $_.InternalName -notin $native.Schema.InternalName }).Count
+    if ($nativeIndexCount + $missingIndexedFields -gt 20) {
+        throw "Change native index budget exceeded: $nativeIndexCount existing + $missingIndexedFields new > 20. No index removal is authorized."
+    }
+}
 if ($title.Type -ne 'Text' -or -not $title.Required -or $title.maxLength -ne 255) { throw 'Invalid Change Title contract.' }
-if ($lookup.Type -ne 'Lookup' -or $lookup.LookupList -ne 'Assets' -or $lookup.Required -or -not $lookup.Indexed) { throw 'Change asset reference must be an optional indexed native Assets lookup.' }
-if ($status.Type -ne 'Choice' -or $status.ChoiceSet -ne 'ChangeStatus' -or $status.default -ne 'ChangeStatus:Draft' -or $status.Required -or -not $status.Indexed) { throw 'Invalid Change lifecycle field/default.' }
+if ($lookup.Type -ne 'Lookup' -or $lookup.LookupList -ne 'Assets' -or $lookup.Required -or $lookup.Indexed) { throw 'Change asset reference must be an optional unindexed native Assets lookup.' }
+if ($status.Type -ne 'Choice' -or $status.ChoiceSet -ne 'ChangeStatus' -or $status.default -ne 'ChangeStatus:Draft' -or $status.Required -or $status.Indexed) { throw 'Invalid unindexed Change lifecycle field/default.' }
+if ($addedIndexes -ne 0) { throw 'The Change pilot must preserve the existing index budget without adding indexes.' }
 $states = @(($model.StatusModels | Where-Object key -eq 'Change').states)
 $choices = @(($model.ChoiceSets | Where-Object key -eq 'ChangeStatus').values)
 if ($states.Count -ne 7 -or $choices.Count -ne 7) { throw 'The complete Change lifecycle must be retained.' }
@@ -101,8 +113,8 @@ try {
     $lookupXml = & $schemaModule { param($Field) New-GPFieldXml -F $Field -LookupListId '11111111-1111-1111-1111-111111111111' } $lookup
     $statusXml = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $status
     [xml]$lx = $lookupXml; [xml]$sx = $statusXml
-    if ($lx.Field.Type -ne 'Lookup' -or $lx.Field.ShowField -ne 'Title' -or $lx.Field.List -ne '{11111111-1111-1111-1111-111111111111}' -or $lx.Field.HasAttribute('Mult')) { throw 'Invalid native single-asset lookup XML.' }
-    if ($sx.Field.Type -ne 'Choice' -or @($sx.Field.CHOICES.CHOICE).Count -ne 7 -or $sx.Field.HasAttribute('FillInChoice') -or $sx.Field.HasAttribute('ReadOnly')) { throw 'Invalid native Change lifecycle XML.' }
+    if ($lx.Field.Type -ne 'Lookup' -or $lx.Field.ShowField -ne 'Title' -or $lx.Field.List -ne '{11111111-1111-1111-1111-111111111111}' -or $lx.Field.HasAttribute('Mult') -or $lx.Field.Indexed -cne 'FALSE') { throw 'Invalid unindexed native single-asset lookup XML.' }
+    if ($sx.Field.Type -ne 'Choice' -or @($sx.Field.CHOICES.CHOICE).Count -ne 7 -or $sx.Field.HasAttribute('FillInChoice') -or $sx.Field.HasAttribute('ReadOnly') -or $sx.Field.Indexed -cne 'FALSE') { throw 'Invalid unindexed native Change lifecycle XML.' }
     if ($PlanPath) {
         [ordered]@{
             status='prepared-not-authorized'; sourceList='Changes'
@@ -113,12 +125,13 @@ try {
                 [ordered]@{InternalName='ChangeStatus'; Type='Choice'; Xml=$statusXml}
             )
             listSettings=[ordered]@{EnableVersioning=$true; existingVersions='preserve'; existingItems='preserve; no backfill'}
+            indexBudget=[ordered]@{Maximum=20; NewIndexes=$addedIndexes; NativeExistingIndexes=$nativeIndexCount; PreserveExistingIndexes=$true; PilotQueries='Title/ID; no server filter on LinkedAsset or ChangeStatus'}
             addMetadataRows=$added; updateMetadataRows=$changed
             existingMetadataRowsUnchanged=$oldRows.Count-1
             connectorPrerequisite='explicit Changes connection, native schema readback, generated reference export and separate DEV-to-Git approval; never synthesize connector metadata'
         } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $PlanPath -Encoding utf8
     }
-    Write-Host "Change prerequisite contract passed: native Title; two new fields; versioning; 13 new/1 updated metadata rows; $($oldRows.Count-1) existing rows and all existing fields preserved; no tenant access."
+    Write-Host "Change prerequisite contract passed: native Title; two unindexed new fields; versioning; 13 new/1 updated metadata rows; $($oldRows.Count-1) existing rows and all existing fields/indexes preserved; no tenant access."
 } finally {
     if ($oldContext) { $global:GPContext = $oldContext.Value }
     else { Remove-Variable GPContext -Scope Global -ErrorAction SilentlyContinue }

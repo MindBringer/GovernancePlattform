@@ -1,10 +1,12 @@
 # Governance Portal – Migration to Canvas SourceCode
 
-## P3a Change – additive Migration vorbereitet, nicht ausgeführt
+## P3a Change – erster DEV-Versuch gestoppt, additive Korrektur vorbereitet
 
-Zwei neue Changes-Spalten (LinkedAsset→Assets.Title und ChangeStatus mit den sieben bestehenden Lifecycle-Labels), Versionierung aktivieren, nativen Title Text/required/255 prüfen. Der reale Compiler-/Metadatentest belegt 13 neue Runtimezeilen (sechs Field-/FormFieldDefinitions, sieben ChoiceValues) und genau ObjectTypes/Change.AllowVersioning als Update; 31 bestehende Felder und 1.017 andere Zeilen erhalten. Kein Backfill, keine Description-Umdeutung, keine Datenmigration.
+Der erste freigegebene Add von LinkedAsset mit Indexed=TRUE scheitert am nativen 20-Index-Limit; 1/2 Spalten-Add-Versuche verbraucht. Vollständiger Nachvergleich bestätigt keine neue Spalte und unveränderte Inhalte, Versionen, Schema und Settings aller sechs Listen; weitere Writes 0. Kein Retry unter dieser abgeschlossenen Freigabe.
 
-Changes fehlt im kanonischen Connectorpaket. Native Ergänzung, unterstützte Studio-Verbindung und geprüfte DEV→Git-Übernahme allein des erzeugten msapr brauchen eine neue Freigabe. Keine unaufgelösten Canvas-Formeln oder erfundenen Connectorrechte; Change-Capabilities bleiben false. `VERSION`, Canvas- und Solutionversion unverändert. [Konkreter Scope und Stop-Regeln](docs/development/Stage-4.1-P3-Change.md).
+Korrigierter Kandidat: zwei neue **nicht indizierte** Changes-Spalten (LinkedAsset→Assets.Title und ChangeStatus mit den sieben bestehenden Lifecycle-Labels), vorhandene 20 Indizes erhalten, bereits aktive Versionierung und nativen Title Text/required/255 nur prüfen. Listsetting-/Indexänderungen 0. Der reale Compiler-/Metadatentest belegt 13 neue Runtimezeilen (sechs Field-/FormFieldDefinitions, sieben ChoiceValues) und genau ObjectTypes/Change.AllowVersioning als Update; 31 bestehende Felder und 1.017 andere Zeilen erhalten. Kein Backfill, keine Description-Umdeutung, keine Datenmigration.
+
+Changes fehlt im kanonischen Connectorpaket. Native Ergänzung, unterstützte Studio-Verbindung und geprüfte DEV→Git-Übernahme allein des erzeugten msapr brauchen nach dem Stopp eine neue Freigabe des korrigierten Kandidaten und Planhashs. Keine unaufgelösten Canvas-Formeln oder erfundenen Connectorrechte; Change-Capabilities bleiben false. `VERSION`, Canvas- und Solutionversion unverändert. [Konkreter Scope und Stop-Regeln](docs/development/Stage-4.1-P3-Change.md).
 
 ## P1-Systembeschreibung – begrenzte DEV-Abnahme abgeschlossen
 
