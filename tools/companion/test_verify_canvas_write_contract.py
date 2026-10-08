@@ -1,10 +1,11 @@
 import json
+import copy
 import tempfile
 import unittest
 from pathlib import Path
 from zipfile import ZipFile
 
-from verify_canvas_write_contract import patch_fields, read_sources, validate
+from verify_canvas_write_contract import patch_fields, read_sources, read_connections, validate, validate_connections
 
 
 def fixture(permission="read-write", field="SystemDescription"):
@@ -87,6 +88,67 @@ class CanvasWriteContractRegression(unittest.TestCase):
                 with ZipFile(path, "w") as archive:
                     archive.writestr(name, json.dumps({"DataSources": fixture()}))
                 self.assertEqual(read_sources(path), fixture())
+
+
+def connection_fixture():
+    sources = [
+        {"Name": "Assets", "ApiId": "synthetic-sharepoint-api", "DatasetName": "synthetic-alias", "TableName": "synthetic-assets"},
+        {"Name": "Changes", "ApiId": "synthetic-sharepoint-api", "DatasetName": "https://tenant.invalid/synthetic", "TableName": "synthetic-changes"},
+        {"Name": "SyntheticUsers", "ApiId": "synthetic-users-api"},
+        {"Name": "ComboBoxSample", "IsSampleData": True},
+    ]
+    local = {
+        "synthetic-sharepoint": {
+            "connectionRef": {"id": "synthetic-sharepoint-api"},
+            "dataSources": ["Assets", "Changes"],
+            "datasets": {"https://tenant.invalid/synthetic": {"dataSources": {
+                "Assets": {"tableName": "synthetic-assets"},
+                "Changes": {"tableName": "synthetic-changes"},
+            }}},
+        },
+        "synthetic-users": {"connectionRef": {"id": "synthetic-users-api"}, "dataSources": ["SyntheticUsers"], "datasets": {}},
+    }
+    solution = {key: {"id": value["connectionRef"]["id"], "dataSources": copy.deepcopy(value["dataSources"]),
+                      "dataSets": copy.deepcopy(value["datasets"])} for key, value in local.items()}
+    return sources, local, solution
+
+
+class CanvasConnectionContractRegression(unittest.TestCase):
+    def test_30451_source_and_dataset_omission_is_rejected(self):
+        sources, local, solution = connection_fixture()
+        solution["synthetic-sharepoint"]["dataSources"].remove("Changes")
+        del solution["synthetic-sharepoint"]["dataSets"]["https://tenant.invalid/synthetic"]["dataSources"]["Changes"]
+        self.assertEqual(validate_connections(sources, local, solution), [
+            "Changes: missing Solution source registration",
+            "Solution dataset/table bindings differ from Canvas references",
+        ])
+
+    def test_complete_alias_and_service_bindings_pass(self):
+        self.assertEqual(validate_connections(*connection_fixture()), [])
+
+    def test_source_registration_alone_does_not_fix_wrong_solution_table(self):
+        sources, local, solution = connection_fixture()
+        solution["synthetic-sharepoint"]["dataSets"]["https://tenant.invalid/synthetic"]["dataSources"]["Changes"]["tableName"] = "different-table"
+        self.assertEqual(validate_connections(sources, local, solution), ["Solution dataset/table bindings differ from Canvas references"])
+
+    def test_canvas_binding_must_use_its_generated_native_table(self):
+        sources, local, solution = connection_fixture()
+        sources[1]["TableName"] = "different-table"
+        self.assertEqual(validate_connections(sources, local, solution), ["Changes: Canvas dataset does not bind its native table"])
+
+    def test_other_connector_cannot_substitute(self):
+        sources, local, solution = connection_fixture()
+        solution["synthetic-sharepoint"]["id"] = "different-api"
+        self.assertIn("Solution connector API differs from Canvas references", validate_connections(sources, local, solution))
+
+    def test_local_connections_support_both_package_layouts(self):
+        _, local, _ = connection_fixture()
+        for entry in ("msapp/Properties.json", "msapp\\Properties.json", "Properties.json"):
+            with self.subTest(entry=entry), tempfile.TemporaryDirectory() as directory:
+                path = Path(directory) / "synthetic.msapp"
+                with ZipFile(path, "w") as archive:
+                    archive.writestr(entry, json.dumps({"LocalConnectionReferences": json.dumps(local)}))
+                self.assertEqual(read_connections(path), local)
 
 
 if __name__ == "__main__":

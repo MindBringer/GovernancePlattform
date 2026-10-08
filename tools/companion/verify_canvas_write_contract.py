@@ -11,10 +11,12 @@ import json
 import re
 from pathlib import Path
 from zipfile import ZipFile
+from xml.etree import ElementTree
 
 ROOT = Path(__file__).resolve().parents[2]
 CANVAS = Path("powerplatform/canvas/GovernancePortal")
 ARTIFACT = Path("powerplatform/solution/CanvasApps/gp_governanceportal_c93a1_DocumentUri.msapp")
+APP_METADATA = Path("powerplatform/solution/CanvasApps/gp_governanceportal_c93a1.meta.xml")
 
 
 def patch_fields(source: str) -> dict[str, list[str]]:
@@ -90,10 +92,67 @@ def validate(sources: list[dict], contracts: dict[str, list[str]]) -> list[str]:
     return errors
 
 
+def read_connections(path: Path) -> dict:
+    with ZipFile(path) as archive:
+        entries = {name.replace("\\", "/"): name for name in archive.namelist()}
+        candidates = [name for name in entries if name in (
+            "Properties.json", "msapp/Properties.json")]
+        if len(candidates) != 1:
+            raise ValueError("Expected one Canvas properties entry")
+        raw = json.loads(archive.read(entries[candidates[0]]))["LocalConnectionReferences"]
+        return json.loads(raw) if isinstance(raw, str) else raw
+
+
+def validate_connections(sources: list[dict], local: dict, solution: dict) -> list[str]:
+    """Check both registrations; writable msapp metadata alone is insufficient."""
+    errors = []
+    if local.keys() != solution.keys():
+        errors.append("Solution connection identities differ from Canvas references")
+    registered = []
+    for key, connection in local.items():
+        native = solution.get(key, {})
+        names = connection.get("dataSources", [])
+        registered.extend(names)
+        if len(names) != len(set(names)):
+            errors.append("Duplicate Canvas source registration")
+        if native.get("id") != connection.get("connectionRef", {}).get("id"):
+            errors.append("Solution connector API differs from Canvas references")
+        declared = native.get("dataSources", [])
+        for name in sorted(set(names) - set(declared)):
+            errors.append(f"{name}: missing Solution source registration")
+        if set(declared) - set(names) or len(declared) != len(set(declared)):
+            errors.append("Unexpected or duplicate Solution source registration")
+        datasets = connection.get("datasets", {})
+        if datasets != native.get("dataSets", {}):
+            errors.append("Solution dataset/table bindings differ from Canvas references")
+        for name in names:
+            matches = [source for source in sources if source.get("Name") == name]
+            if len(matches) != 1:
+                errors.append(f"{name}: expected one registered Canvas data source")
+                continue
+            source = matches[0]
+            if source.get("ApiId") != connection.get("connectionRef", {}).get("id"):
+                errors.append(f"{name}: Canvas source uses a different connector API")
+            if source.get("DatasetName"):
+                # Existing generated sources can use dataset aliases. Preserve
+                # their complete dataset/override maps above and resolve the
+                # unique registered source name within this connection.
+                bindings = [dataset.get("dataSources", {}).get(name)
+                            for dataset in datasets.values()
+                            if name in dataset.get("dataSources", {})]
+                if len(bindings) != 1 or bindings[0].get("tableName") != source.get("TableName"):
+                    errors.append(f"{name}: Canvas dataset does not bind its native table")
+    connected = [source["Name"] for source in sources if source.get("ApiId") and not source.get("IsSampleData")]
+    if set(registered) != set(connected) or len(registered) != len(set(registered)):
+        errors.append("Connected Canvas sources and registrations differ")
+    return errors
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--root", type=Path, default=ROOT)
     parser.add_argument("--artifact", type=Path, default=ARTIFACT)
+    parser.add_argument("--solution-metadata", type=Path, default=APP_METADATA)
     args = parser.parse_args()
     root = args.root.resolve()
     source = (root / CANVAS / "Src/scrShell.pa.yaml").read_text(encoding="utf-8-sig")
@@ -102,16 +161,20 @@ def main() -> int:
     if len(references) != 1:
         raise ValueError("Expected one canonical generated reference package")
     paths = [references[0], root / args.artifact]
+    raw = ElementTree.parse(root / args.solution_metadata).getroot().findtext("ConnectionReferences")
+    solution_connections = json.loads(raw)
     failed = False
     for path in paths:
-        errors = validate(read_sources(path), contracts)
+        sources = read_sources(path)
+        errors = validate(sources, contracts)
+        errors += validate_connections(sources, read_connections(path), solution_connections)
         for error in errors:
             print(f"{path.name}: {error}")
         failed |= bool(errors)
     if failed:
-        print("Write contract blocked. Inspect native schema, then refresh the generated canonical reference through the approved DEV workflow; do not override permissions.")
+        print("Write contract blocked. Inspect native schema and Solution registrations; preserve generated bindings and use the approved workflow for any native refresh.")
         return 1
-    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields in canonical and packed connector references.")
+    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields and complete Solution source/dataset registrations in canonical and packed connector references.")
     return 0
 
 
