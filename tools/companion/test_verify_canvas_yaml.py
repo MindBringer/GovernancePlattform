@@ -24,6 +24,16 @@ class CanvasYamlRegression(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "Duplicate Canvas key"):
             validate_text('Screens:\n  scrShell:\n    Properties:\n      Text: ="first"\n      Text: ="second"\n')
 
+    def test_native_pa2108_classic_button_accessible_label(self):
+        with self.assertRaisesRegex(ValueError, "PA2108: Classic/Button"):
+            validate_text('Screens:\n  scrShell:\n    Children:\n      - arbitraryDecision:\n          Control: Classic/Button@2.2.0\n          Properties:\n            Text: ="Genehmigen"\n            AccessibleLabel: ="Entscheidung"\n')
+
+    def test_classic_button_text_and_tooltip(self):
+        validate_text('Screens:\n  scrShell:\n    Children:\n      - arbitraryDecision:\n          Control: Classic/Button@2.2.0\n          Properties:\n            Text: ="Genehmigen"\n            Tooltip: ="Anschließend speichern"\n')
+
+    def test_input_accessible_label_is_preserved(self):
+        validate_text('Screens:\n  scrShell:\n    Children:\n      - input:\n          Control: Classic/TextInput@2.3.2\n          Properties:\n            AccessibleLabel: ="Titel"\n')
+
 
 if __name__ == "__main__":
     unittest.main()

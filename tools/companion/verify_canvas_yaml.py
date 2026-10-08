@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Parse canonical Canvas YAML before packing; this is not a Studio schema check."""
+"""Parse Canvas YAML and known native regressions; this is not a full Studio schema check."""
 from __future__ import annotations
 
 import argparse
@@ -23,6 +23,17 @@ def validate_text(text: str) -> None:
 
     def visit(node: yaml.Node) -> None:
         if isinstance(node, MappingNode):
+            fields = {key.value: value for key, value in node.value if isinstance(key, ScalarNode)}
+            control = fields.get("Control")
+            properties = fields.get("Properties")
+            # Native PA2108 on 30450: Classic buttons use Text for their
+            # screenreader name; AccessibleLabel is not in this control schema.
+            if (isinstance(control, ScalarNode)
+                    and control.value.startswith("Classic/Button@")
+                    and isinstance(properties, MappingNode)):
+                for property_key, _ in properties.value:
+                    if isinstance(property_key, ScalarNode) and property_key.value == "AccessibleLabel":
+                        fail(property_key, "PA2108: Classic/Button does not support AccessibleLabel; use Text for its name")
             keys: set[str] = set()
             for key, value in node.value:
                 if not isinstance(key, ScalarNode):

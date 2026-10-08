@@ -1796,7 +1796,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: ="Genehmigen"
-                                          AccessibleLabel: ="Change ausdrücklich genehmigen und anschließend speichern"
+                                          Tooltip: ="Change ausdrücklich genehmigen und anschließend speichern"
                                           Visible: =gblCurrentPage = "editor" && gblObjectType = "Change" && gblChangeOriginalStatusKey = "ChangeStatus:Submitted"
                                           DisplayMode: |-
                                             =If(Self.Visible && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorConflict && gblEditorLoadComplete
@@ -1823,7 +1823,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: ="Ablehnen"
-                                          AccessibleLabel: ="Change ausdrücklich ablehnen und anschließend speichern"
+                                          Tooltip: ="Change ausdrücklich ablehnen und anschließend speichern"
                                           Visible: =btnChangeApprove.Visible
                                           DisplayMode: =btnChangeApprove.DisplayMode
                                           OnSelect: |-
