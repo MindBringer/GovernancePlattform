@@ -50,6 +50,9 @@ App:
       Set(gblRecordQuery, "");
       Set(gblRecordQueryId, 0);
       Set(gblRecordError, "");
+      Set(gblChangeOriginalStatusKey, "");
+      Set(gblChangeDecision, "");
+      Set(gblChangeActorClaims, "");
       ClearCollect(colRecordValues, {FieldInternalName: "", NativeControlType: "", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""});
       Clear(colRecordValues);
 
@@ -132,10 +135,10 @@ App:
               TitleField: "Title",
               GovernanceIdField: "GovernanceID",
               ActiveField: "IsActive",
-              SupportsList: false,
-              SupportsCreate: false,
-              SupportsEdit: false,
-              SupportsSave: false
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
           },
           {
               ObjectTypeKey: "Risk",

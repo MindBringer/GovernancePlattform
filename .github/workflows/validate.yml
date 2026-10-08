@@ -53,3 +53,6 @@ jobs:
       - name: Validate record core source and compiler contract
         shell: pwsh
         run: ./powerplatform/scripts/Test-CanvasRecordCore.ps1
+      - name: Validate Change Canvas lifecycle and native field contract
+        shell: pwsh
+        run: ./powerplatform/scripts/Test-CanvasChangeContract.ps1
