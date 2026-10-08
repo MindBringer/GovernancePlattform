@@ -32,6 +32,22 @@ if ($NativeSnapshotPath) {
     if ($nativeIndexCount + $missingIndexedFields -gt 20) {
         throw "Change native index budget exceeded: $nativeIndexCount existing + $missingIndexedFields new > 20. No index removal is authorized."
     }
+    # Index capacity alone cannot prove that an incomplete Draft can be created.
+    # Existing native field requirements must agree with the leading architecture;
+    # otherwise SharePoint can reject fields that the pilot intentionally omits.
+    $requiredDrift = @(
+        foreach ($field in $change.Fields) {
+            $actual = @($native.Schema | Where-Object InternalName -eq $field.InternalName)
+            if ($actual.Count -gt 1) { throw "Duplicate native Change field: $($field.InternalName)" }
+            # The two P3a additions may still be absent in a prerequisite snapshot.
+            if ($actual.Count -eq 1 -and $actual[0].Required -ne $field.Required) {
+                "$($field.InternalName): native Required=$($actual[0].Required), architecture Required=$($field.Required)"
+            }
+        }
+    )
+    if ($requiredDrift.Count) {
+        throw "Change native required-field drift: $($requiredDrift -join '; '). Draft creation is not accepted; no schema write is authorized by this check."
+    }
 }
 if ($title.Type -ne 'Text' -or -not $title.Required -or $title.maxLength -ne 255) { throw 'Invalid Change Title contract.' }
 if ($lookup.Type -ne 'Lookup' -or $lookup.LookupList -ne 'Assets' -or $lookup.Required -or $lookup.Indexed) { throw 'Change asset reference must be an optional unindexed native Assets lookup.' }
