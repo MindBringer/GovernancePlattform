@@ -1,5 +1,5 @@
 [CmdletBinding()]
-param([string]$PlanPath, [ValidateSet("Asset","System")][string]$ObjectType = "Asset")
+param([string]$PlanPath, [ValidateSet("Asset","System","Change")][string]$ObjectType = "Asset")
 
 Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'

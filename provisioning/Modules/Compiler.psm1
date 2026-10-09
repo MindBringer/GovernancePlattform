@@ -8,6 +8,12 @@ function ConvertTo-GPFieldDefinition {
     foreach($p in @('default','min','max','maxLength','numLines','allowMultiple','searchable','exportable','aiVisible')){
         if($Field.ContainsKey($p)){$f[$p]=$Field[$p]}
     }
+    if($Field.ContainsKey('dateFormat')){
+        if($Field.type -cne 'DateTime' -or $Field.dateFormat -isnot [string] -or $Field.dateFormat -cnotin @('DateOnly','DateTime')){
+            throw "Invalid dateFormat for '$($Field.internalName)': only DateOnly/DateTime on a DateTime field are supported."
+        }
+        $f.DateFormat=$Field.dateFormat
+    }
     if($Field.choiceSet){
         $set=$Model.ChoiceSets|Where-Object key -eq $Field.choiceSet|Select-Object -First 1
         $f.ChoiceSet=$Field.choiceSet

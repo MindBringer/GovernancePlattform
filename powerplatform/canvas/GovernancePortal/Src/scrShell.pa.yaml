@@ -142,7 +142,7 @@ Screens:
                                       Set(gblLastRefresh, Now());
                                       Set(gblBusy, false);
                                       Set(gblBusyMessage, Blank());
-                                      Switch(gblObjectType, "Asset", Refresh(Assets), "System", Refresh(Systems));
+                                      Switch(gblObjectType, "Asset", Refresh(Assets), "System", Refresh(Systems), "Change", Refresh(Changes));
                                       Set(gblRecordError, ""),
                                       Set(gblBusy, false); Set(gblBusyMessage, Blank()); Set(gblRecordError, "Aktualisierung fehlgeschlagen. " & FirstError.Message)
                                       )
@@ -313,7 +313,7 @@ Screens:
                                       );
                                       Set(gblSelectedRecordId, 0);
                                       Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, "");
-                                      Reset(txtRecordSearch); Reset(txtRecordId); Reset(galAssetRecords); Reset(galSystemRecords)
+                                      Reset(txtRecordSearch); Reset(txtRecordId); Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords)
                                       )
                                     TemplateFill: |-
                                       =If(
@@ -394,7 +394,7 @@ Screens:
                                               SortByColumns(
                                                   Filter(
                                                       colFormFields As formField,
-                                                      formField.ObjectTypeKey = gblSelectedObjectTypeKey && Switch(gblObjectType, "Asset", formField.FieldInternalName in ["Title", "AssetType", "Owner", "DeputyOwner", "BusinessOwner", "TechnicalOwner", "DataSteward", "Criticality", "DataClassification", "LifecycleStatus", "ConfidentialityRequirement", "IntegrityRequirement", "AvailabilityRequirement", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive"], "System", formField.FieldInternalName in ["Title", "SystemDescription", "MonitoringStatus", "BackupStatus", "AuthenticationType", "SupportModel", "Owner", "GovernanceStatus", "Criticality", "SystemType", "Environment", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive", "LinkedAsset"], false)
+                                                      formField.ObjectTypeKey = gblSelectedObjectTypeKey && Switch(gblObjectType, "Asset", formField.FieldInternalName in ["Title", "AssetType", "Owner", "DeputyOwner", "BusinessOwner", "TechnicalOwner", "DataSteward", "Criticality", "DataClassification", "LifecycleStatus", "ConfidentialityRequirement", "IntegrityRequirement", "AvailabilityRequirement", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive"], "System", formField.FieldInternalName in ["Title", "SystemDescription", "MonitoringStatus", "BackupStatus", "AuthenticationType", "SupportModel", "Owner", "GovernanceStatus", "Criticality", "SystemType", "Environment", "LastReviewDate", "NextReviewDate", "ReviewCycleMonths", "IsActive", "LinkedAsset"], "Change", formField.FieldInternalName in ["Title", "LinkedAsset", "IsActive", "Owner", "Approver", "ChangeType", "ChangeStatus", "ApprovalStatus", "ChangeRisk", "PlannedStart", "PlannedEnd", "ImplementationPlan", "RollbackPlan", "ActualEnd", "ApprovedDate", "EmergencyChange", "DowntimeExpected", "DowntimeMinutes", "RollbackValidated"], false)
                                                   ),
                                                   "SortOrder",
                                                   SortOrder.Ascending
@@ -703,6 +703,22 @@ Screens:
                                           Set(gblEditorLoadComplete, CountRows(Filter(colRecordValues As loadedValue, IsBlank(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName)) || LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName, ControlType) <> loadedValue.NativeControlType)) = 0),
                                           Set(gblEditorLoadComplete, true)
                                       );
+                                      If(gblObjectType = "Change",
+                                          Set(gblChangeDecision, "");
+                                          Set(gblChangeOriginalStatusKey, If(gblEditorMode = "New", "ChangeStatus:Draft", LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey)));
+                                          If(gblEditorMode = "New",
+                                              Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = "ChangeStatus"), {ValueChoiceKey: "ChangeStatus:Draft", IsValid: true, IsDirty: false, ErrorMessage: ""});
+                                              Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = "ApprovalStatus"), {ValueChoiceKey: "ApprovalStatus:Draft", IsValid: true, IsDirty: false, ErrorMessage: ""})
+                                          );
+                                          ForAll(colEditorValues As changeField,
+                                              Patch(colEditorValues, changeField, {IsReadOnly:
+                                                  changeField.FieldInternalName in ["ApprovalStatus", "ApprovedDate"]
+                                                  || gblChangeOriginalStatusKey in ["ChangeStatus:Rejected", "ChangeStatus:Closed"]
+                                                  || (gblChangeOriginalStatusKey <> "ChangeStatus:Draft" && !IsBlank(gblChangeOriginalStatusKey) && changeField.FieldInternalName in ["LinkedAsset", "Owner", "Approver", "ChangeType", "ChangeRisk", "ImplementationPlan", "RollbackPlan"])
+                                                  || (gblChangeOriginalStatusKey = "ChangeStatus:Submitted" && changeField.FieldInternalName = "ChangeStatus")})
+                                          );
+                                          Select(lblChangeIdentity)
+                                      );
                                       Set(gblEditorDirty, false);
                                       Set(gblEditorCanSave, false);
                                       Set(gblCurrentPage, "editor");
@@ -784,6 +800,37 @@ Screens:
                                           {FieldInternalName: "LinkedAsset", NativeControlType: "Lookup", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Id, Blank()), ValueLookupText: If(gblSystemRecord.LinkedAsset.Id > 0, gblSystemRecord.LinkedAsset.Value, ""), ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
                                       ));
                                                   Set(gblLoadedRecordId, gblSystemRecord.ID)
+                                              ),
+                                              Set(gblRecordError, "Der Datensatz konnte nicht geladen werden. " & FirstError.Message)
+                                          ),
+                                          "Change",
+                                          IfError(
+                                              Refresh(Changes);
+                                              Set(gblChangeRecord, LookUp(Changes, ID = gblSelectedRecordId));
+                                              If(IsBlank(gblChangeRecord.ID),
+                                                  Set(gblRecordError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                  ClearCollect(colRecordValues, Table(
+                                          {FieldInternalName: "Title", NativeControlType: "Text", ValueText: gblChangeRecord.Title, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "LinkedAsset", NativeControlType: "Lookup", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(gblChangeRecord.LinkedAsset.Id > 0, gblChangeRecord.LinkedAsset.Id, Blank()), ValueLookupText: If(gblChangeRecord.LinkedAsset.Id > 0, gblChangeRecord.LinkedAsset.Value, ""), ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "IsActive", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblChangeRecord.IsActive, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "Owner", NativeControlType: "User", ValueText: gblChangeRecord.Owner.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblChangeRecord.Owner.Claims), gblChangeRecord.Owner.Email, Last(Split(gblChangeRecord.Owner.Claims, "|")).Value), ValuePersonClaims: gblChangeRecord.Owner.Claims, ValuePersonDepartment: gblChangeRecord.Owner.Department, ValuePersonJobTitle: gblChangeRecord.Owner.JobTitle},
+                                          {FieldInternalName: "Approver", NativeControlType: "User", ValueText: gblChangeRecord.Approver.DisplayName, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: If(IsBlank(gblChangeRecord.Approver.Claims), gblChangeRecord.Approver.Email, Last(Split(gblChangeRecord.Approver.Claims, "|")).Value), ValuePersonClaims: gblChangeRecord.Approver.Claims, ValuePersonDepartment: gblChangeRecord.Approver.Department, ValuePersonJobTitle: gblChangeRecord.Approver.JobTitle},
+                                          {FieldInternalName: "ChangeType", NativeControlType: "Choice", ValueText: gblChangeRecord.ChangeType.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ChangeStatus", NativeControlType: "Choice", ValueText: gblChangeRecord.ChangeStatus.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ApprovalStatus", NativeControlType: "Choice", ValueText: gblChangeRecord.ApprovalStatus.Value, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ChangeRisk", NativeControlType: "Text", ValueText: gblChangeRecord.ChangeRisk, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "PlannedStart", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblChangeRecord.PlannedStart, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "PlannedEnd", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblChangeRecord.PlannedEnd, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ImplementationPlan", NativeControlType: "Note", ValueText: gblChangeRecord.ImplementationPlan, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "RollbackPlan", NativeControlType: "Note", ValueText: gblChangeRecord.RollbackPlan, ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ActualEnd", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblChangeRecord.ActualEnd, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "ApprovedDate", NativeControlType: "DateTime", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: gblChangeRecord.ApprovedDate, ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "EmergencyChange", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblChangeRecord.EmergencyChange, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "DowntimeExpected", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblChangeRecord.DowntimeExpected, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "DowntimeMinutes", NativeControlType: "Number", ValueText: "", ValueNumber: gblChangeRecord.DowntimeMinutes, ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""},
+                                          {FieldInternalName: "RollbackValidated", NativeControlType: "Boolean", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: gblChangeRecord.RollbackValidated, ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""}
+                                                  ));
+                                                  Set(gblLoadedRecordId, gblChangeRecord.ID)
                                               ),
                                               Set(gblRecordError, "Der Datensatz konnte nicht geladen werden. " & FirstError.Message)
                                           ),
@@ -916,6 +963,65 @@ Screens:
                                           Height: =28
                                           Width: =Parent.TemplateWidth - 16
                                           Y: =44
+                              - galChangeRecords:
+                                  Control: Gallery@2.15.0
+                                  Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+                                  Properties:
+                                    AccessibleLabel: ="Changes suchen und öffnen"
+                                    ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                    Selectable: =true
+                                    TabIndex: =-1
+                                    Height: =Parent.Height - Self.Y - 12
+                                    Width: =Parent.Width - Self.X
+                                    X: =If(Parent.Width >= 760, 280, 0)
+                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    TemplateSize: =76
+                                    TemplatePadding: =4
+                                    ShowNavigation: =true
+                                    NavigationStep: =Max(1, RoundDown(Self.Height / 80, 0))
+                                    ShowScrollbar: =true
+                                    LoadingSpinner: =LoadingSpinner.Data
+                                    Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "Change" && Coalesce(gblActiveProvider.SupportsList, false)
+                                    Items: |-
+                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "Change" && Coalesce(gblActiveProvider.SupportsList, false),
+                                          If(gblRecordQueryId <> 0,
+                                              SortByColumns(Filter(Changes, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              SortByColumns(Filter(Changes, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
+                                          ),
+                                          Blank()
+                                      )
+                                    OnSelect: |-
+                                      =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "Change" && gblActiveProvider.ObjectTypeKey = "Change" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
+                                          Set(gblSelectedRecordId, ThisItem.ID);
+                                          Select(lblRecordLoad)
+                                      )
+                                  Children:
+                                    - btnChangeRecordOpen:
+                                        Control: Classic/Button@2.2.0
+                                        Properties:
+                                          Text: |-
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                          OnSelect: =Select(Parent)
+                                          DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
+                                          Font: =Font.'Open Sans'
+                                          Color: =gblTheme.ColorText
+                                          Fill: =gblTheme.ColorSurface
+                                          BorderColor: =gblTheme.ColorBorder
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          TabIndex: =0
+                                          Height: =42
+                                          Width: =Parent.TemplateWidth - 16
+                                    - lblChangeRecordDetail:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Text: ="ID " & Text(ThisItem.ID) & " · Geändert " & Text(ThisItem.Modified, "dd.mm.yyyy hh:mm")
+                                          Color: =gblTheme.ColorTextMuted
+                                          Font: =Font.'Open Sans'
+                                          Size: =10
+                                          Height: =28
+                                          Width: =Parent.TemplateWidth - 16
+                                          Y: =44
                               - txtRecordSearch:
                                   Control: Classic/TextInput@2.3.2
                                   Properties:
@@ -928,7 +1034,7 @@ Screens:
                                     OnChange: |-
                                       =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
                                           Set(gblRecordQuery, Trim(Self.Text)); Set(gblRecordQueryId, 0); Reset(txtRecordId);
-                                          Reset(galAssetRecords); Reset(galSystemRecords); Set(gblRecordError, "")
+                                          Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords); Set(gblRecordError, "")
                                       )
                                     Font: =Font.'Open Sans'
                                     Width: =Max(160, Parent.Width - Self.X - 180)
@@ -953,7 +1059,7 @@ Screens:
                                                   requestedId > 0 && requestedId = RoundDown(requestedId, 0), Set(gblRecordQueryId, requestedId); Set(gblRecordError, ""),
                                                   Set(gblRecordQueryId, -1); Set(gblRecordError, "Bitte eine positive ganze Datensatz-ID eingeben.")
                                               )
-                                          ); Reset(galAssetRecords); Reset(galSystemRecords)
+                                          ); Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords)
                                       )
                                     Font: =Font.'Open Sans'
                                     Width: =160
@@ -990,7 +1096,7 @@ Screens:
                                     Width: =Parent.Width - Self.X
                                     X: =galAssetRecords.X
                                     Y: =galAssetRecords.Y
-                                    Visible: =gblCurrentPage = "ObjectList" && !gblLoadBusy && IsBlank(gblRecordError) && Switch(gblObjectType, "Asset", IsEmpty(galAssetRecords.AllItems), "System", IsEmpty(galSystemRecords.AllItems), false)
+                                    Visible: =gblCurrentPage = "ObjectList" && !gblLoadBusy && IsBlank(gblRecordError) && Switch(gblObjectType, "Asset", IsEmpty(galAssetRecords.AllItems), "System", IsEmpty(galSystemRecords.AllItems), "Change", IsEmpty(galChangeRecords.AllItems), false)
                               - galMetadata:
                                   Control: Gallery@2.15.0
                                   Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -1206,7 +1312,8 @@ Screens:
                                             =If(
                                                 gblEditorCanSave && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorConflict
                                                   && CountRows(Filter(colEditorValues, IsValid = false)) = 0
-                                                  && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                  && (gblObjectType <> "Change" || IsBlank(lblChangeValidation.Text))
+                                                  && (!(gblObjectType in ["Asset", "System", "Change"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                   && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                   && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                   && Coalesce(gblActiveProvider.SupportsSave, false)
@@ -1258,7 +1365,18 @@ Screens:
                                                     "System", IfError(Refresh(Systems); Set(gblSystemCurrent, LookUp(Systems, ID = gblSelectedRecordId));
                                                         If(IsBlank(gblSystemCurrent.ID), Set(gblSaveError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
                                                             IsBlank(gblSystemCurrent.Modified) || IsBlank(gblSystemRecord.Modified) || gblSystemCurrent.Modified <> gblSystemRecord.Modified, Set(gblEditorConflict, true); Set(gblSaveError, "Der Datensatz wurde inzwischen geändert. Änderungen verwerfen und neu öffnen.")),
+                                                        Set(gblSaveError, "Der aktuelle Datenstand konnte nicht geprüft werden. " & FirstError.Message)),
+                                                    "Change", IfError(Refresh(Changes); Set(gblChangeCurrent, LookUp(Changes, ID = gblSelectedRecordId));
+                                                        If(IsBlank(gblChangeCurrent.ID), Set(gblSaveError, "Der Datensatz wurde gelöscht oder ist nicht zugänglich."),
+                                                            IsBlank(gblChangeCurrent.Modified) || IsBlank(gblChangeRecord.Modified) || gblChangeCurrent.Modified <> gblChangeRecord.Modified, Set(gblEditorConflict, true); Set(gblSaveError, "Der Datensatz wurde inzwischen geändert. Änderungen verwerfen und neu öffnen.")),
                                                         Set(gblSaveError, "Der aktuelle Datenstand konnte nicht geprüft werden. " & FirstError.Message))
+                                                )
+                                            );
+                                            If(gblObjectType = "Change" && IsBlank(gblSaveError) && Coalesce(LookUp(colEditorValues, FieldInternalName = "LinkedAsset", ValueLookupId), 0) > 0,
+                                                IfError(
+                                                    Refresh(Assets);
+                                                    If(IsBlank(LookUp(Assets, ID = LookUp(colEditorValues, FieldInternalName = "LinkedAsset", ValueLookupId), ID)), Set(gblSaveError, "Das verknüpfte Asset existiert nicht oder ist nicht zugänglich.")),
+                                                    Set(gblSaveError, "Der Asset-Bezug konnte nicht geprüft werden. " & FirstError.Message)
                                                 )
                                             );
                                             If(IsBlank(gblSaveError),
@@ -1487,6 +1605,36 @@ Screens:
                                                         Set(gblSavedRecordId, gblSavedRecord.ID),
                                                         Set(gblEditorConflict, FirstError.Kind = ErrorKind.Conflict); Set(gblSaveError, If(FirstError.Kind = ErrorKind.Conflict, "Der Datensatz wurde parallel geändert. Änderungen verwerfen und neu öffnen.", FirstError.Message))
                                                     ),
+                                                    "Change",
+                                                    IfError(
+                                                        Set(gblSavedRecord, Patch(
+                                                                Changes,
+                                                                If(gblEditorMode = "Edit" && gblSelectedRecordId > 0, gblChangeRecord, Defaults(Changes)),
+                                                                {
+                                                                    Title: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Title", IsDirty), false), gblChangeRecord.Title, Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))),
+                                                                    LinkedAsset: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "LinkedAsset", IsDirty), false), If(gblChangeRecord.LinkedAsset.Id > 0, gblChangeRecord.LinkedAsset, Blank()), With({lookupValue: LookUp(colEditorValues, FieldInternalName = "LinkedAsset")}, If(Coalesce(lookupValue.ValueLookupId, 0) <= 0, Blank(), {Id: lookupValue.ValueLookupId, Value: lookupValue.ValueLookupText}))),
+                                                                    IsActive: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "IsActive", IsDirty), false), gblChangeRecord.IsActive, LookUp(colEditorValues, FieldInternalName = "IsActive", ValueBoolean)),
+                                                                    Owner: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Owner", IsDirty), false), gblChangeRecord.Owner, With({personValue: LookUp(colEditorValues, FieldInternalName = "Owner")}, If(IsBlank(personValue.ValuePersonClaims), Blank(), {Claims: personValue.ValuePersonClaims, DisplayName: personValue.ValueText, Email: personValue.ValuePersonEmail, Department: personValue.ValuePersonDepartment, JobTitle: personValue.ValuePersonJobTitle, Picture: ""}))),
+                                                                    Approver: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "Approver", IsDirty), false), gblChangeRecord.Approver, With({personValue: LookUp(colEditorValues, FieldInternalName = "Approver")}, If(IsBlank(personValue.ValuePersonClaims), Blank(), {Claims: personValue.ValuePersonClaims, DisplayName: personValue.ValueText, Email: personValue.ValuePersonEmail, Department: personValue.ValuePersonDepartment, JobTitle: personValue.ValuePersonJobTitle, Picture: ""}))),
+                                                                    ChangeType: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "ChangeType", IsDirty), false), gblChangeRecord.ChangeType, If(IsBlank(LookUp(colEditorValues, FieldInternalName = "ChangeType", ValueChoiceKey)), Blank(), {Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ChangeType")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))})),
+                                                                    ChangeStatus: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "ChangeStatus", IsDirty), false), gblChangeRecord.ChangeStatus, If(IsBlank(LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey)), Blank(), {Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ChangeStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))})),
+                                                                    ApprovalStatus: If(IsBlank(LookUp(colEditorValues, FieldInternalName = "ApprovalStatus", ValueChoiceKey)), Blank(), {Value: With({choiceField: LookUp(colEditorValues, FieldInternalName = "ApprovalStatus")}, LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE))}),
+                                                                    ChangeRisk: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "ChangeRisk", IsDirty), false), gblChangeRecord.ChangeRisk, LookUp(colEditorValues, FieldInternalName = "ChangeRisk", ValueText)),
+                                                                    PlannedStart: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "PlannedStart", IsDirty), false), gblChangeRecord.PlannedStart, LookUp(colEditorValues, FieldInternalName = "PlannedStart", ValueDate)),
+                                                                    PlannedEnd: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "PlannedEnd", IsDirty), false), gblChangeRecord.PlannedEnd, LookUp(colEditorValues, FieldInternalName = "PlannedEnd", ValueDate)),
+                                                                    ImplementationPlan: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "ImplementationPlan", IsDirty), false), gblChangeRecord.ImplementationPlan, LookUp(colEditorValues, FieldInternalName = "ImplementationPlan", ValueText)),
+                                                                    RollbackPlan: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "RollbackPlan", IsDirty), false), gblChangeRecord.RollbackPlan, LookUp(colEditorValues, FieldInternalName = "RollbackPlan", ValueText)),
+                                                                    ActualEnd: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "ActualEnd", IsDirty), false), gblChangeRecord.ActualEnd, LookUp(colEditorValues, FieldInternalName = "ActualEnd", ValueDate)),
+                                                                    ApprovedDate: If(gblEditorMode = "Edit", If(gblChangeOriginalStatusKey = "ChangeStatus:Submitted" && LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey) = "ChangeStatus:Approved" && IsBlank(gblChangeRecord.ApprovedDate), Now(), gblChangeRecord.ApprovedDate), If(false, Now(), Blank())),
+                                                                    EmergencyChange: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "EmergencyChange", IsDirty), false), gblChangeRecord.EmergencyChange, LookUp(colEditorValues, FieldInternalName = "EmergencyChange", ValueBoolean)),
+                                                                    DowntimeExpected: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "DowntimeExpected", IsDirty), false), gblChangeRecord.DowntimeExpected, LookUp(colEditorValues, FieldInternalName = "DowntimeExpected", ValueBoolean)),
+                                                                    DowntimeMinutes: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "DowntimeMinutes", IsDirty), false), gblChangeRecord.DowntimeMinutes, LookUp(colEditorValues, FieldInternalName = "DowntimeMinutes", ValueNumber)),
+                                                                    RollbackValidated: If(gblEditorMode = "Edit" && !Coalesce(LookUp(colEditorValues, FieldInternalName = "RollbackValidated", IsDirty), false), gblChangeRecord.RollbackValidated, LookUp(colEditorValues, FieldInternalName = "RollbackValidated", ValueBoolean))
+                                                                }
+                                                            ));
+                                                        Set(gblSavedRecordId, gblSavedRecord.ID),
+                                                        Set(gblEditorConflict, FirstError.Kind = ErrorKind.Conflict); Set(gblSaveError, If(FirstError.Kind = ErrorKind.Conflict, "Der Datensatz wurde parallel geändert. Änderungen verwerfen und neu öffnen.", FirstError.Message))
+                                                    ),
                                                     Set(
                                                         gblSaveError,
                                                         "Für den Objekttyp '" & gblObjectType & "' ist noch kein Save-Provider registriert."
@@ -1539,7 +1687,7 @@ Screens:
                                         Control: Label@2.5.1
                                         Properties:
                                           Text: |-
-                                            =If(!IsBlank(gblSaveError), gblSaveError, "Der Datensatz konnte nicht vollständig zugeordnet werden. Bearbeitung ist gesperrt.")
+                                            =If(!IsBlank(gblSaveError), gblSaveError, gblObjectType = "Change" && !IsBlank(lblChangeValidation.Text), lblChangeValidation.Text, "Der Datensatz konnte nicht vollständig zugeordnet werden. Bearbeitung ist gesperrt.")
                                           AutoHeight: =true
                                           Live: =Live.Assertive
                                           Color: =gblTheme.ColorError
@@ -1550,7 +1698,150 @@ Screens:
                                           X: =16
                                           Y: =48
                                           Visible: |-
-                                            =gblCurrentPage = "editor" && (!gblEditorLoadComplete || !IsBlank(gblSaveError))
+                                            =gblCurrentPage = "editor" && (!gblEditorLoadComplete || !IsBlank(gblSaveError) || (gblObjectType = "Change" && !IsBlank(lblChangeValidation.Text)))
+                                    - lblChangeIdentity:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Visible: =false
+                                          Height: =1
+                                          Width: =1
+                                          Text: =""
+                                          OnSelect: |-
+                                            =Set(gblChangeActorClaims, "");
+                                            IfError(
+                                                Set(gblChangeProfile, 'Office365-Benutzer'.MyProfileV2({'$select': "id,userPrincipalName"}));
+                                                Set(gblChangeActorClaims,
+                                                    If(!IsBlank(gblChangeProfile.id) && !IsBlank(Trim(gblChangeProfile.userPrincipalName))
+                                                        && Lower(gblChangeProfile.id) = Lower(Text(gblUser.EntraObjectId)),
+                                                        "i:0#.f|membership|" & Lower(Trim(gblChangeProfile.userPrincipalName)), "")),
+                                                Set(gblChangeActorClaims, "")
+                                            )
+                                    - lblChangeValidation:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Visible: =false
+                                          Height: =1
+                                          Width: =1
+                                          Text: |-
+                                            =With({
+                                                statusKey: LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey),
+                                                approvalKey: LookUp(colEditorValues, FieldInternalName = "ApprovalStatus", ValueChoiceKey),
+                                                originalKey: gblChangeOriginalStatusKey,
+                                                startDate: LookUp(colEditorValues, FieldInternalName = "PlannedStart", ValueDate),
+                                                endDate: LookUp(colEditorValues, FieldInternalName = "PlannedEnd", ValueDate),
+                                                minutes: LookUp(colEditorValues, FieldInternalName = "DowntimeMinutes", ValueNumber)
+                                            },
+                                                If(gblObjectType <> "Change", "",
+                                                    IsBlank(statusKey), "Bitte dem bestehenden Change ausdrücklich den Status Entwurf zuordnen.",
+                                                    gblEditorMode = "New" && statusKey <> "ChangeStatus:Draft", "Neue Changes beginnen als Entwurf.",
+                                                    originalKey in ["ChangeStatus:Rejected", "ChangeStatus:Closed"], "Dieser Change ist abgeschlossen und schreibgeschützt.",
+                                                    !(statusKey = originalKey || Switch(originalKey,
+                                                        "", gblEditorMode = "Edit" && statusKey = "ChangeStatus:Draft" && Coalesce(LookUp(colEditorValues, FieldInternalName = "ChangeStatus", IsDirty), false),
+                                                        "ChangeStatus:Draft", statusKey = "ChangeStatus:Submitted",
+                                                        "ChangeStatus:Submitted", statusKey in ["ChangeStatus:Approved", "ChangeStatus:Rejected"],
+                                                        "ChangeStatus:Approved", statusKey = "ChangeStatus:Scheduled",
+                                                        "ChangeStatus:Scheduled", statusKey = "ChangeStatus:Implemented",
+                                                        "ChangeStatus:Implemented", statusKey = "ChangeStatus:Closed", false)), "Dieser Statuswechsel ist nicht zulässig.",
+                                                    approvalKey <> Switch(statusKey,
+                                                        "ChangeStatus:Draft", "ApprovalStatus:Draft",
+                                                        "ChangeStatus:Submitted", "ApprovalStatus:Submitted",
+                                                        "ChangeStatus:Rejected", "ApprovalStatus:Rejected", "ApprovalStatus:Approved"), "Genehmigungsstatus und Change-Status stimmen nicht überein.",
+                                                    !IsBlank(minutes) && minutes < 0, "Die Ausfallzeit darf nicht negativ sein.",
+                                                    !IsBlank(startDate) && !IsBlank(endDate) && endDate < startDate, "Das geplante Ende muss am oder nach dem Start liegen.",
+                                                    statusKey <> "ChangeStatus:Draft" && (
+                                                        Coalesce(LookUp(colEditorValues, FieldInternalName = "LinkedAsset", ValueLookupId), 0) <= 0
+                                                        || IsBlank(LookUp(colEditorValues, FieldInternalName = "Owner", ValuePersonClaims))
+                                                        || IsBlank(LookUp(colEditorValues, FieldInternalName = "Approver", ValuePersonClaims))
+                                                        || IsBlank(LookUp(colEditorValues, FieldInternalName = "ChangeType", ValueChoiceKey))
+                                                        || IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "ChangeRisk", ValueText)))
+                                                        || IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "ImplementationPlan", ValueText)))
+                                                        || IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "RollbackPlan", ValueText)))
+                                                        || IsBlank(startDate) || IsBlank(endDate)), "Zum Einreichen fehlen Asset, Zuständige, Typ, Risiko, Pläne oder Termine.",
+                                                    gblEditorMode = "Edit" && !IsBlank(originalKey) && originalKey <> "ChangeStatus:Draft"
+                                                        && CountRows(Filter(colEditorValues, FieldInternalName in ["LinkedAsset", "Owner", "Approver", "ChangeType", "ChangeRisk", "ImplementationPlan", "RollbackPlan"] && IsDirty)) > 0,
+                                                        "Zuständigkeit und Kernplanung bleiben nach dem Einreichen gesperrt.",
+                                                    gblEditorMode = "Edit" && originalKey in ["", "ChangeStatus:Draft", "ChangeStatus:Submitted"] && !IsBlank(gblChangeRecord.ApprovedDate), "Der bisherige Genehmigungszeitpunkt passt nicht zum Ausgangsstatus.",
+                                                    gblEditorMode = "Edit" && IsBlank(originalKey) && !IsBlank(gblChangeRecord.ApprovalStatus.Value)
+                                                        && gblChangeRecord.ApprovalStatus.Value <> LookUp(colEditorChoiceOptions, EditorFieldKey = "Change:ApprovalStatus" && ChoiceKey = "ApprovalStatus:Draft", DisplayNameDE),
+                                                        "Der bestehende Genehmigungsstatus muss vor einer Entwurfszuordnung geprüft werden.",
+                                                    originalKey = "ChangeStatus:Submitted" && statusKey in ["ChangeStatus:Approved", "ChangeStatus:Rejected"]
+                                                        && (IsBlank(gblChangeActorClaims) || Lower(gblChangeActorClaims) <> Lower(gblChangeRecord.Approver.Claims)
+                                                            || gblChangeDecision <> If(statusKey = "ChangeStatus:Approved", "Approved", "Rejected")),
+                                                        "Nur der zugeordnete Genehmiger kann ausdrücklich genehmigen oder ablehnen. Bitte die passende Entscheidung wählen.",
+                                                    statusKey in ["ChangeStatus:Approved", "ChangeStatus:Scheduled", "ChangeStatus:Implemented", "ChangeStatus:Closed"]
+                                                        && !(originalKey = "ChangeStatus:Submitted" && statusKey = "ChangeStatus:Approved")
+                                                        && IsBlank(gblChangeRecord.ApprovedDate), "Der Genehmigungszeitpunkt fehlt.",
+                                                    statusKey in ["ChangeStatus:Implemented", "ChangeStatus:Closed"] && IsBlank(LookUp(colEditorValues, FieldInternalName = "ActualEnd", ValueDate)), "Zum Abschluss der Umsetzung fehlt das tatsächliche Ende.",
+                                                    ""
+                                                )
+                                            )
+                                    - lblChangeSyncApproval:
+                                        Control: Label@2.5.1
+                                        Properties:
+                                          Visible: =false
+                                          Height: =1
+                                          Width: =1
+                                          Text: =""
+                                          OnSelect: |-
+                                            =If(gblObjectType = "Change",
+                                                With({approvalKey: Switch(LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey),
+                                                    "ChangeStatus:Draft", "ApprovalStatus:Draft",
+                                                    "ChangeStatus:Submitted", "ApprovalStatus:Submitted",
+                                                    "ChangeStatus:Rejected", "ApprovalStatus:Rejected", "ApprovalStatus:Approved")},
+                                                    Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = "ApprovalStatus"), {ValueChoiceKey: approvalKey, IsDirty: true, IsValid: true, ErrorMessage: ""})
+                                                );
+                                                Select(lblEditorRevalidate)
+                                            )
+                                    - btnChangeApprove:
+                                        Control: Classic/Button@2.2.0
+                                        Properties:
+                                          Text: ="Genehmigen"
+                                          Tooltip: ="Change ausdrücklich genehmigen und anschließend speichern"
+                                          Visible: =gblCurrentPage = "editor" && gblObjectType = "Change" && gblChangeOriginalStatusKey = "ChangeStatus:Submitted"
+                                          DisplayMode: |-
+                                            =If(Self.Visible && !gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorConflict && gblEditorLoadComplete
+                                                && !IsBlank(gblChangeActorClaims) && Lower(gblChangeActorClaims) = Lower(gblChangeRecord.Approver.Claims)
+                                                && LookUp(colEditorValues, FieldInternalName = "ChangeStatus", ValueChoiceKey) = "ChangeStatus:Submitted",
+                                                DisplayMode.Edit, DisplayMode.Disabled)
+                                          OnSelect: |-
+                                            =If(Self.DisplayMode = DisplayMode.Edit,
+                                                Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = "ChangeStatus"), {ValueChoiceKey: "ChangeStatus:Approved", IsDirty: true, IsValid: true, ErrorMessage: ""});
+                                                Set(gblChangeDecision, "Approved");
+                                                Select(lblChangeSyncApproval)
+                                            )
+                                          X: =16
+                                          Y: =If(lblEditorSaveError.Visible, lblEditorSaveError.Y + lblEditorSaveError.Height + 4, 56)
+                                          Width: =124
+                                          Height: =34
+                                          TabIndex: =0
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          Color: =gblTheme.ColorTextInverse
+                                          Fill: =gblTheme.ColorPrimary
+                                          Font: =Font.'Open Sans'
+                                    - btnChangeReject:
+                                        Control: Classic/Button@2.2.0
+                                        Properties:
+                                          Text: ="Ablehnen"
+                                          Tooltip: ="Change ausdrücklich ablehnen und anschließend speichern"
+                                          Visible: =btnChangeApprove.Visible
+                                          DisplayMode: =btnChangeApprove.DisplayMode
+                                          OnSelect: |-
+                                            =If(Self.DisplayMode = DisplayMode.Edit,
+                                                Patch(colEditorValues, LookUp(colEditorValues, FieldInternalName = "ChangeStatus"), {ValueChoiceKey: "ChangeStatus:Rejected", IsDirty: true, IsValid: true, ErrorMessage: ""});
+                                                Set(gblChangeDecision, "Rejected");
+                                                Select(lblChangeSyncApproval)
+                                            )
+                                          X: =152
+                                          Y: =btnChangeApprove.Y
+                                          Width: =124
+                                          Height: =34
+                                          TabIndex: =0
+                                          FocusedBorderColor: =gblTheme.ColorText
+                                          FocusedBorderThickness: =3
+                                          Color: =gblTheme.ColorTextInverse
+                                          Fill: =gblTheme.ColorError
+                                          Font: =Font.'Open Sans'
                                     - lblEditorRevalidate:
                                         Control: Label@2.5.1
                                         Properties:
@@ -1563,9 +1854,10 @@ Screens:
                                             Set(
                                                 gblEditorCanSave,
                                                 CountRows(colEditorValues) > 0
-                                                    && (!(gblObjectType in ["Asset", "System"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
+                                                    && (!(gblObjectType in ["Asset", "System", "Change"]) || !IsBlank(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) && Len(Trim(LookUp(colEditorValues, FieldInternalName = "Title", ValueText))) <= 255)
                                                     && CountRows(Filter(colEditorValues As choiceField, choiceField.ControlType = "Choice" && !IsBlank(choiceField.ValueChoiceKey) && IsBlank(LookUp(colEditorChoiceOptions As choiceOption, choiceOption.EditorFieldKey = choiceField.EditorFieldKey && choiceOption.ChoiceKey = choiceField.ValueChoiceKey, choiceOption.DisplayNameDE)))) = 0
                                                     && CountRows(Filter(colEditorValues, IsValid = false)) = 0
+                                                  && (gblObjectType <> "Change" || IsBlank(lblChangeValidation.Text))
                                                     && !gblSaveBusy && !gblLoadBusy && !gblEditorConflict
                                                     && gblActiveProvider.ObjectTypeKey = gblObjectType
                                                     && Coalesce(gblActiveProvider.SupportsSave, false)
@@ -1598,7 +1890,7 @@ Screens:
                                           Width: =Parent.Width - 32
                                           X: =16
                                           Y: |-
-                                            =If(lblEditorSaveError.Visible, lblEditorSaveError.Y + lblEditorSaveError.Height + 4, 56)
+                                            =If(gblObjectType = "Change" && gblChangeOriginalStatusKey = "ChangeStatus:Submitted", Max(96, If(lblEditorSaveError.Visible, lblEditorSaveError.Y + lblEditorSaveError.Height + 4, 56) + 44), If(lblEditorSaveError.Visible, lblEditorSaveError.Y + lblEditorSaveError.Height + 4, 56))
                                         Children:
                                           - lblEditorField:
                                               Control: Label@2.5.1
@@ -1916,6 +2208,16 @@ Screens:
                                                       Filter(
                                                           colEditorChoiceOptions As choiceOption,
                                                           choiceOption.EditorFieldKey = ThisItem.EditorFieldKey
+                                                                  && (ThisItem.EditorFieldKey <> "Change:ChangeStatus"
+                                                                      || choiceOption.ChoiceKey = ThisItem.ValueChoiceKey
+                                                                      || choiceOption.ChoiceKey = gblChangeOriginalStatusKey
+                                                                      || Switch(gblChangeOriginalStatusKey,
+                                                                          "", choiceOption.ChoiceKey = "ChangeStatus:Draft",
+                                                                          "ChangeStatus:Draft", gblEditorMode = "Edit" && choiceOption.ChoiceKey = "ChangeStatus:Submitted",
+                                                                          "ChangeStatus:Approved", choiceOption.ChoiceKey = "ChangeStatus:Scheduled",
+                                                                          "ChangeStatus:Scheduled", choiceOption.ChoiceKey = "ChangeStatus:Implemented",
+                                                                          "ChangeStatus:Implemented", choiceOption.ChoiceKey = "ChangeStatus:Closed",
+                                                                          false))
                                                       ),
                                                       "SortOrder",
                                                       SortOrder.Ascending
@@ -1945,6 +2247,7 @@ Screens:
                                                               editorInput
                                                           )
                                                       );
+                                                      If(ThisItem.EditorFieldKey = "Change:ChangeStatus", Select(lblChangeSyncApproval));
                                                       Select(lblEditorRevalidate)
                                                   )
                                                 SelectionFill: =gblTheme.ColorPrimary

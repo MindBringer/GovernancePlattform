@@ -4,7 +4,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 # Button schema/name contract: https://learn.microsoft.com/en-us/power-apps/maker/canvas-apps/controls/control-button
 $source = Get-Content (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal/Src/scrShell.pa.yaml') -Raw
-$buttons = @('lblRefresh','lblNew','lblEditorCancel','lblEditorSave','lblDiscardStay','lblDiscardConfirm','lblNavigationItem','lblObjectTypeTitle','btnAssetRecordOpen','btnSystemRecordOpen','btnEditorDateClear')
+$buttons = @('lblRefresh','lblNew','lblEditorCancel','lblEditorSave','lblDiscardStay','lblDiscardConfirm','lblNavigationItem','lblObjectTypeTitle','btnAssetRecordOpen','btnSystemRecordOpen','btnChangeRecordOpen','btnChangeApprove','btnChangeReject','btnEditorDateClear')
 $inputs = @('txtEditorText','txtEditorMultiline','txtEditorNumber','datEditorDate','togEditorBoolean','drpEditorChoice','cmbEditorLookup','cmbEditorPerson','txtRecordSearch','txtRecordId')
 foreach ($control in $buttons + $inputs) {
     $match = [regex]::Match($source, "(?m)^(?<indent> *)- ${control}:\r?`n")
@@ -34,8 +34,8 @@ foreach ($control in $buttons + $inputs) {
         if ($block -notmatch $busyPattern) { throw "$control must not accept edits under the modal or during Load/Save." }
     }
 }
-foreach ($control in @('galNavigation','galObjectTypes','galEditorFields','galAssetRecords','galSystemRecords')) {
+foreach ($control in @('galNavigation','galObjectTypes','galEditorFields','galAssetRecords','galSystemRecords','galChangeRecords')) {
     $match = [regex]::Match($source, "(?ms)- ${control}:\r?`n.*?Properties:\r?`n(?<properties>.*?)Children:")
     if (-not $match.Success -or $match.Groups['properties'].Value -notmatch 'AccessibleLabel:' -or $match.Groups['properties'].Value -notmatch 'ItemAccessibleLabel:') { throw "Missing gallery context: $control" }
 }
-Write-Host 'Asset editor source accessibility contract passed: 21 core controls / 5 galleries. Studio and keyboard acceptance still required.'
+Write-Host 'Editor source accessibility contract passed: 24 core controls / 6 galleries. Studio and keyboard acceptance still required.'

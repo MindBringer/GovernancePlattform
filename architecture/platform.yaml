@@ -239,7 +239,7 @@
       "allowAttachments": true,
       "allowRelations": true,
       "allowComments": false,
-      "allowVersioning": false,
+      "allowVersioning": true,
       "aiEnabled": true,
       "defaultView": "Active",
       "defaultForm": "Edit",

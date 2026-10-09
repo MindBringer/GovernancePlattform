@@ -11,6 +11,8 @@ foreach ($library in 'Microsoft.PowerFx.Core.dll', 'Microsoft.PowerFx.Interprete
     [void][System.Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $library))
 }
 $engine = [Microsoft.PowerFx.RecalcEngine]::new()
+# Provider-only fixture; the real Change invariant is executed in its own gate.
+$engine.UpdateVariable('lblChangeValidation', $engine.Eval('{Text: ""}', $null, $null))
 $options = [Microsoft.PowerFx.ParserOptions]::new()
 $options.Culture = [System.Globalization.CultureInfo]::InvariantCulture
 $source = Get-Content (Join-Path $RepositoryRoot 'powerplatform/canvas/GovernancePortal/Src/scrShell.pa.yaml') -Raw
@@ -43,7 +45,7 @@ $newFormula = $newFormula.Replace('DisplayMode.Edit', '"Edit"').Replace('Display
 $saveFormula = $saveFormula.Replace('DisplayMode.Edit', '"Edit"').Replace('DisplayMode.Disabled', '"Disabled"')
 $providers = (Get-Content (Join-Path $RepositoryRoot 'powerplatform/config/ObjectProviderRegistry.json') -Raw | ConvertFrom-Json).providers
 # Independent executable-provider acceptance set; adding a provider requires a real Save implementation and an updated contract.
-$writableTypes = @('Asset', 'System')
+$writableTypes = @('Asset', 'System', 'Change')
 $checks = 0
 function Assert-Formula([string]$Formula, $Expected, [string]$Context) {
     $actual = $engine.Eval($Formula, $null, $options).ToObject()

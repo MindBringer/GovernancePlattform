@@ -55,7 +55,7 @@ $save = Get-Property 'lblEditorSave' 'OnSelect'
 $loadGuard = [regex]::Match($load, '(?s)^If\(\s*(?<guard>.*?)\s*,\s*Set\(gblLoadBusy').Groups['guard'].Value
 if ($loadGuard -notmatch '!gblEditorDirty' -or $loadGuard -notmatch 'SupportsList' -or $loadGuard -notmatch 'SupportsEdit' -or $loadGuard -notmatch 'gblSelectedRecordId > 0') { throw 'Missing record load capability/identity/dirty guard.' }
 $projections = @([regex]::Matches($load, 'ClearCollect\(colRecordValues, Table\('))
-if ($projections.Count -ne 2) { throw 'Exactly two native record load providers are expected.' }
+if ($projections.Count -ne 3) { throw 'Exactly three native load providers are expected; Change is verified by Test-CanvasChangeContract.ps1.' }
 $records = @{}
 foreach ($pair in @(@('Asset','Assets'),@('System','Systems'))) {
     $key = $pair[0]; $ds = $pair[1]
@@ -94,7 +94,7 @@ if ($errorLabel -notmatch 'AutoHeight: =true' -or $errorLabel -notmatch 'Live: =
 }
 $providers = (Get-Content (Join-Path $RepositoryRoot 'powerplatform/config/ObjectProviderRegistry.json') -Raw | ConvertFrom-Json).providers
 foreach ($p in $providers) {
-    $supported = $p.objectTypeKey -in @('Asset','System')
+    $supported = $p.objectTypeKey -in @('Asset','System','Change')
     if ($p.supportsList -ne $supported -or $p.supportsCreate -ne $supported -or $p.supportsEdit -ne $supported -or $p.supportsSave -ne $supported) { throw "Capabilities overstate available record paths: $($p.objectTypeKey)" }
 }
 foreach ($fragment in @('gblEditorLoadComplete','gblLoadedRecordId = gblSelectedRecordId','!gblEditorConflict','gblEditorDirty','FirstError.Kind = ErrorKind.Conflict','If(IsBlank(gblSaveError),')) {
@@ -121,6 +121,9 @@ Write-Host 'Record core source/compiler passed: Asset 17 / System 16 fields; nat
 if (-not $PowerFxDirectory) { return }
 foreach ($dll in 'Microsoft.PowerFx.Core.dll','Microsoft.PowerFx.Interpreter.dll') { [void][Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $dll)) }
 $engine = [Microsoft.PowerFx.RecalcEngine]::new()
+$engine.UpdateVariable('lblChangeValidation', $engine.Eval('{Text: ""}', $null, $null))
+$engine.UpdateVariable('gblChangeOriginalStatusKey', '')
+$engine.UpdateVariable('gblObjectType', 'Asset')
 $options = [Microsoft.PowerFx.ParserOptions]::new()
 $options.Culture = [Globalization.CultureInfo]::InvariantCulture
 $parseOptions = [Microsoft.PowerFx.ParserOptions]::new(); $parseOptions.AllowsSideEffects = $true; $parseOptions.Culture = [Globalization.CultureInfo]::InvariantCulture
@@ -215,6 +218,9 @@ Assert-Fx 'Second(testDateDefault.ValueDate)' 15 'DateTime metadata default reta
 # Complete native rows, synthetic identities only, including alias email vs claims principal.
 foreach ($key in @('Asset','System')) {
     $engine = [Microsoft.PowerFx.RecalcEngine]::new()
+    $engine.UpdateVariable('lblChangeValidation', $engine.Eval('{Text: ""}', $null, $null))
+    $engine.UpdateVariable('gblChangeOriginalStatusKey', '')
+    $engine.UpdateVariable('gblObjectType', 'Asset')
     $contract=$records[$key]
     $engine.UpdateVariable('gblObjectType',$key)
     $engine.UpdateVariable('gblEditorMode','Edit')
@@ -568,6 +574,9 @@ if (-not $errorHandler) { throw 'Missing App.OnError formula.' }
 $config = [Microsoft.PowerFx.PowerFxConfig]::new()
 [Microsoft.PowerFx.PowerFxConfigExtensions]::EnableSetFunction($config)
 $engine = [Microsoft.PowerFx.RecalcEngine]::new($config)
+$engine.UpdateVariable('lblChangeValidation', $engine.Eval('{Text: ""}', $null, $null))
+$engine.UpdateVariable('gblChangeOriginalStatusKey', '')
+$engine.UpdateVariable('gblObjectType', 'Asset')
 foreach ($case in @(
     @{Name='late edit failure'; Page='editor'; Busy=$false; Mode='Edit'; Blocks=$true},
     @{Name='late create failure'; Page='editor'; Busy=$false; Mode='New'; Blocks=$true},

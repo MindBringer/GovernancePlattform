@@ -125,7 +125,7 @@ function Publish-GPMetadata {
    $allFields=@($Model.Fields|Where-Object{$baseKeys -contains $_.key})+@($Model.ObjectFields|Where-Object objectTypeKey -eq $o.key)
    $row=0
    foreach($f in $allFields){
-     $isNativeTitle=$o.key -in @('Asset','System') -and $f.internalName -eq 'Title'
+     $isNativeTitle=$o.key -in @('Asset','System','Change') -and $f.internalName -eq 'Title'
      if(-not $isNativeTitle){$row++}
      $fieldRow=if($isNativeTitle){0}else{$row}
      $requiredIf=if($isNativeTitle -and $f.required){'true'}else{''}

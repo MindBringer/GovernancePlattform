@@ -35,6 +35,8 @@ jobs:
         run: ./powerplatform/scripts/Sync-ObjectProviderRuntime.ps1 -CheckOnly
       - name: Verify packed Canvas source
         run: python3 tools/companion/verify_canvas_artifact.py
+      - name: Verify connector write and Change required-field contracts
+        run: python3 tools/companion/verify_canvas_write_contract.py
       - name: Validate person search source contract
         shell: pwsh
         run: |
@@ -45,6 +47,14 @@ jobs:
       - name: Validate additive System description schema and metadata contract
         shell: pwsh
         run: ./provisioning/Scripts/Test-SystemDescriptionContract.ps1
+      - name: Validate Change schema prerequisites and bounded metadata delta
+        shell: pwsh
+        run: |
+          ./provisioning/Scripts/Test-AssetTitleContract.ps1 -ObjectType Change
+          ./provisioning/Scripts/Test-ChangeContract.ps1
       - name: Validate record core source and compiler contract
         shell: pwsh
         run: ./powerplatform/scripts/Test-CanvasRecordCore.ps1
+      - name: Validate Change Canvas lifecycle and native field contract
+        shell: pwsh
+        run: ./powerplatform/scripts/Test-CanvasChangeContract.ps1
