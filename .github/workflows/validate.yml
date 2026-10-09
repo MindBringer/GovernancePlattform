@@ -35,6 +35,8 @@ jobs:
         run: ./powerplatform/scripts/Sync-ObjectProviderRuntime.ps1 -CheckOnly
       - name: Verify packed Canvas source
         run: python3 tools/companion/verify_canvas_artifact.py
+      - name: Verify connector write and Change required-field contracts
+        run: python3 tools/companion/verify_canvas_write_contract.py
       - name: Validate person search source contract
         shell: pwsh
         run: |

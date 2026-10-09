@@ -5,7 +5,7 @@ import unittest
 from pathlib import Path
 from zipfile import ZipFile
 
-from verify_canvas_write_contract import patch_fields, read_sources, read_connections, validate, validate_connections
+from verify_canvas_write_contract import patch_fields, read_sources, read_connections, validate, validate_connections, validate_change_required
 
 
 def fixture(permission="read-write", field="SystemDescription"):
@@ -18,6 +18,40 @@ def fixture(permission="read-write", field="SystemDescription"):
 
 
 class CanvasWriteContractRegression(unittest.TestCase):
+    def change_fixture(self, required):
+        sources = fixture()
+        source = sources[0]
+        source["Name"] = "Changes"
+        metadata = json.loads(source["DataEntityMetadataJson"][source["TableName"]])
+        metadata["schema"]["items"]["required"] = required
+        source["DataEntityMetadataJson"][source["TableName"]] = json.dumps(metadata)
+        return sources
+
+    def test_writable_cached_required_fields_still_block_incomplete_draft(self):
+        sources = self.change_fixture(["Title", "Criticality", "ChangeType"])
+        self.assertEqual(validate(sources, {"Changes": ["Title"]}), [])
+        errors = validate_change_required(sources, {"Title"})
+        self.assertEqual(len(errors), 1)
+        self.assertIn("cached connector required-field drift", errors[0])
+        self.assertIn("Criticality", errors[0])
+        self.assertIn("ChangeType", errors[0])
+
+    def test_connector_title_only_requirement_accepts_incomplete_draft(self):
+        self.assertEqual(validate_change_required(self.change_fixture(["Title"]), {"Title"}), [])
+
+    def test_missing_permanent_title_requirement_is_rejected(self):
+        self.assertIn("missing=['Title']", validate_change_required(self.change_fixture([]), {"Title"})[0])
+
+    def test_each_stale_optional_requirement_is_rejected(self):
+        for name in ["Criticality", "ChangeType"]:
+            with self.subTest(name=name):
+                self.assertIn(name, validate_change_required(self.change_fixture(["Title", name]), {"Title"})[0])
+
+    def test_duplicate_or_malformed_connector_requirements_fail_closed(self):
+        for required in [["Title", "Title"], "Title", None, ["Title", 42]]:
+            with self.subTest(required=required):
+                self.assertIn("malformed or duplicate", validate_change_required(self.change_fixture(required), {"Title"})[0])
+
     def test_30444_readonly_description_is_rejected(self):
         errors = validate(fixture("read-only", "Description"), {"Systems": ["Title", "Description"]})
         self.assertEqual(len(errors), 1)

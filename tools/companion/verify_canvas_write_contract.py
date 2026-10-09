@@ -92,6 +92,37 @@ def validate(sources: list[dict], contracts: dict[str, list[str]]) -> list[str]:
     return errors
 
 
+def change_required_fields(root: Path) -> set[str]:
+    """Read permanent requirements from architecture, including omitted fields."""
+    base = json.loads((root / "architecture/fields.yaml").read_text())["fields"]
+    specific = json.loads((root / "architecture/object-fields.yaml").read_text())["objectFields"]
+    fields = {field["internalName"]: field for field in base if field.get("scope") == "base"}
+    fields.update({field["internalName"]: field for field in specific
+                   if field.get("objectTypeKey") == "Change"})
+    return {name for name, field in fields.items() if field.get("required") is True}
+
+
+def validate_change_required(sources: list[dict], expected: set[str]) -> list[str]:
+    """A writable cached connector can still reject an incomplete Draft."""
+    matches = [source for source in sources if source.get("Name") == "Changes"]
+    if len(matches) != 1:
+        return ["Changes: expected one native data source for required-field validation"]
+    source = matches[0]
+    raw = source.get("DataEntityMetadataJson", {}).get(source.get("TableName"))
+    if raw is None:
+        return ["Changes: missing bound-table metadata for required-field validation"]
+    metadata = json.loads(raw) if isinstance(raw, str) else raw
+    required = metadata.get("schema", {}).get("items", {}).get("required")
+    if (not isinstance(required, list) or any(not isinstance(field, str) for field in required)
+            or len(required) != len(set(required))):
+        return ["Changes: missing, malformed or duplicate connector required-field declaration"]
+    if set(required) != expected:
+        return ["Changes: cached connector required-field drift: "
+                f"unexpected={sorted(set(required) - expected)}, "
+                f"missing={sorted(expected - set(required))}; incomplete Draft is blocked"]
+    return []
+
+
 def read_connections(path: Path) -> dict:
     with ZipFile(path) as archive:
         entries = {name.replace("\\", "/"): name for name in archive.namelist()}
@@ -167,6 +198,8 @@ def main() -> int:
     for path in paths:
         sources = read_sources(path)
         errors = validate(sources, contracts)
+        if "Changes" in contracts:
+            errors += validate_change_required(sources, change_required_fields(root))
         errors += validate_connections(sources, read_connections(path), solution_connections)
         for error in errors:
             print(f"{path.name}: {error}")
@@ -174,7 +207,7 @@ def main() -> int:
     if failed:
         print("Write contract blocked. Inspect native schema and Solution registrations; preserve generated bindings and use the approved workflow for any native refresh.")
         return 1
-    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields and complete Solution source/dataset registrations in canonical and packed connector references.")
+    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields, Change permanent requirements and complete Solution source/dataset registrations in canonical and packed connector references.")
     return 0
 
 
