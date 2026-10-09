@@ -794,6 +794,7 @@
       "internalName": "ApprovedDate",
       "displayNameDE": "Genehmigt am",
       "type": "DateTime",
+      "dateFormat": "DateTime",
       "required": false,
       "indexed": false,
       "visible": true,

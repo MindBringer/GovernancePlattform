@@ -12,6 +12,7 @@ $addedNames = @('Title','LinkedAsset','ChangeStatus')
 $baseline.ObjectFields = @($baseline.ObjectFields | Where-Object { -not ($_.objectTypeKey -eq 'Change' -and $_.internalName -in $addedNames) })
 $baseline.ChoiceSets = @($baseline.ChoiceSets | Where-Object key -ne 'ChangeStatus')
 ($baseline.objectTypes | Where-Object key -eq 'Change').allowVersioning = $false
+($baseline.ObjectFields | Where-Object { $_.objectTypeKey -eq 'Change' -and $_.internalName -eq 'ApprovedDate' }).Remove('dateFormat')
 $schema = Compile-GPArchitecture $model
 $oldSchema = Compile-GPArchitecture $baseline
 $change = @($schema.Lists | Where-Object ObjectKey -eq 'Change')[0]
@@ -22,6 +23,42 @@ if ($fields.Count -ne 3 -or $change.Fields.Count -ne 34 -or -not $change.Setting
 $title = @($fields | Where-Object InternalName -eq 'Title')[0]
 $lookup = @($fields | Where-Object InternalName -eq 'LinkedAsset')[0]
 $status = @($fields | Where-Object InternalName -eq 'ChangeStatus')[0]
+$approvedDate = @($change.Fields | Where-Object InternalName -eq 'ApprovedDate')[0]
+$explicitDates = @(@($model.Fields)+@($model.ObjectFields) | Where-Object { $_.ContainsKey('dateFormat') })
+if ($explicitDates.Count -ne 1 -or $explicitDates[0].objectTypeKey -ne 'Change' -or $explicitDates[0].internalName -ne 'ApprovedDate' -or $approvedDate.Type -cne 'DateTime' -or $approvedDate.DateFormat -cne 'DateTime' -or $approvedDate.Required -or $approvedDate.Indexed) {
+    throw 'Only Change.ApprovedDate must explicitly retain time; all other date fields keep their DateOnly default.'
+}
+function Test-NativeApprovalDate($NativeFields) {
+    $actual = @($NativeFields | Where-Object InternalName -eq 'ApprovedDate')
+    if ($actual.Count -ne 1) { throw 'Native Changes.ApprovedDate must exist exactly once.' }
+    [xml]$xml = $actual[0].SchemaXml
+    if ($actual[0].TypeAsString -cne 'DateTime' -or $xml.Field.GetAttribute('Name') -cne 'ApprovedDate' -or $xml.Field.GetAttribute('Type') -cne 'DateTime' -or $xml.Field.GetAttribute('Format') -cne 'DateTime') {
+        throw 'Native Changes.ApprovedDate must have DateTime Format=DateTime; DateOnly/missing time precision blocks approval. No schema write is authorized by this check.'
+    }
+}
+# Exercise the native readback gate with synthetic metadata, without a tenant.
+$syntheticDate = [pscustomobject]@{InternalName='ApprovedDate';TypeAsString='DateTime';SchemaXml='<Field Name="ApprovedDate" Type="DateTime" Format="DateTime" />'}
+Test-NativeApprovalDate @($syntheticDate)
+foreach ($badXml in @('<Field Name="ApprovedDate" Type="DateTime" Format="DateOnly" />','<Field Name="ApprovedDate" Type="DateTime" />','<Field Name="ApprovedDate" Type="Text" Format="DateTime" />','<Field')) {
+    $rejected = $false
+    try { Test-NativeApprovalDate @([pscustomobject]@{InternalName='ApprovedDate';TypeAsString='DateTime';SchemaXml=$badXml}) } catch { $rejected=$true }
+    if (-not $rejected) { throw 'Native timestamp gate accepted malformed/date-only approval metadata.' }
+}
+foreach ($badFields in @(@(), @($syntheticDate,$syntheticDate))) {
+    $rejected = $false
+    try { Test-NativeApprovalDate $badFields } catch { $rejected=$true }
+    if (-not $rejected) { throw 'Native timestamp gate accepted missing/duplicate approval fields.' }
+}
+# Both the leading model and compilation must reject invalid declarations.
+foreach ($case in @(@{type='DateTime';dateFormat='Date'}, @{type='DateTime';dateFormat=$null}, @{type='DateTime';dateFormat=@('DateTime')}, @{type='DateTime';dateFormat='datetime'}, @{type='Text';dateFormat='DateTime'})) {
+    $invalid = Get-GPArchitectureModel -Root "$root/provisioning"
+    $field = @($invalid.ObjectFields | Where-Object { $_.objectTypeKey -eq 'Change' -and $_.internalName -eq 'ApprovedDate' })[0]
+    $field.type=$case.type; $field.dateFormat=$case.dateFormat
+    $modelRejected=$false; $compilerRejected=$false
+    try { Test-GPArchitectureModel $invalid | Out-Null } catch { $modelRejected=$_.Exception.Message -match 'dateFormat' }
+    try { Compile-GPArchitecture $invalid | Out-Null } catch { $compilerRejected=$_.Exception.Message -match 'dateFormat' }
+    if (-not $modelRejected -or -not $compilerRejected) { throw 'Invalid dateFormat bypassed model/compilation validation.' }
+}
 $nativeIndexCount = $null
 $addedIndexes = @($fields | Where-Object { $_.InternalName -ne 'Title' -and $_.Indexed }).Count
 if ($NativeSnapshotPath) {
@@ -48,6 +85,7 @@ if ($NativeSnapshotPath) {
     if ($requiredDrift.Count) {
         throw "Change native required-field drift: $($requiredDrift -join '; '). Draft creation is not accepted; no schema write is authorized by this check."
     }
+    Test-NativeApprovalDate $native.Schema
 }
 if ($title.Type -ne 'Text' -or -not $title.Required -or $title.maxLength -ne 255) { throw 'Invalid Change Title contract.' }
 if ($lookup.Type -ne 'Lookup' -or $lookup.LookupList -ne 'Assets' -or $lookup.Required -or $lookup.Indexed) { throw 'Change asset reference must be an optional unindexed native Assets lookup.' }
@@ -67,7 +105,13 @@ foreach ($oldList in $oldSchema.Lists) {
     if ($current.Fields.Count -ne $expectedCount) { throw "Unexpected field delta: $($oldList.Title)" }
     foreach ($oldField in $oldList.Fields) {
         $actual = @($current.Fields | Where-Object InternalName -eq $oldField.InternalName)
-        if ($actual.Count -ne 1 -or ($actual[0] | ConvertTo-Json -Depth 20) -cne ($oldField | ConvertTo-Json -Depth 20)) { throw "Existing field changed: $($oldList.Title).$($oldField.InternalName)" }
+        if ($actual.Count -ne 1) { throw "Existing field missing/duplicated: $($oldList.Title).$($oldField.InternalName)" }
+        $comparable = @{} + $actual[0]
+        if ($oldList.ObjectKey -eq 'Change' -and $oldField.InternalName -eq 'ApprovedDate') { $comparable.Remove('DateFormat') }
+        if ($comparable.Count -ne $oldField.Count) { throw "Existing field reshaped: $($oldList.Title).$($oldField.InternalName)" }
+        foreach ($key in $oldField.Keys) {
+            if (($comparable[$key] | ConvertTo-Json -Depth 20) -cne ($oldField[$key] | ConvertTo-Json -Depth 20)) { throw "Existing field changed: $($oldList.Title).$($oldField.InternalName).$key" }
+        }
     }
     if ($oldList.ContainsKey('Settings')) {
         foreach ($property in $oldList.Settings.Keys) {
@@ -131,11 +175,31 @@ try {
     [xml]$lx = $lookupXml; [xml]$sx = $statusXml
     if ($lx.Field.Type -ne 'Lookup' -or $lx.Field.ShowField -ne 'Title' -or $lx.Field.List -ne '{11111111-1111-1111-1111-111111111111}' -or $lx.Field.HasAttribute('Mult') -or $lx.Field.Indexed -cne 'FALSE') { throw 'Invalid unindexed native single-asset lookup XML.' }
     if ($sx.Field.Type -ne 'Choice' -or @($sx.Field.CHOICES.CHOICE).Count -ne 7 -or $sx.Field.HasAttribute('FillInChoice') -or $sx.Field.HasAttribute('ReadOnly') -or $sx.Field.Indexed -cne 'FALSE') { throw 'Invalid unindexed native Change lifecycle XML.' }
+    $approvedXml = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $approvedDate
+    [xml]$ax = $approvedXml
+    if ($ax.Field.Type -cne 'DateTime' -or $ax.Field.Format -cne 'DateTime' -or $ax.Field.Required -cne 'FALSE' -or $ax.Field.Indexed -cne 'FALSE') { throw 'Approval field XML must retain the timestamp and existing flags.' }
+    $otherDateCount=0
+    foreach ($list in $schema.Lists) {
+        foreach ($date in @($list.Fields | Where-Object Type -eq 'DateTime')) {
+            if ($list.ObjectKey -eq 'Change' -and $date.InternalName -eq 'ApprovedDate') { continue }
+            [xml]$dx = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $date
+            if ($dx.Field.Format -cne 'DateOnly') { throw "Unplanned timestamp format change: $($list.Title).$($date.InternalName)" }
+            $otherDateCount++
+        }
+    }
+    $explicitDateOnly = @{} + $approvedDate; $explicitDateOnly.DateFormat='DateOnly'
+    [xml]$ex = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $explicitDateOnly
+    if ($ex.Field.Format -cne 'DateOnly') { throw 'Explicit DateOnly declaration was not preserved.' }
+    $invalidDate = @{} + $approvedDate; $invalidDate.DateFormat="DateTime' />"
+    $rejected=$false
+    try { & $schemaModule { param($Field) New-GPFieldXml -F $Field } $invalidDate | Out-Null } catch { $rejected=$_.Exception.Message -match 'dateFormat' }
+    if (-not $rejected) { throw 'Invalid DateTime XML format was accepted.' }
     if ($PlanPath) {
         [ordered]@{
             status='prepared-not-authorized'; sourceList='Changes'
             baselineFields=31; candidateFields=34
             existingNativeTitle='verify required Text/255; no additional Title column'
+            approvedDate=[ordered]@{InternalName='ApprovedDate';Type='DateTime';DateFormat='DateTime';Xml=$approvedXml;ExistingFieldMigration='separate one-field approval; compiler never updates existing date formats';OtherDateOnlyFields=$otherDateCount;ConnectorFormat='date-time; must be generated by supported native refresh'}
             addFields=@(
                 [ordered]@{InternalName='LinkedAsset'; Type='Lookup'; LookupList='Assets'; XmlWithSyntheticLookupGuid=$lookupXml},
                 [ordered]@{InternalName='ChangeStatus'; Type='Choice'; Xml=$statusXml}
@@ -147,7 +211,7 @@ try {
             connectorPrerequisite='explicit Changes connection, native schema readback, generated reference export and separate DEV-to-Git approval; never synthesize connector metadata'
         } | ConvertTo-Json -Depth 30 | Set-Content -LiteralPath $PlanPath -Encoding utf8
     }
-    Write-Host "Change prerequisite contract passed: native Title; two unindexed new fields; versioning; 13 new/1 updated metadata rows; $($oldRows.Count-1) existing rows and all existing fields/indexes preserved; no tenant access."
+    Write-Host "Change prerequisite contract passed: native Title; two unindexed new fields; versioning; 13 new/1 updated metadata rows; $($oldRows.Count-1) existing rows and field identities/indexes preserved; ApprovedDate DateTime, $otherDateCount other dates DateOnly; native date-only and invalid declarations rejected; no tenant access."
 } finally {
     if ($oldContext) { $global:GPContext = $oldContext.Value }
     else { Remove-Variable GPContext -Scope Global -ErrorAction SilentlyContinue }

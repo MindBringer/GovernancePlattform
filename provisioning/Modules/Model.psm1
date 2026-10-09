@@ -62,6 +62,9 @@ function Test-GPArchitectureModel {
     $choices=@($Model.ChoiceSets|ForEach-Object{$_.key})
     foreach($f in @($Model.Fields)+@($Model.ObjectFields)){
         if($f.choiceSet -and $choices -notcontains $f.choiceSet){$errors.Add("Field '$($f.internalName)' references unknown choice set '$($f.choiceSet)'.")}
+        if($f.ContainsKey('dateFormat') -and ($f.type -cne 'DateTime' -or $f.dateFormat -isnot [string] -or $f.dateFormat -cnotin @('DateOnly','DateTime'))){
+            $errors.Add("Field '$($f.internalName)' has invalid dateFormat; only DateOnly/DateTime on DateTime are supported.")
+        }
     }
     $statusKeys=@($Model.StatusModels|ForEach-Object{$_.key})
     foreach($o in $Model.objectTypes){if($o.statusModel -and $statusKeys -notcontains $o.statusModel){$errors.Add("Object '$($o.key)' references unknown status model '$($o.statusModel)'.")}}

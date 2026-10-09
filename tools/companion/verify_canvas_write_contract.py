@@ -123,6 +123,35 @@ def validate_change_required(sources: list[dict], expected: set[str]) -> list[st
     return []
 
 
+def change_datetime_fields(root: Path) -> set[str]:
+    """Explicit instants require generated date-time metadata, never a date."""
+    fields = json.loads((root / "architecture/object-fields.yaml").read_text())["objectFields"]
+    return {field["internalName"] for field in fields
+            if field.get("objectTypeKey") == "Change"
+            and field.get("type") == "DateTime" and field.get("dateFormat") == "DateTime"}
+
+
+def validate_change_datetime(sources: list[dict], expected: set[str]) -> list[str]:
+    if not expected:
+        return []
+    matches = [source for source in sources if source.get("Name") == "Changes"]
+    if len(matches) != 1:
+        return ["Changes: expected one native data source for date-time validation"]
+    source = matches[0]
+    raw = source.get("DataEntityMetadataJson", {}).get(source.get("TableName"))
+    if raw is None:
+        return ["Changes: missing bound-table metadata for date-time validation"]
+    metadata = json.loads(raw) if isinstance(raw, str) else raw
+    properties = metadata.get("schema", {}).get("items", {}).get("properties", {})
+    errors = []
+    for name in sorted(expected):
+        prop = properties.get(name)
+        if not isinstance(prop, dict) or prop.get("type") != "string" or prop.get("format") != "date-time":
+            errors.append(f"Changes.{name}: connector must declare string/date-time; "
+                          "date-only or missing timestamp precision blocks approval")
+    return errors
+
+
 def read_connections(path: Path) -> dict:
     with ZipFile(path) as archive:
         entries = {name.replace("\\", "/"): name for name in archive.namelist()}
@@ -200,6 +229,7 @@ def main() -> int:
         errors = validate(sources, contracts)
         if "Changes" in contracts:
             errors += validate_change_required(sources, change_required_fields(root))
+            errors += validate_change_datetime(sources, change_datetime_fields(root))
         errors += validate_connections(sources, read_connections(path), solution_connections)
         for error in errors:
             print(f"{path.name}: {error}")
@@ -207,7 +237,7 @@ def main() -> int:
     if failed:
         print("Write contract blocked. Inspect native schema and Solution registrations; preserve generated bindings and use the approved workflow for any native refresh.")
         return 1
-    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields, Change permanent requirements and complete Solution source/dataset registrations in canonical and packed connector references.")
+    print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields, Change permanent requirements/date-time precision and complete Solution source/dataset registrations in canonical and packed connector references.")
     return 0
 
 

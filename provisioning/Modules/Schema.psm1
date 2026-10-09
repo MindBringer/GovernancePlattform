@@ -19,7 +19,11 @@ function New-GPFieldXml {
   'Note' {"<Field Type='Note' $attrs NumLines='$(if($F.NumLines){$F.NumLines}else{8})' RichText='FALSE' />"}
   'Number' {$min=if($null-ne $F.Min){" Min='$($F.Min)'"}else{''};$max=if($null-ne $F.Max){" Max='$($F.Max)'"}else{''};"<Field Type='Number' $attrs$min$max />"}
   'Boolean' {"<Field Type='Boolean' $attrs><Default>$(if($F.ContainsKey('Default') -and -not $F.Default){0}else{1})</Default></Field>"}
-  'DateTime' {"<Field Type='DateTime' $attrs Format='DateOnly' />"}
+  'DateTime' {
+   $format=if($F.ContainsKey('DateFormat')){$F.DateFormat}else{'DateOnly'}
+   if($format -isnot [string] -or $format -cnotin @('DateOnly','DateTime')){throw "Invalid dateFormat for '$($F.InternalName)'."}
+   "<Field Type='DateTime' $attrs Format='$format' />"
+  }
   'URL' {"<Field Type='URL' $attrs Format='Hyperlink' />"}
   'User' {"<Field Type='User' $attrs UserSelectionMode='PeopleOnly' />"}
   'Choice' {"<Field Type='Choice' $attrs Format='Dropdown'><CHOICES>$(($F.Choices|ForEach-Object{"<CHOICE>$(ConvertTo-GPXmlEncoded $_)</CHOICE>"}) -join '')</CHOICES></Field>"}

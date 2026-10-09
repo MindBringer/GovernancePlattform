@@ -188,7 +188,10 @@ foreach ($state in $statusModel.states) {
             $engine.UpdateVariable('testSaved',(Eval $payload))
             Assert-Fx 'testSaved.ChangeStatus.Value' $nextLabel "$old->$next writes native status label"
             Assert-Fx 'testSaved.ApprovalStatus.Value' (@{Draft='Entwurf';Submitted='Eingereicht';Rejected='Abgelehnt';Approved='Genehmigt'}[$nextApproval]) "$old->$next derives approval status"
-            if ($old -eq 'Submitted' -and $next -eq 'Approved') { Assert-Fx 'IsBlank(testSaved.ApprovedDate)' $false 'First explicit approval sets timestamp' }
+            if ($old -eq 'Submitted' -and $next -eq 'Approved') {
+                Assert-Fx 'IsBlank(testSaved.ApprovedDate)' $false 'First explicit approval sets timestamp'
+                Assert-Fx 'Abs(DateDiff(testSaved.ApprovedDate, Now(), TimeUnit.Seconds)) < 600' $true 'First approval retains the decision timestamp within the original 600-second window'
+            }
             else { Assert-Fx 'testSaved.ApprovedDate' ((Eval 'gblChangeRecord.ApprovedDate').ToObject()) "$old->$next preserves approval timestamp" }
         }
     }

@@ -5,7 +5,9 @@ import unittest
 from pathlib import Path
 from zipfile import ZipFile
 
-from verify_canvas_write_contract import patch_fields, read_sources, read_connections, validate, validate_connections, validate_change_required
+from verify_canvas_write_contract import (patch_fields, read_sources, read_connections, validate,
+                                         validate_connections, validate_change_required,
+                                         change_datetime_fields, validate_change_datetime)
 
 
 def fixture(permission="read-write", field="SystemDescription"):
@@ -38,6 +40,52 @@ class CanvasWriteContractRegression(unittest.TestCase):
 
     def test_connector_title_only_requirement_accepts_incomplete_draft(self):
         self.assertEqual(validate_change_required(self.change_fixture(["Title"]), {"Title"}), [])
+
+    def datetime_fixture(self, prop):
+        sources = self.change_fixture(["Title"])
+        source = sources[0]
+        metadata = json.loads(source["DataEntityMetadataJson"][source["TableName"]])
+        metadata["schema"]["items"]["properties"]["ApprovedDate"] = prop
+        source["DataEntityMetadataJson"][source["TableName"]] = json.dumps(metadata)
+        return sources
+
+    def test_writable_date_only_approved_date_is_rejected(self):
+        sources = self.datetime_fixture({"type": "string", "format": "date", "x-ms-permission": "read-write"})
+        self.assertEqual(validate(sources, {"Changes": ["ApprovedDate"]}), [])
+        self.assertEqual(validate_change_required(sources, {"Title"}), [])
+        self.assertIn("date-only", validate_change_datetime(sources, {"ApprovedDate"})[0])
+
+    def test_generated_timestamp_approved_date_passes(self):
+        sources = self.datetime_fixture({"type": "string", "format": "date-time", "x-ms-permission": "read-write"})
+        self.assertEqual(validate_change_datetime(sources, {"ApprovedDate"}), [])
+
+    def test_missing_malformed_or_wrong_timestamp_type_fails_closed(self):
+        for prop in [None, {}, {"type": "string"}, {"type": "number", "format": "date-time"}, "date-time"]:
+            with self.subTest(prop=prop):
+                self.assertTrue(validate_change_datetime(self.datetime_fixture(prop), {"ApprovedDate"}))
+        sources = self.change_fixture(["Title"])
+        self.assertTrue(validate_change_datetime(sources, {"ApprovedDate"}))
+
+    def test_timestamp_requires_unique_source_and_bound_table_metadata(self):
+        sources = self.datetime_fixture({"type": "string", "format": "date-time"})
+        self.assertTrue(validate_change_datetime([], {"ApprovedDate"}))
+        self.assertTrue(validate_change_datetime(sources * 2, {"ApprovedDate"}))
+        sources[0]["TableName"] = "wrong-table"
+        self.assertIn("bound-table", validate_change_datetime(sources, {"ApprovedDate"})[0])
+
+    def test_only_explicit_change_instants_require_connector_timestamp_format(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "architecture").mkdir()
+            fields = [
+                {"objectTypeKey": "Change", "internalName": "ApprovedDate", "type": "DateTime", "dateFormat": "DateTime"},
+                {"objectTypeKey": "Change", "internalName": "PlannedStart", "type": "DateTime"},
+                {"objectTypeKey": "Change", "internalName": "ActualEnd", "type": "DateTime", "dateFormat": "DateOnly"},
+                {"objectTypeKey": "Asset", "internalName": "LastReviewDate", "type": "DateTime", "dateFormat": "DateTime"},
+            ]
+            (root / "architecture/object-fields.yaml").write_text(json.dumps({"objectFields": fields}))
+            self.assertEqual(change_datetime_fields(root), {"ApprovedDate"})
+        self.assertEqual(validate_change_datetime([], set()), [])
 
     def test_missing_permanent_title_requirement_is_rejected(self):
         self.assertIn("missing=['Title']", validate_change_required(self.change_fixture([]), {"Title"})[0])
