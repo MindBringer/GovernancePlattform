@@ -24,7 +24,11 @@ Nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs wird für di
 | P6 Manueller Review | Ein Reviewer sieht fällige Reviews, öffnet Objekt und Evidence, erfasst das Ergebnis und setzt den nächsten Termin. | Reviewer- und Owner-Rechte, Terminfortschreibung und Historie sind im Round-Trip nachgewiesen. Der Ablauf erfordert eine ausdrückliche Reviewer-Entscheidung. |
 | P7b Erweiterte Produktivfreigabe | Die Pilotgruppe kann die zusammenhängenden Kernabläufe für Assets, Changes, Risks, Evidence und Reviews produktiv nutzen. | Der integrierte Round-Trip besteht mit den vorgesehenen Rollen. Datenbindungen, Audit, Betrieb, Rückweg und Support sind für den erweiterten Umfang abgenommen. Die abgenommene Live-Version und der Übergang in den Echtbetrieb sind dokumentiert. |
 
-P4d.1 ist der nächste Entwicklungsschritt. P7a.1 kann parallel vorbereitet werden. P7a.2 hängt von P7a.1 und der vorhandenen DEV-Abnahme für Assets ab. P4d.2 folgt auf P4d.1. P5a benötigt einen abgenommenen Asset-Datensatzkern. P5b benötigt zusätzlich die native Change- und Risk-Abnahme. P6 setzt die abgenommenen Objekt- und Evidence-Pfade voraus, die im Review angeboten werden. P7b schließt den erweiterten Umfang ab.
+P4d.1 ist seit dem 10. November 2026 abgeschlossen. Das native Risk-Schema und die Runtime-Metadaten entsprechen dem abgenommenen Stand. Die Studio-Kopie enthält dieselben Quellen, Verbindungen und Formeln wie der geprüfte Entwurf. Der gespeicherte und der veröffentlichte App-Stand sind nach dem Download bestätigt. Die veröffentlichte App ist im Solution-Export gesichert. Kandidat 1.0.0.30458 ist lokal verifiziert. Sein SHA-256 ist `3b913f0301da3b7b4fc35a6dee1cb263155fdb1e628c960db8e82052cdc78b3b`.
+
+Als Nächstes folgt P4d.2. Vor dem Import sind der CI-Nachweis für den Kandidaten, die vorgesehenen Testrollen, das synthetische Testasset und der Live-Monitor zu prüfen. Der festgelegte Umfang umfasst einen Import, eine gezielte Veröffentlichung zur Abnahme, einen synthetischen Risk-Datensatz mit bis zu fünf Bearbeitungen und eine bedingte reversible Bereinigung.
+
+P7a.1 kann parallel vorbereitet werden. P7a.2 hängt von P7a.1 und der vorhandenen DEV-Abnahme für Assets ab. P5a benötigt einen abgenommenen Asset-Datensatzkern. P5b benötigt zusätzlich die native Change- und Risk-Abnahme. P6 setzt die abgenommenen Objekt- und Evidence-Pfade voraus, die im Review angeboten werden. P7b schließt den erweiterten Umfang ab.
 
 ## Abschluss und Veröffentlichung je Paket
 
