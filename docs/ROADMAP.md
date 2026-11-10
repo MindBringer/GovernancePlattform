@@ -2,6 +2,8 @@
 
 Stand: 2026-09-09
 
+Die Reihenfolge für Asset-Pilot, Risk-Abnahme, Evidence und Reviews steht im [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md).
+
 ## 1. Aktueller Entwicklungsstrang
 
 Die aktuelle technische Basis folgt weiterhin dem bestehenden Produktpfad:
