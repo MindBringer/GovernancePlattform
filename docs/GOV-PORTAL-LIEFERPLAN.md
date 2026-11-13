@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 10. November 2026. Ziel ist ein produktiver Einstieg mit einer kleinen, benannten Gruppe, die Assets und Verantwortliche pflegt. Die nächste Ausbaustufe verbindet Assets, Changes und Risks mit Evidence und dem manuellen Reviewprozess.
+Stand 13. November 2026. Ziel ist ein produktiver Einstieg mit einer kleinen, benannten Gruppe, die Assets und Verantwortliche pflegt. Die nächste Ausbaustufe verbindet Assets, Changes und Risks mit Evidence und dem manuellen Reviewprozess.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -26,9 +26,11 @@ Nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs wird für di
 
 P4d.1 ist seit dem 10. November 2026 abgeschlossen. Das native Risk-Schema und die Runtime-Metadaten entsprechen dem abgenommenen Stand. Die Studio-Kopie enthält dieselben Quellen, Verbindungen und Formeln wie der geprüfte Entwurf. Der gespeicherte und der veröffentlichte App-Stand sind nach dem Download bestätigt. Die veröffentlichte App ist im Solution-Export gesichert. Kandidat 1.0.0.30458 ist lokal verifiziert. Sein SHA-256 ist `3b913f0301da3b7b4fc35a6dee1cb263155fdb1e628c960db8e82052cdc78b3b`.
 
-Als Nächstes folgt P4d.2. Vor dem Import sind der CI-Nachweis für den Kandidaten, die vorgesehenen Testrollen, das synthetische Testasset und der Live-Monitor zu prüfen. Der festgelegte Umfang umfasst einen Import, eine gezielte Veröffentlichung zur Abnahme, einen synthetischen Risk-Datensatz mit bis zu fünf Bearbeitungen und eine bedingte reversible Bereinigung.
+P4d.2 ist seit dem 13. November 2026 in der bestehenden Umgebung abgenommen. Solution 1.0.0.30458 ist installiert. Canvas 214 wurde gezielt veröffentlicht. Beide Leseexporte bestätigen die geprüften kompilierten Controls und alle 21 Datenquellen. Der Import basierte auf 31 lokalen Projektprüfungen und 20 lokal ausgeführten Workflow-Schritten. Der direkt an die Umgebung gebundene Kandidat wurde lokal geprüft. Der Staging-Build 30459 belegt die Routing-Korrektur mit 31 grünen Prüfungen und blieb lokal.
 
-P7a.1 kann parallel vorbereitet werden. P7a.2 hängt von P7a.1 und der vorhandenen DEV-Abnahme für Assets ab. P5a benötigt einen abgenommenen Asset-Datensatzkern. P5b benötigt zusätzlich die native Change- und Risk-Abnahme. P6 setzt die abgenommenen Objekt- und Evidence-Pfade voraus, die im Review angeboten werden. P7b schließt den erweiterten Umfang ab.
+Der überwachte Risk-Test bestand mit einer Anlage und fünf Edits von Identifiziert bis Geschlossen. Bei jedem Save stimmten 16 fachliche Werte im Monitor und in SharePoint. Die App sperrte die Akzeptanz durch eine fremde Person und den Save aus einer veralteten Bearbeitung. Beide Akzeptanzdaten blieben beim Abschluss erhalten. Die Leseprüfung für Assets, Systeme und Changes bestand. Risiko und Testasset wurden im ersten Papierkorb nachgewiesen. Die vier Bestandsassets blieben unverändert.
+
+**Als Nächstes folgt P7a.1.** Für den Asset-Pilot sind der sichtbare Funktionsumfang, die effektiven Rechte der Bearbeitungs- und Leserrolle sowie der Rückweg festzulegen. P7a.2 hängt von P7a.1 und der vorhandenen DEV-Abnahme für Assets ab. P5a benötigt einen abgenommenen Asset-Datensatzkern. P5b benötigt zusätzlich die native Change- und Risk-Abnahme. P6 setzt die abgenommenen Objekt- und Evidence-Pfade voraus, die im Review angeboten werden. P7b schließt den erweiterten Umfang ab.
 
 ## Abschluss und Veröffentlichung je Paket
 
