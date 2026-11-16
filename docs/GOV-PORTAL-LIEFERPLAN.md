@@ -42,6 +42,10 @@ Der Save aus einem bereits veralteten Formular wurde nach erneutem Lesen gesperr
 
 **Als Nächstes folgt die fachliche Betriebsfreigabe für den Asset-Pilot auf Canvas 217.** Die benannte Freigabeperson bestätigt den Pilotumfang und die abgenommene Version. Danach folgt ein kurzer Funktionstest mit Bearbeiter- und Leserrolle. Für P5a ist der native Asset-Pfad abgenommen. P5b benötigt zusätzlich die Change- und Risk-Abnahme. P6 setzt die für den Review vorgesehenen Objekt- und Evidence-Pfade voraus.
 
+Für die Erweiterung der App-Navigation ist der lokale Kandidat **1.0.0.30462** mit 30 erfolgreichen Prüfungen gebaut. Die zusätzliche Kontozuordnung aktiviert Systems, Changes und Risks für die benannten Konten. Speichern setzt außerdem die bestehende Schreibrolle, die fachlichen Genehmigerregeln und passende SharePoint-Rechte voraus. Die native Abnahme der erweiterten Rolle steht aus.
+
+Das nächste Entwicklungspaket ist **P5a**. Evidence, GovernanceRelations und Reviews sind in SharePoint vorhanden. Für den Evidence- und Review-Pfad fehlen die generierten Canvas-Referenzen. Nach der Anbindung folgen in P5a der Upload, die Verknüpfung mit dem Asset und das Wiederöffnen. P5b erweitert den Pfad auf Changes und Risks. P6 nutzt ihn für manuelle Reviews.
+
 ## Abschluss und Veröffentlichung je Paket
 
 1. Ausgangscommit, fachlichen Umfang, Ziel und Abnahmekriterien festhalten. Bei App-Paketen zusätzlich Solution-Version und Paket-Hash erfassen.
