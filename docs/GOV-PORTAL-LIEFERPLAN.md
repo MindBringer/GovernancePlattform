@@ -46,7 +46,11 @@ Für die Erweiterung der App-Navigation ist der lokale Kandidat **1.0.0.30462** 
 
 Evidence, GovernanceRelations und Reviews sind im unveröffentlichten **Canvas-Entwurf 218** über die vorhandene SharePoint-Verbindung angebunden. **Canvas 217 bleibt live.** Die geprüfte Studio-Kopie erhält die 21 bestehenden Quellen und die Formeln aller 113 App-Controls. Der lokale Kandidat **1.0.0.30463** kombiniert die drei generierten Referenzen und ihre Solution-Registrierung mit der geprüften erweiterten Navigation. PAC-Build, gepacktes Archiv und 30 lokale Projektprüfungen bestanden. Solution-SHA-256 `6e589cd1851b4eaf570c704ba5fc9f4e9dc64d9d239e361f96375f84c9d2eccb`.
 
-Das nächste Entwicklungspaket ist **P5a**. Am Asset werden Nachweise geöffnet, per Upload abgelegt und eindeutig verknüpft. Bearbeiter und Lesekonto prüfen den Ablauf im Player. P5b erweitert den Pfad auf Changes und Risks. P6 nutzt ihn für manuelle Reviews.
+Der lokale Evidence-Lesekandidat **1.0.0.30465** ergänzt an jedem Asset den Einstieg „Nachweise“. Er filtert aktive Beziehungen nach der nativen Asset-ID und liest die Datei anhand der Bibliotheks-ID. Die App zeigt Dateiname und Version und öffnet den SharePoint-Link. PAC-Build, Archivvergleich und 31 Projektprüfungen sind erfolgreich. Solution-SHA-256 `e224f26bfc69285a60c7f2c55c141c50788db2305e467be297d4a2eb813efe4a`.
+
+Maker zeigt inzwischen **Entwurf 219 bei Live 217**. Die Referenzprüfung bezieht sich auf die Kopie aus dem Anbindungsschritt. Vor einem Import braucht Entwurf 219 einen Inhaltsabgleich. Der native Rechtecheck belegt für den Pilotbearbeiter Zugriff auf Evidence und GovernanceRelations. Das Lesekonto hat auf beiden Quellen nur „Beschränkter Zugriff“ und benötigt für die Abnahme Leserechte.
+
+Das nächste Entwicklungspaket ist **P5a Upload und Zuordnung**. Es ergänzt den Upload zur Evidence-Bibliothek und die wiederholsichere Zuordnung zum Asset. SharePoint erzwingt im aktuellen Bestand keine eindeutigen Relationsschlüssel. Die Umsetzung muss konkurrierende Zuordnungen und Teilfehler abdecken. Anschließend folgt der vollständige P5a-Round-Trip im Player mit Bearbeiter und Lesekonto. P5b erweitert den Pfad auf Changes und Risks. P6 nutzt ihn für manuelle Reviews.
 
 ## Abschluss und Veröffentlichung je Paket
 
