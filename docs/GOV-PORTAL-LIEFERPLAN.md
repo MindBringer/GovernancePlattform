@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 13. November 2026. Ziel ist ein produktiver Einstieg mit einer kleinen, benannten Gruppe, die Assets und Verantwortliche pflegt. Die nächste Ausbaustufe verbindet Assets, Changes und Risks mit Evidence und dem manuellen Reviewprozess.
+Stand 16. November 2026. Ziel ist ein produktiver Einstieg mit einer kleinen, benannten Gruppe, die Assets und Verantwortliche pflegt. Die nächste Ausbaustufe verbindet Assets, Changes und Risks mit Evidence und dem manuellen Reviewprozess.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -34,9 +34,13 @@ P7a.1 ist abgeschlossen. **Canvas 215 war die erste zur Asset-Abnahme veröffent
 
 Die App-Rolle „Benutzer“ ist für das Lesekonto bestätigt. SharePoint gewährt ihm ausschließlich Leserechte auf Assets und den zehn beim Start verwendeten Metadatenlisten. Die listenbezogenen Freigaben haben die drei vorhandenen Gruppenrollen je Liste übernommen. Die Gegenprobe auf Systems, Changes, Risks, Evidence und Reviews ergab keine Listenleserechte. Eine aktive AppSettings-Zeile schaltet die benannte Bearbeitung frei. Im Player sind nur Start und der Asset-Pfad sichtbar; in der Bearbeitersitzung ist „Neu“ nach Auswahl des Objekttyps aktiv. Der Live-Monitor empfängt Ereignisse. Die vier vorhandenen Assets sind unverändert.
 
-Die Reviewzyklus-Korrektur von P7a.2 ist auf **Canvas 217 zur Abnahme live**, in derselben Solution. Der Staging-Kandidat 30461 bestand alle 31 lokalen Projektprüfungen. Der Reviewzyklus bleibt optional; App und SharePoint erzwingen 1–120 Monate. Studio und der Player mit Bearbeiterrolle bestätigen die Sperre für ungültige Werte. Beide Leseexporte stimmen bytegleich überein (SHA-256 `3f143c0168b3735f73303d889cd045ce3dd11593c094b3e6c4f295b50a444817`). Alle 21 Bindungen, die vorhandenen Indizes und der Inhaltstyp sind erhalten. Die Probe blieb ungespeichert; die vier Bestandsassets sind unverändert. Canvas 215 ist als Rückweg für die App-Korrektur gesichert.
+Die Reviewzyklus-Korrektur von P7a.2 ist auf **Canvas 217 live**, in derselben Solution. Der Staging-Kandidat 30461 bestand alle 31 lokalen Projektprüfungen. Der Reviewzyklus ist optional. App und SharePoint begrenzen eingetragene Werte auf 1–120 Monate. Der Bearbeiter-Player akzeptierte leer, 1 und 120 und sperrte 0 und 121 im ungespeicherten Formular. Beide Leseexporte stimmen bytegleich überein (SHA-256 `3f143c0168b3735f73303d889cd045ce3dd11593c094b3e6c4f295b50a444817`). Alle 21 Bindungen, die vorhandenen Indizes und der Inhaltstyp sind erhalten. Canvas 215 ist als Rückweg für die App-Korrektur gesichert.
 
-**Als Nächstes folgt die native P7a.2-Abnahme von Canvas 217.** Der Bearbeiter legt im verbundenen Live-Monitor ein synthetisches Asset an, sucht es, ändert Verantwortliche, Kritikalität und Reviewplanung und öffnet es erneut. Der Leser öffnet dasselbe Asset; Bearbeitung und Speicherung bleiben gesperrt. Für konkurrierende Änderungen sind der blockierte veraltete Save und die Grenze des geprüften Schutzes zu dokumentieren. Erst nach bestandener Abnahme und reversibler Bereinigung folgt die fachliche Freigabe für genau die abgenommene Live-Version. P5a benötigt den abgenommenen Asset-Kern; P5b zusätzlich die Change- und Risk-Abnahme. P6 setzt die für den Review vorgesehenen Objekt- und Evidence-Pfade voraus.
+Die **native Asset-Abnahme für P7a.2** ist seit dem 16. November 2026 bestanden. Der Bearbeiter legte im verbundenen Live-Monitor ein synthetisches Asset an, fand es über genaue ID und Titelanfang und speicherte zwei Edits. Monitor und SharePoint belegen die Versionen 1.0 bis 3.0 und den Erhalt der 17 gemappten Felder. Die echte Leserrolle öffnete dasselbe Asset schreibgeschützt und sah Owner, Stellvertretung, Kritikalität, Reviewtermin und Reviewzyklus.
+
+Der Save aus einem bereits veralteten Formular wurde nach erneutem Lesen gesperrt. Im Monitor der Konfliktsitzung gab es null Schreibaufrufe. Die erfolgreichen Edits führten einen konkreten `If-Match`-Wert. Die Konfliktprobe deckt den bereits veralteten Formularstand ab. Das Zeitfenster zwischen der Vorprüfung und dem PATCH bleibt separat zu prüfen. Das Testasset ist im ersten SharePoint-Papierkorb nachgewiesen. Die vier Bestandsassets stimmen in Feldern und Versionen mit dem Ausgangsbestand überein.
+
+**Als Nächstes folgt die fachliche Betriebsfreigabe für den Asset-Pilot auf Canvas 217.** Die benannte Freigabeperson bestätigt den Pilotumfang und die abgenommene Version. Danach folgt ein kurzer Funktionstest mit Bearbeiter- und Leserrolle. Für P5a ist der native Asset-Pfad abgenommen. P5b benötigt zusätzlich die Change- und Risk-Abnahme. P6 setzt die für den Review vorgesehenen Objekt- und Evidence-Pfade voraus.
 
 ## Abschluss und Veröffentlichung je Paket
 
