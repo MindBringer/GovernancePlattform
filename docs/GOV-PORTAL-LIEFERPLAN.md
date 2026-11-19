@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 16. November 2026. Ziel ist ein produktiver Einstieg mit einer kleinen, benannten Gruppe, die Assets und Verantwortliche pflegt. Die nächste Ausbaustufe verbindet Assets, Changes und Risks mit Evidence und dem manuellen Reviewprozess.
+Stand 19. November 2026. **P5a ist abgenommen und als Canvas-Version 220 veröffentlicht.** Die Pilotgruppe kann Nachweise aus der App zu Assets ablegen und lesen. Die erweiterte Navigation ist für die vorgesehenen Rollen sichtbar. **Nächstes Entwicklungspaket ist P5b** für Nachweise an Changes und Risks.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -40,7 +40,7 @@ Die **native Asset-Abnahme für P7a.2** ist seit dem 16. November 2026 bestanden
 
 Der Save aus einem bereits veralteten Formular wurde nach erneutem Lesen gesperrt. Im Monitor der Konfliktsitzung gab es null Schreibaufrufe. Die erfolgreichen Edits führten einen konkreten `If-Match`-Wert. Die Konfliktprobe deckt den bereits veralteten Formularstand ab. Das Zeitfenster zwischen der Vorprüfung und dem PATCH bleibt separat zu prüfen. Das Testasset ist im ersten SharePoint-Papierkorb nachgewiesen. Die vier Bestandsassets stimmen in Feldern und Versionen mit dem Ausgangsbestand überein.
 
-**Als Nächstes folgt die fachliche Betriebsfreigabe für den Asset-Pilot auf Canvas 217.** Die benannte Freigabeperson bestätigt den Pilotumfang und die abgenommene Version. Danach folgt ein kurzer Funktionstest mit Bearbeiter- und Leserrolle. Für P5a ist der native Asset-Pfad abgenommen. P5b benötigt zusätzlich die Change- und Risk-Abnahme. P6 setzt die für den Review vorgesehenen Objekt- und Evidence-Pfade voraus.
+Die fachliche Betriebsfreigabe für den Asset-Pilot bleibt eine eigene Entscheidung auf Basis des aktuellen veröffentlichten Stands. Die benannte Freigabeperson bestätigt Umfang und Version. Danach folgt der Funktionstest im vorgesehenen Pilotumfang. P5b setzt die abgenommenen Change- und Risk-Pfade voraus. P6 setzt die für den Review vorgesehenen Objekt- und Evidence-Pfade voraus.
 
 Für die Erweiterung der App-Navigation ist der lokale Kandidat **1.0.0.30462** mit 30 erfolgreichen Prüfungen gebaut. Die zusätzliche Kontozuordnung aktiviert Systems, Changes und Risks für die benannten Konten. Speichern setzt außerdem die bestehende Schreibrolle, die fachlichen Genehmigerregeln und passende SharePoint-Rechte voraus. Die native Abnahme der erweiterten Rolle steht aus.
 
@@ -48,9 +48,16 @@ Evidence, GovernanceRelations und Reviews sind im unveröffentlichten **Canvas-E
 
 Der lokale Evidence-Lesekandidat **1.0.0.30465** ergänzt an jedem Asset den Einstieg „Nachweise“. Er filtert aktive Beziehungen nach der nativen Asset-ID und liest die Datei anhand der Bibliotheks-ID. Die App zeigt Dateiname und Version und öffnet den SharePoint-Link. PAC-Build, Archivvergleich und 31 Projektprüfungen sind erfolgreich. Solution-SHA-256 `e224f26bfc69285a60c7f2c55c141c50788db2305e467be297d4a2eb813efe4a`.
 
-Maker zeigt inzwischen **Entwurf 219 bei Live 217**. Die Referenzprüfung bezieht sich auf die Kopie aus dem Anbindungsschritt. Vor einem Import braucht Entwurf 219 einen Inhaltsabgleich. Die P5a-Leserrolle ist auf Evidence und GovernanceRelations in IT-Steinicke nativ geprüft. Auf beiden Ressourcen ist die Vererbung gezielt getrennt. Alle drei bisherigen Gruppenrollen wurden übernommen. Das Pilot-Lesekonto hat direkt „Lesen“ und keine effektiven Schreibrechte. Der Rechtecheck ist abgeschlossen. Die Abnahme des Dateipfads im Player folgt nach Upload und Zuordnung.
+Die P5a-Leserrolle ist auf Evidence und GovernanceRelations nativ geprüft. Auf beiden Ressourcen ist die Vererbung gezielt getrennt. Die bisherigen Gruppenrollen wurden übernommen. Das Lesekonto hat auf den benötigten Listen Leserechte und keine effektiven Schreibrechte. Im Player sind die neuen Menüs für beide Rollen verfügbar. Administration ist der Bearbeiterrolle vorbehalten.
 
-Das nächste Entwicklungspaket ist **P5a Upload und Zuordnung**. Es ergänzt den Upload zur Evidence-Bibliothek und die wiederholsichere Zuordnung zum Asset. SharePoint erzwingt im aktuellen Bestand keine eindeutigen Relationsschlüssel. Die Umsetzung muss konkurrierende Zuordnungen und Teilfehler abdecken. Anschließend folgt der vollständige P5a-Round-Trip im Player mit Bearbeiter und Lesekonto. P5b erweitert den Pfad auf Changes und Risks. P6 nutzt ihn für manuelle Reviews.
+## P5a · Abnahme und Veröffentlichung am 19. November 2026
+
+- Der Erstupload und das Öffnen des Nachweises sind mit den vorgesehenen Bearbeiter- und Leserrollen geprüft. Ein erneuter Upload derselben Datei lieferte dieselbe Datei-ID, Dateiversion und Zuordnung. Gleicher Dateiname mit anderem Inhalt führte zum sichtbaren Konflikt. Die fehlende Zuordnung einer bereits abgelegten Testdatei ließ sich im Player ergänzen. SharePoint lieferte dieselbe Datei-ID und Dateiversion und genau eine neue aktive Zuordnung.
+- SharePoint erzwingt eindeutige Relationsschlüssel. Der Flow verwendet die SharePoint-Verbindung des aufrufenden Kontos. Er prüft die Rechte und das Zielobjekt vor der Anlage und liest Datei und Zuordnung zurück. Fünf synthetische Testobjekte wurden in den Papierkorb verschoben. Die vorhandenen vier Assets und sechs Nachweise stimmen in Feldern und Versionen mit dem Ausgangsbestand überein.
+- Der lokale Stagingstand besteht alle 32 Projektprüfungen. Paket **1.0.0.30476** hat SHA-256 `53a79a7e71e314dd272b37e36917d8c9114b95dc8b620154f855d5b238070675`. Die Solution enthält im Releasepaket ausschließlich die Haupt-App. Der Rückexport von **Canvas 220 Live** bestätigt den geprüften Canvas-Stand bytegenau. Die Abnahme-App und der aktive Upload-Flow sind im Rückexport unverändert. Der frühere Live-Stand 217 ist als Rückweg verfügbar.
+- Die App zeigt die zusätzlichen Bereiche Betrieb, Risiko & Compliance, Dokumente, Prüfungen und Auswertungen für die Pilotrollen. Der native Uploadpfad dieses Pakets gilt für Assets. Weitere Menüziele öffnen gemäß ihrer Berechtigung die jeweilige Liste oder Bibliothek. P5b erweitert die native Evidence-Zuordnung auf Changes und Risks.
+
+Der Lieferbranch dokumentiert diesen Release. Der vollständige Stage-4.1-Quellstand benötigt für seine Repository-Prüfungen ein passendes Canvas-Artefakt und passende Verbindungsregistrierungen. Die geprüften nativen Referenzen sind an die Umgebung gebunden und bleiben in der internen Entwicklungsübergabe.
 
 ## Abschluss und Veröffentlichung je Paket
 
