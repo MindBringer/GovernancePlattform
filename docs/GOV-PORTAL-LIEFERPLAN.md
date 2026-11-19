@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 19. November 2026. **P5a ist abgenommen und als Canvas-Version 220 veröffentlicht.** Die Pilotgruppe kann Nachweise aus der App zu Assets ablegen und lesen. Die erweiterte Navigation ist für die vorgesehenen Rollen sichtbar. **Nächstes Entwicklungspaket ist P5b** für Nachweise an Changes und Risks.
+Stand 19. November 2026. **P5b ist mit beiden Pilotrollen abgenommen und als Canvas-Version 221 veröffentlicht.** Die Pilotgruppe kann Nachweise zu Assets, Changes und Risiken aus der App ablegen und lesen. Das nächste Entwicklungspaket **P6** umfasst den manuellen Review in der App.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -58,6 +58,15 @@ Die P5a-Leserrolle ist auf Evidence und GovernanceRelations nativ geprüft. Auf 
 - Die App zeigt die zusätzlichen Bereiche Betrieb, Risiko & Compliance, Dokumente, Prüfungen und Auswertungen für die Pilotrollen. Der native Uploadpfad dieses Pakets gilt für Assets. Weitere Menüziele öffnen gemäß ihrer Berechtigung die jeweilige Liste oder Bibliothek. P5b erweitert die native Evidence-Zuordnung auf Changes und Risks.
 
 Der Lieferbranch dokumentiert diesen Release. Der vollständige Stage-4.1-Quellstand benötigt für seine Repository-Prüfungen ein passendes Canvas-Artefakt und passende Verbindungsregistrierungen. Die geprüften nativen Referenzen sind an die Umgebung gebunden und bleiben in der internen Entwicklungsübergabe.
+
+## P5b · Abnahme und Veröffentlichung am 19. November 2026
+
+- Der Bearbeiter legte zu einem synthetischen Change und einem synthetischen Risiko je eine Datei mit demselben Namen und unterschiedlichen Inhalten ab. SharePoint bestätigte beide Inhalte und je genau eine Zuordnung zum richtigen Zieltyp und zur richtigen Listen-ID. Beide Wiederholungen lieferten dieselben Datei- und Zuordnungs-IDs. Vier erfolgreiche Flow-Läufe belegen die Ablage und Wiederholung. Bei Wiederholung wurden die Anlageschritte übersprungen und die Versionen blieben gleich.
+- Das Lesekonto sah beide Nachweise im Player ohne Upload-Aktion. SharePoint bestätigte effektives Lesen auf beiden Dateien und Zielobjekten sowie fehlende Schreibrechte. Ungültige oder unzugängliche Ziele sind in den lokalen Flow-Tests abgedeckt. Der bestehende Asset-Nachweispfad bestand die Regression.
+- Alle 32 lokalen Projektprüfungen für Kandidat 30477 sind grün. Studio meldete null Formelfehler und vier LookUp-Delegierungswarnungen. Die Release-Solution **1.0.0.30481** enthält ausschließlich die Haupt-App. Paket-SHA-256 `cddcb444be8bf21f9c487116aaae35ae9f81eff7a4fda6df0dbeb5aaed92a8d4`.
+- Der native Rückexport von **Canvas 221 Live** bestätigt die mit beiden Pilotrollen geprüfte App bytegenau und enthält beide Workflow-Abhängigkeiten. Die Abnahme-App und beide Flow-Definitionen sind im Bytevergleich erhalten. Canvas 220 ist der Rückweg für die Haupt-App. Die sechs synthetischen Testobjekte liegen im SharePoint-Papierkorb. Die Bestandsdaten der vier geprüften Quellen stimmen in Feldern und Versionen mit dem Ausgangsbestand überein.
+
+Der GitHub-Liefercommit umfasst die Release-Dokumentation. Der konsistente Stage-4.1-Quellstand bleibt im lokalen Entwicklungsworktree. Für einen reproduzierbaren Quellstand in Git fehlen portable Canvas-Referenzen und passende Solution-Registrierungen. Die nativen Artefakte und Bindungen gehören zur internen Entwicklungsübergabe.
 
 ## Abschluss und Veröffentlichung je Paket
 
