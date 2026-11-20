@@ -515,6 +515,13 @@
       ]
     },
     {
+      "key": "ManualReviewState",
+      "values": [
+        ["InProgress", "In Prüfung", 20],
+        ["Completed", "Abgeschlossen", 30]
+      ]
+    },
+    {
       "key": "ReviewResult",
       "values": [
         [
@@ -656,6 +663,112 @@
           "Invalid",
           "Ungültig",
           40
+        ]
+      ]
+    },
+    {
+      "key": "ChangeStatus",
+      "values": [
+        [
+          "Draft",
+          "Entwurf",
+          10
+        ],
+        [
+          "Submitted",
+          "Eingereicht",
+          20
+        ],
+        [
+          "Approved",
+          "Genehmigt",
+          30
+        ],
+        [
+          "Scheduled",
+          "Geplant",
+          40
+        ],
+        [
+          "Implemented",
+          "Umgesetzt",
+          50
+        ],
+        [
+          "Rejected",
+          "Abgelehnt",
+          60
+        ],
+        [
+          "Closed",
+          "Geschlossen",
+          70
+        ]
+      ]
+    },
+    {
+      "key": "RiskStatus",
+      "values": [
+        [
+          "Identified",
+          "Identifiziert",
+          10
+        ],
+        [
+          "Assessed",
+          "Bewertet",
+          20
+        ],
+        [
+          "InProgress",
+          "In Bearbeitung",
+          30
+        ],
+        [
+          "Accepted",
+          "Akzeptiert",
+          40
+        ],
+        [
+          "Closed",
+          "Geschlossen",
+          50
+        ]
+      ]
+    },
+    {
+      "key": "RiskSourceChannel",
+      "displayNameDE": "Risk-Erfassungsquelle",
+      "values": [
+        [
+          "CanvasApp",
+          "Canvas App",
+          10
+        ],
+        [
+          "PowerAutomate",
+          "Power Automate",
+          20
+        ],
+        [
+          "Import",
+          "Import",
+          30
+        ],
+        [
+          "API",
+          "API",
+          40
+        ],
+        [
+          "SharePoint",
+          "SharePoint",
+          50
+        ],
+        [
+          "System",
+          "System",
+          60
         ]
       ]
     }

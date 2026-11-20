@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 19. November 2026. **P5b ist mit beiden Pilotrollen abgenommen und als Canvas-Version 221 veröffentlicht.** Die Pilotgruppe kann Nachweise zu Assets, Changes und Risiken aus der App ablegen und lesen. Das nächste Entwicklungspaket **P6** umfasst den manuellen Review in der App.
+Stand 20. November 2026. **P6c ist mit beiden Pilotrollen abgenommen und als Canvas-Version 222 veröffentlicht.** Nachweise und manuelle Reviews sind für Assets, Changes und Risiken verfügbar. Die Freigabe für den ersten begrenzten Echtbetrieb folgt in **P7b**.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -67,6 +67,18 @@ Der Lieferbranch dokumentiert diesen Release. Der vollständige Stage-4.1-Quells
 - Der native Rückexport von **Canvas 221 Live** bestätigt die mit beiden Pilotrollen geprüfte App bytegenau und enthält beide Workflow-Abhängigkeiten. Die Abnahme-App und beide Flow-Definitionen sind im Bytevergleich erhalten. Canvas 220 ist der Rückweg für die Haupt-App. Die sechs synthetischen Testobjekte liegen im SharePoint-Papierkorb. Die Bestandsdaten der vier geprüften Quellen stimmen in Feldern und Versionen mit dem Ausgangsbestand überein.
 
 Der GitHub-Liefercommit umfasst die Release-Dokumentation. Der konsistente Stage-4.1-Quellstand bleibt im lokalen Entwicklungsworktree. Für einen reproduzierbaren Quellstand in Git fehlen portable Canvas-Referenzen und passende Solution-Registrierungen. Die nativen Artefakte und Bindungen gehören zur internen Entwicklungsübergabe.
+
+## P6c · Abnahme und Veröffentlichung am 20. November 2026
+
+- Die Pilotrollen prüften die Fälligkeitsliste, die Suche nach nativer Listen-ID, die Entscheidung, den Folgetermin und die Historie in der Abnahme-App. Ein veralteter Change wurde ohne zusätzlichen Historieneintrag abgewiesen. Die Wiederaufnahme eines offenen Risk-Reviews und der zweite Aufruf aus einer unabhängigen Sitzung lieferten dieselbe Review-ID, dieselben Termine und genau einen Historieneintrag je Entscheidung. Die Leserrolle sah die Historie mit schreibgeschütztem Zugriff. Sechs synthetische Pilotdatensätze sind im ersten Papierkorb bestätigt.
+- Der isolierte Quellstand bestand alle 34 lokalen Projektprüfungen. Solution **1.0.0.30488** enthält ausschließlich die Haupt-App. Der native Rückexport von **Canvas 222 Live** bestätigt das bytegleiche App-Binary des geprüften Stands und die drei Workflow-Registrierungen. Das Paket hat SHA-256 `7582f63fa080ab58123b6f0329f4bdce0cb4aebcda3f5ce036935c131fd7bb38`. Canvas 221 ist der gesicherte Rückweg.
+- Der lesende Smoke in der Haupt-App bestand mit beiden Rollen. Er deckte die Navigation zu den Reviews, den Abruf der drei Objektarten und den Nachweispfad eines Bestandsassets ab. Die Aktion zum Hinzufügen einer Datei stand der Bearbeiterrolle zur Verfügung. Der Live-Monitor bestätigte 28 lesende Aufrufe mit HTTP 200.
+
+## P7b · Erster begrenzter Echtbetrieb
+
+1. Die Pilotgruppe und die ersten realen Objekte für Canvas 222 festlegen. Nur für diese Objekte Verantwortliche und erste Fälligkeiten vervollständigen. Asset-Stellvertretungen und bei Changes oder Risiken den vorgesehenen Genehmiger beziehungsweise Risk Owner prüfen, soweit diese Pfade im ersten Pilotumfang enthalten sind.
+2. Einen durchgängigen Referenzfall in der veröffentlichten Haupt-App mit beiden Rollen abnehmen. Der Fall reicht vom Öffnen des ausgewählten Objekts über den Nachweis bis zur Reviewentscheidung. Ein unabhängiger Readback bestätigt Folgetermin, Historie und Auditspuren. Der Leser öffnet denselben Fall und bleibt auf Leserechte beschränkt.
+3. Die benannte Betriebsfreigabe bestätigt den Umfang, den Startzeitpunkt, den Supportkontakt und den Rückweg auf Canvas 221. Nach dem ersten Nutzungsfall werden Audit und offene Punkte einmal geprüft. Eine separate Entwicklungsinstanz folgt nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs.
 
 ## Abschluss und Veröffentlichung je Paket
 

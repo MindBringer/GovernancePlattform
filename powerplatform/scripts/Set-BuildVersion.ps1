@@ -9,6 +9,7 @@ Set-StrictMode -Version Latest
 $ErrorActionPreference = 'Stop'
 $RepositoryRoot = [System.IO.Path]::GetFullPath($RepositoryRoot)
 $versionFile = Join-Path $RepositoryRoot 'powerplatform/VERSION'
+$solutionVersionFile = Join-Path $RepositoryRoot 'powerplatform/solution/VERSION'
 $configPath = Join-Path $RepositoryRoot 'powerplatform/scripts/DeveloperPlatform.psd1'
 
 $candidates = @(
@@ -44,6 +45,7 @@ $appText = [regex]::Replace($appText, $pattern, ('Set(gblAppVersion, "{0}");' -f
 
 [System.IO.File]::WriteAllText($appPath, $appText, [System.Text.UTF8Encoding]::new($false))
 [System.IO.File]::WriteAllText($versionFile, "$Version`n", [System.Text.UTF8Encoding]::new($false))
+[System.IO.File]::WriteAllText($solutionVersionFile, "$Version`n", [System.Text.UTF8Encoding]::new($false))
 
 if (Test-Path -LiteralPath $configPath -PathType Leaf) {
     $configText = Get-Content -LiteralPath $configPath -Raw

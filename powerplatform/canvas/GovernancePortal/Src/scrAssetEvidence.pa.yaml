@@ -1,0 +1,179 @@
+Screens:
+  scrAssetEvidence:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: |-
+        =Set(gblRecordError, "");
+        UpdateContext({evidenceDocument: Blank(), evidenceLookupError: "", evidenceLookupBusy: false})
+    Children:
+      - btnEvidenceBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück zur Liste"
+            DisplayMode: =If(evidenceLookupBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: =If(Self.DisplayMode = DisplayMode.Edit, Back())
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =172
+            X: =16
+            Y: =16
+      - btnEvidenceUploadOpen:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Datei hinzufügen"
+            Visible: |-
+              =Coalesce(gblAssetPilotCanWrite, false) && evidenceTargetId > 0 &&
+                  (evidenceTargetType = "Asset" ||
+                      (evidenceTargetType exactin ["Change", "Risk"] &&
+                          evidenceTargetType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)))
+            DisplayMode: =If(evidenceLookupBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  Navigate(scrAssetEvidenceUpload, ScreenTransition.None,
+                      {evidenceUploadTargetId: evidenceTargetId, evidenceUploadTargetType: evidenceTargetType, evidenceUploadTargetTitle: evidenceTargetTitle}
+                  )
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =Min(164, Parent.Width - Self.X - 16)
+            X: =btnEvidenceBack.X + btnEvidenceBack.Width + 8
+            Y: =16
+      - lblAssetEvidenceTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Nachweise · " & Switch(evidenceTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Objekt") & " · " & evidenceTargetTitle & " · ID " & Text(evidenceTargetId)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Size: =18
+            Height: =58
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =64
+      - galAssetEvidence:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Nachweise des ausgewählten Objekts"
+            ItemAccessibleLabel: =Coalesce(ThisItem.SourceTitle, "Nachweis " & Text(ThisItem.SourceItemID))
+            LoadingSpinner: =LoadingSpinner.Data
+            ShowNavigation: =true
+            ShowScrollbar: =true
+            TemplatePadding: =4
+            TemplateSize: =54
+            Selectable: =false
+            TabIndex: =-1
+            Items: |-
+              =If(
+                  evidenceTargetId > 0 && evidenceTargetType exactin ["Asset", "Change", "Risk"],
+                  Filter(
+                      GovernanceRelations,
+                      TargetItemID = evidenceTargetId &&
+                      TargetObjectTypeKey = evidenceTargetType &&
+                      SourceObjectTypeKey = "Evidence" &&
+                      RelationTypeKey = "EvidenceSupportsObject" &&
+                      IsActive = true
+                  )
+              )
+            Height: =Max(0, Parent.Height - Self.Y - 152)
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =128
+          Children:
+            - btnEvidenceDetails:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Details · " & Coalesce(ThisItem.SourceTitle, "Nachweis " & Text(ThisItem.SourceItemID))
+                  DisplayMode: =If(evidenceLookupBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                  OnSelect: |-
+                    =If(
+                        !evidenceLookupBusy,
+                        UpdateContext({evidenceDocument: Blank(), evidenceLookupError: "", evidenceLookupBusy: true});
+                        With(
+                            {sourceId: ThisItem.SourceItemID},
+                            If(
+                                sourceId > 0 && RoundDown(sourceId, 0) = sourceId,
+                                IfError(
+                                    UpdateContext({evidenceDocument: LookUp(Evidence, ID = sourceId)}),
+                                    UpdateContext({evidenceLookupError: "Die Datei konnte nicht gelesen werden."})
+                                ),
+                                UpdateContext({evidenceLookupError: "Die Verknüpfung enthält keine gültige Datei-ID."})
+                            )
+                        );
+                        If(
+                            IsBlank(evidenceLookupError) && IsBlank(evidenceDocument.ID),
+                            UpdateContext({evidenceLookupError: "Die Datei ist für dieses Konto nicht verfügbar."})
+                        );
+                        UpdateContext({evidenceLookupBusy: false})
+                    )
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorText
+                  Fill: =gblTheme.ColorSurface
+                  BorderColor: =gblTheme.ColorBorder
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =44
+                  Width: =Parent.TemplateWidth - 8
+      - lblEvidenceState:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  !IsBlank(evidenceLookupError), evidenceLookupError,
+                  !IsBlank(gblRecordError), gblRecordError,
+                  evidenceLookupBusy, "Die Datei wird geladen …",
+                  !IsBlank(evidenceDocument.ID) && evidenceDocument.'{IsFolder}', "Die Verknüpfung zeigt auf einen Ordner.",
+                  !IsBlank(evidenceDocument.ID),
+                      Coalesce(evidenceDocument.'{FilenameWithExtension}', evidenceDocument.Title, "Datei " & Text(evidenceDocument.ID)) &
+                      If(!IsBlank(evidenceDocument.'{VersionNumber}'), " · Version " & evidenceDocument.'{VersionNumber}', "") &
+                      If(!StartsWith(evidenceDocument.'{Link}', "https://"), " · Dateilink nicht verfügbar", ""),
+                  IsEmpty(galAssetEvidence.AllItems), "Keine Nachweise geladen.",
+                  "Einen Nachweis auswählen, um seine Dateidetails zu laden."
+              )
+            Font: =Font.'Open Sans'
+            Color: =If(!IsBlank(evidenceLookupError) || !IsBlank(gblRecordError), gblTheme.ColorError, gblTheme.ColorText)
+            Live: =Live.Polite
+            Height: =78
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =galAssetEvidence.Y + galAssetEvidence.Height + 4
+      - btnEvidenceOpen:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Datei öffnen"
+            DisplayMode: |-
+              =If(
+                  !evidenceLookupBusy && IsBlank(evidenceLookupError) && IsBlank(gblRecordError) &&
+                  evidenceDocument.ID > 0 && !IsBlank(evidenceDocument.'{IsFolder}') && !evidenceDocument.'{IsFolder}' &&
+                  StartsWith(evidenceDocument.'{Link}', "https://"),
+                  DisplayMode.Edit, DisplayMode.Disabled
+              )
+            OnSelect: |-
+              =If(
+                  Self.DisplayMode = DisplayMode.Edit,
+                  Launch(evidenceDocument.'{Link}', {}, LaunchTarget.New)
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            BorderColor: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =150
+            X: =16
+            Y: =lblEvidenceState.Y + lblEvidenceState.Height + 4
