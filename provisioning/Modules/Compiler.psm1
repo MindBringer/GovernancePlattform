@@ -8,6 +8,12 @@ function ConvertTo-GPFieldDefinition {
     foreach($p in @('default','min','max','maxLength','numLines','allowMultiple','searchable','exportable','aiVisible')){
         if($Field.ContainsKey($p)){$f[$p]=$Field[$p]}
     }
+    if($Field.ContainsKey('dateFormat')){
+        if($Field.type -cne 'DateTime' -or $Field.dateFormat -isnot [string] -or $Field.dateFormat -cnotin @('DateOnly','DateTime')){
+            throw "Invalid dateFormat for '$($Field.internalName)': only DateOnly/DateTime on a DateTime field are supported."
+        }
+        $f.DateFormat=$Field.dateFormat
+    }
     if($Field.choiceSet){
         $set=$Model.ChoiceSets|Where-Object key -eq $Field.choiceSet|Select-Object -First 1
         $f.ChoiceSet=$Field.choiceSet
@@ -149,8 +155,7 @@ function Compile-GPArchitecture {
     $lists=[System.Collections.Generic.List[hashtable]]::new()
     foreach($o in $Model.objectTypes){
         $fields=[System.Collections.Generic.List[hashtable]]::new()
-        foreach($f in Get-GPFieldsForBaseClass $o.baseClass $Model){$fields.Add($f)}
-        foreach($f in $Model.ObjectFields|Where-Object objectTypeKey -eq $o.key){$fields.Add((ConvertTo-GPFieldDefinition $f $Model))}
+        foreach($f in Get-GPObjectFields -ObjectTypeKey $o.key -Model $Model){$fields.Add((ConvertTo-GPFieldDefinition $f $Model))}
         $template=if($o.kind -eq 'Library'){'DocumentLibrary'}else{'GenericList'}
         $lists.Add(@{Title=$o.source;Template=$template;ObjectKey=$o.key;BaseClass=$o.baseClass;Fields=@($fields);Views=(Get-GPViewsForObject $o $Model);Settings=@{Versioning=[bool]$o.allowVersioning;Attachments=[bool]$o.allowAttachments}})
     }

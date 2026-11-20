@@ -1,0 +1,193 @@
+Screens:
+  scrAssetEvidenceUpload:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: |-
+        =UpdateContext({evidenceUploading: false, evidenceUploadStatus: ""});
+        ResetForm(frmEvidenceUpload);
+        NewForm(frmEvidenceUpload)
+    Children:
+      - btnEvidenceUploadBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück zu Nachweisen"
+            OnSelect: =If(Self.DisplayMode = DisplayMode.Edit, Back())
+            DisplayMode: =If(evidenceUploading, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            Fill: =gblTheme.ColorSurface
+            Color: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =190
+            X: =16
+            Y: =16
+      - lblEvidenceUploadTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Datei für " & Switch(evidenceUploadTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Objekt") & " · " & evidenceUploadTargetTitle & " · ID " & Text(evidenceUploadTargetId)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Size: =18
+            Height: =56
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =64
+      - lblEvidenceUploadName:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Eine Datei bis 5 MB. Dateiname bis 100 Zeichen. Buchstaben, Ziffern, Leerzeichen, Punkt, Bindestrich und Unterstrich verwenden."
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Height: =56
+            Width: =Min(Parent.Width - 32, 560)
+            Visible: =frmEvidenceUpload.Visible
+            X: =16
+            Y: =122
+      - frmEvidenceUpload:
+          Control: Form@2.4.4
+          Variant: Classic
+          Layout: Vertical
+          Properties:
+            DataSource: =Assets
+            DefaultMode: =FormMode.New
+            Height: =116
+            Width: =Min(Parent.Width - 32, 560)
+            NumberOfColumns: =1
+            SnapToColumns: =false
+            Visible: |-
+              =Coalesce(gblAssetPilotCanWrite, false) && evidenceUploadTargetId > 0 &&
+                  (evidenceUploadTargetType = "Asset" ||
+                      (evidenceUploadTargetType exactin ["Change", "Risk"] &&
+                          evidenceUploadTargetType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)))
+            X: =16
+            Y: =182
+          Children:
+            - crdEvidenceFile:
+                Control: TypedDataCard@1.0.7
+                Variant: ClassicAttachmentsEdit
+                Properties:
+                  DataField: ="{Attachments}"
+                  Default: =Blank()
+                  DisplayName: ="Nachweisdatei"
+                  Height: =116
+                  Required: =true
+                  Update: =attEvidenceFile.Attachments
+                  Width: =Parent.Width
+                  X: =0
+                  Y: =0
+                Children:
+                  - attEvidenceFile:
+                      Control: Attachments@2.3.0
+                      Properties:
+                        AddAttachmentText: ="Datei auswählen"
+                        BorderColor: =gblTheme.ColorBorder
+                        DisplayMode: =If(evidenceUploading || !frmEvidenceUpload.Visible, DisplayMode.Disabled, DisplayMode.Edit)
+                        Height: =108
+                        Items: =Parent.Default
+                        MaxAttachments: =1
+                        MaxAttachmentSize: =5
+                        NoAttachmentsText: ="Noch keine Datei ausgewählt"
+                        PaddingLeft: =5
+                        Width: =Parent.Width
+      - btnEvidenceUpload:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(evidenceUploading, "Datei wird verarbeitet …", "Datei ablegen und zuordnen")
+            Visible: =frmEvidenceUpload.Visible
+            DisplayMode: |-
+              =If(
+                  !frmEvidenceUpload.Visible ||
+                  evidenceUploading || CountRows(attEvidenceFile.Attachments) <> 1,
+                  DisplayMode.Disabled, DisplayMode.Edit
+              )
+            OnSelect: |-
+              =If(
+                  Self.DisplayMode = DisplayMode.Edit,
+                  With(
+                      {evidenceFile: First(attEvidenceFile.Attachments)},
+                      If(
+                          !IsMatch(evidenceFile.Name, "[A-Za-zÄÖÜäöüß0-9_-][A-Za-zÄÖÜäöüß0-9 ._-]{0,99}", MatchOptions.Complete) ||
+                          EndsWith(evidenceFile.Name, ".") || EndsWith(evidenceFile.Name, " ") || (".." in evidenceFile.Name) || ("_vti_" in Lower(evidenceFile.Name)),
+                          UpdateContext({evidenceUploadStatus: "Der Dateiname enthält nicht unterstützte Zeichen."}),
+                          UpdateContext({evidenceUploading: true, evidenceUploadStatus: ""});
+                          IfError(
+                              With(
+                                  {answer:
+                                      If(
+                                          evidenceUploadTargetType = "Asset",
+                                          With(
+                                              {assetAnswer: GPAssetEvidenceUpload.Run(evidenceUploadTargetId,
+                                                  {name: evidenceFile.Name, contentBytes: evidenceFile.Value})},
+                                              {status: assetAnswer.status, targetid: assetAnswer.assetid,
+                                                  targettype: "Asset", evidenceid: assetAnswer.evidenceid, relationid: assetAnswer.relationid}
+                                          ),
+                                          With(
+                                              {objectAnswer: GPObjectEvidenceUpload.Run(evidenceUploadTargetId, evidenceUploadTargetType,
+                                                  {name: evidenceFile.Name, contentBytes: evidenceFile.Value})},
+                                              {status: objectAnswer.status, targetid: objectAnswer.targetid,
+                                                  targettype: objectAnswer.targettype, evidenceid: objectAnswer.evidenceid, relationid: objectAnswer.relationid}
+                                          )
+                                      )},
+                                  Switch(
+                                      answer.status,
+                                      "saved",
+                                      If(
+                                          answer.targetid = evidenceUploadTargetId && answer.targettype = evidenceUploadTargetType &&
+                                              answer.evidenceid > 0 && answer.relationid > 0,
+                                          UpdateContext({evidenceUploadStatus: "Datei zugeordnet · Nachweis-ID " & Text(answer.evidenceid)});
+                                          ResetForm(frmEvidenceUpload);
+                                          NewForm(frmEvidenceUpload);
+                                          Refresh(GovernanceRelations),
+                                          UpdateContext({evidenceUploadStatus: "Die Antwort konnte nicht bestätigt werden. Dieselbe Datei erneut auswählen und prüfen."})
+                                      ),
+                                      "unlinked",
+                                      If(
+                                          answer.targetid = evidenceUploadTargetId && answer.targettype = evidenceUploadTargetType && answer.evidenceid > 0,
+                                          UpdateContext({evidenceUploadStatus: "Datei abgelegt · Nachweis-ID " & Text(answer.evidenceid) &
+                                              ". Zuordnung offen. Erneut mit derselben Datei versuchen."}),
+                                          UpdateContext({evidenceUploadStatus: "Die Antwort konnte nicht bestätigt werden. Dieselbe Datei erneut auswählen und prüfen."})
+                                      ),
+                                      "file_conflict",
+                                      UpdateContext({evidenceUploadStatus: "Für dieses Objekt existiert bereits eine andere Datei mit demselben Namen."}),
+                                      "relation_conflict",
+                                      UpdateContext({evidenceUploadStatus: "Die bestehende Zuordnung ist widersprüchlich. Nachweis-ID " & Text(answer.evidenceid)}),
+                                      "configuration",
+                                      UpdateContext({evidenceUploadStatus: "Die sichere Zuordnung ist in SharePoint noch nicht eingerichtet."}),
+                                      "invalid",
+                                      UpdateContext({evidenceUploadStatus: "Bitte eine gültige Datei bis 5 MB wählen."}),
+                                      "blocked",
+                                      UpdateContext({evidenceUploadStatus: "Für das Objekt oder die Ablage fehlen die erforderlichen Berechtigungen."}),
+                                      UpdateContext({evidenceUploadStatus: "Status unklar. Erneut mit derselben Datei versuchen."})
+                                  )
+                              ),
+                              UpdateContext({evidenceUploadStatus: "Status unklar. Erneut mit derselben Datei versuchen."})
+                          );
+                          UpdateContext({evidenceUploading: false})
+                      )
+                  )
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =42
+            Width: =Min(Parent.Width - 32, 274)
+            X: =16
+            Y: =302
+      - lblEvidenceUploadStatus:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(frmEvidenceUpload.Visible, evidenceUploadStatus, "Für dieses Konto ist der Datei-Upload gesperrt.")
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Live: =Live.Polite
+            Height: =82
+            Width: =Min(Parent.Width - 32, 560)
+            X: =16
+            Y: =If(frmEvidenceUpload.Visible, 350, 122)

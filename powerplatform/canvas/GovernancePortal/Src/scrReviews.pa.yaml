@@ -1,0 +1,573 @@
+Screens:
+  scrReviews:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: |-
+        =If(reviewEnterFresh,
+            Reset(txtReviewObjectId);
+            UpdateContext({reviewEnterFresh: false})
+        );
+        If(reviewReloadSource, UpdateContext({reviewReloadSource: false}); Select(btnReviewRefresh))
+    Children:
+      - btnReviewBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: =If(reviewTarget.ID > 0, "Zurück zu Reviews", "Zurück")
+            OnSelect: |-
+              =If(reviewTarget.ID > 0, UpdateContext({reviewTarget: Blank(), reviewReadError: ""}), Back())
+            Height: =44
+            Width: =Min(160, (Parent.Width - 40) / 2)
+            X: =16
+            Y: =16
+      - lblReviewTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(reviewTarget.ID > 0, "Review · " & reviewTarget.Title, "Fällige Reviews")
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Size: =18
+            Height: =52
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =63
+      - btnReviewTypeAsset:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Assets"
+            Fill: =If(reviewType = "Asset", gblTheme.ColorSelected, gblTheme.ColorSurface)
+            Visible: =!(reviewTarget.ID > 0) && "Asset" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            OnSelect: |-
+              =If(Self.Visible && !reviewReadBusy, UpdateContext({reviewType: "Asset", reviewReadError: ""}))
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =44
+            Width: =Min(124, (Parent.Width - 48) / 3)
+            X: =16
+            Y: =116
+      - btnReviewTypeChange:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Changes"
+            Fill: =If(reviewType = "Change", gblTheme.ColorSelected, gblTheme.ColorSurface)
+            Visible: =!(reviewTarget.ID > 0) && "Change" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            OnSelect: |-
+              =If(Self.Visible && !reviewReadBusy, UpdateContext({reviewType: "Change", reviewReadError: ""}))
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =44
+            Width: =Min(124, (Parent.Width - 48) / 3)
+            X: =16 + 1 * (Self.Width + 8)
+            Y: =116
+      - btnReviewTypeRisk:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Risiken"
+            Fill: =If(reviewType = "Risk", gblTheme.ColorSelected, gblTheme.ColorSurface)
+            Visible: =!(reviewTarget.ID > 0) && "Risk" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            OnSelect: |-
+              =If(Self.Visible && !reviewReadBusy, UpdateContext({reviewType: "Risk", reviewReadError: ""}))
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =44
+            Width: =Min(124, (Parent.Width - 48) / 3)
+            X: =16 + 2 * (Self.Width + 8)
+            Y: =116
+      - txtReviewObjectId:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Listen-ID zur Suche nach einem Objekt"
+            HintText: ="Listen-ID"
+            Default: =""
+            Visible: =!(reviewTarget.ID > 0)
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Height: =44
+            Width: =Min(128, Parent.Width - 216)
+            X: =16
+            Y: =168
+      - btnReviewFind:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Suchen"
+            Visible: =txtReviewObjectId.Visible
+            DisplayMode: =If(reviewReadBusy || IsBlank(Trim(txtReviewObjectId.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  If(IsMatch(Trim(txtReviewObjectId.Text), "[1-9][0-9]{0,9}", MatchOptions.Complete),
+                      UpdateContext({reviewLookupId: Value(Trim(txtReviewObjectId.Text)), reviewReadError: ""}),
+                      UpdateContext({reviewReadError: "Gib eine positive Listen-ID ein."})
+                  )
+              )
+            Height: =44
+            Width: =80
+            X: =txtReviewObjectId.X + txtReviewObjectId.Width + 8
+            Y: =txtReviewObjectId.Y
+      - btnReviewDue:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Fällige Reviews"
+            Size: =10
+            Visible: =txtReviewObjectId.Visible && (reviewLookupId > 0 || !IsBlank(txtReviewObjectId.Text))
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  Reset(txtReviewObjectId);
+                  UpdateContext({reviewLookupId: 0, reviewReadError: ""})
+              )
+            Height: =44
+            Width: =80
+            X: =btnReviewFind.X + btnReviewFind.Width + 8
+            Y: =txtReviewObjectId.Y
+      - lblReviewQueue:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(reviewLookupId > 0, "Listen-ID " & Text(reviewLookupId), "Überfällig und bis " & Text(DateAdd(reviewDueBefore, -1, TimeUnit.Days), "dd.mm.yyyy"))
+            Visible: =!(reviewTarget.ID > 0)
+            Color: =gblTheme.ColorText
+            Height: =36
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =218
+      - galDueAssets:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Assets zur Prüfung"
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+            Selectable: =false
+            TabIndex: =-1
+            LoadingSpinner: =LoadingSpinner.Data
+            ShowScrollbar: =true
+            TemplatePadding: =4
+            TemplateSize: =66
+            Visible: =lblReviewQueue.Visible && reviewType = "Asset" && "Asset" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            Items: |-
+              =If(Self.Visible,
+                  If(reviewLookupId > 0,
+                      Filter(Assets, ID = reviewLookupId),
+                      SortByColumns(
+                          Filter(Assets, IsActive = true && NextReviewDate >= reviewDueFrom && NextReviewDate < reviewDueBefore),
+                          "NextReviewDate", SortOrder.Ascending
+                      )
+                  )
+              )
+            Height: =Max(0, Parent.Height - Self.Y - 64)
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =lblReviewQueue.Y + lblReviewQueue.Height
+          Children:
+            - btnDueAsset:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID) &
+                        If(IsBlank(ThisItem.NextReviewDate), "", " · " & Text(ThisItem.NextReviewDate, "dd.mm.yyyy"))
+                  DisplayMode: =If(ThisItem.ID > 0 && !reviewReadBusy, DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: |-
+                    =If(Self.DisplayMode = DisplayMode.Edit && reviewType = "Asset" &&
+                        "Asset" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                        UpdateContext({
+                            reviewReadError: "",
+                            reviewTarget: {
+                                ID: ThisItem.ID, Title: Coalesce(ThisItem.Title, "Ohne Titel"),
+                                NextDue: ThisItem.NextReviewDate, LastDone: ThisItem.LastReviewDate,
+                                OwnerName: ThisItem.Owner.DisplayName,
+                                IsActive: Coalesce(ThisItem.IsActive, false)
+                            }
+                        })
+                    )
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorText
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =56
+                  Width: =Parent.TemplateWidth - 8
+      - galDueChanges:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Changes zur Prüfung"
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+            Selectable: =false
+            TabIndex: =-1
+            LoadingSpinner: =LoadingSpinner.Data
+            ShowScrollbar: =true
+            TemplatePadding: =4
+            TemplateSize: =66
+            Visible: =lblReviewQueue.Visible && reviewType = "Change" && "Change" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            Items: |-
+              =If(Self.Visible,
+                  If(reviewLookupId > 0,
+                      Filter(Changes, ID = reviewLookupId),
+                      SortByColumns(
+                          Filter(Changes, IsActive = true && NextReviewDate >= reviewDueFrom && NextReviewDate < reviewDueBefore),
+                          "NextReviewDate", SortOrder.Ascending
+                      )
+                  )
+              )
+            Height: =Max(0, Parent.Height - Self.Y - 64)
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =lblReviewQueue.Y + lblReviewQueue.Height
+          Children:
+            - btnDueChange:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID) &
+                        If(IsBlank(ThisItem.NextReviewDate), "", " · " & Text(ThisItem.NextReviewDate, "dd.mm.yyyy"))
+                  DisplayMode: =If(ThisItem.ID > 0 && !reviewReadBusy, DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: |-
+                    =If(Self.DisplayMode = DisplayMode.Edit && reviewType = "Change" &&
+                        "Change" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                        UpdateContext({
+                            reviewReadError: "",
+                            reviewTarget: {
+                                ID: ThisItem.ID, Title: Coalesce(ThisItem.Title, "Ohne Titel"),
+                                NextDue: ThisItem.NextReviewDate, LastDone: ThisItem.LastReviewDate,
+                                OwnerName: ThisItem.Owner.DisplayName,
+                                IsActive: Coalesce(ThisItem.IsActive, false)
+                            }
+                        })
+                    )
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorText
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =56
+                  Width: =Parent.TemplateWidth - 8
+      - galDueRisks:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Risiken zur Prüfung"
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+            Selectable: =false
+            TabIndex: =-1
+            LoadingSpinner: =LoadingSpinner.Data
+            ShowScrollbar: =true
+            TemplatePadding: =4
+            TemplateSize: =66
+            Visible: =lblReviewQueue.Visible && reviewType = "Risk" && "Risk" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)
+            Items: |-
+              =If(Self.Visible,
+                  If(reviewLookupId > 0,
+                      Filter(Risks, ID = reviewLookupId),
+                      SortByColumns(
+                          Filter(Risks, IsActive = true && NextReviewDate >= reviewDueFrom && NextReviewDate < reviewDueBefore),
+                          "NextReviewDate", SortOrder.Ascending
+                      )
+                  )
+              )
+            Height: =Max(0, Parent.Height - Self.Y - 64)
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =lblReviewQueue.Y + lblReviewQueue.Height
+          Children:
+            - btnDueRisk:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID) &
+                        If(IsBlank(ThisItem.NextReviewDate), "", " · " & Text(ThisItem.NextReviewDate, "dd.mm.yyyy"))
+                  DisplayMode: =If(ThisItem.ID > 0 && !reviewReadBusy, DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: |-
+                    =If(Self.DisplayMode = DisplayMode.Edit && reviewType = "Risk" &&
+                        "Risk" in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                        UpdateContext({
+                            reviewReadError: "",
+                            reviewTarget: {
+                                ID: ThisItem.ID, Title: Coalesce(ThisItem.Title, "Ohne Titel"),
+                                NextDue: ThisItem.NextReviewDate, LastDone: ThisItem.LastReviewDate,
+                                OwnerName: Coalesce(ThisItem.RiskOwner.DisplayName, ThisItem.Owner.DisplayName),
+                                IsActive: Coalesce(ThisItem.IsActive, false)
+                            }
+                        })
+                    )
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorText
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =56
+                  Width: =Parent.TemplateWidth - 8
+      - lblReviewObject:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =Switch(reviewType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko") & " · Listen-ID " & Text(reviewTarget.ID) &
+                  If(reviewTarget.IsActive, "", " · Inaktiv") & Char(10) &
+                  "Verantwortlich: " & Coalesce(reviewTarget.OwnerName, "Nicht zugeordnet") & Char(10) &
+                  "Letztes Review: " & Coalesce(Text(reviewTarget.LastDone, "dd.mm.yyyy"), "–") &
+                  " · Nächstes Review: " & Coalesce(Text(reviewTarget.NextDue, "dd.mm.yyyy"), "–")
+            Visible: =reviewTarget.ID > 0
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Height: =84
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =114
+      - btnReviewObject:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Objekt öffnen"
+            Visible: =lblReviewObject.Visible
+            DisplayMode: |-
+              =If(Self.Visible && !reviewReadBusy && !gblSaveBusy && !gblLoadBusy && !gblEditorDirty &&
+                  !gblShowDiscardDialog && reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                  DisplayMode.Edit, DisplayMode.Disabled
+              )
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  With({provider: LookUp(colObjectProviderRegistry, ObjectTypeKey = reviewType)},
+                      If(Coalesce(provider.SupportsList, false) && Coalesce(provider.SupportsEdit, false),
+                          Set(gblCurrentNavigationKey, LookUp(gblPilotObjectRoutes, ObjectTypeKey = reviewType, NavigationKey));
+                          Set(gblCurrentPage, "ObjectList");
+                          Set(gblSelectedObjectTypeKey, reviewType);
+                          Set(gblObjectType, reviewType);
+                          Set(gblActiveProvider, provider);
+                          Set(gblRecordQuery, "");
+                          Set(gblRecordQueryId, 0);
+                          Set(gblSelectedRecordId, reviewTarget.ID);
+                          Navigate(scrShell, ScreenTransition.None, {reviewObjectEntry: true}),
+                          UpdateContext({reviewReadError: "Das Objekt kann in der App nicht geöffnet werden."})
+                      )
+                  )
+              )
+            Height: =44
+            Width: =132
+            X: =16
+            Y: =200
+      - btnReviewEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Nachweise"
+            Visible: =lblReviewObject.Visible
+            DisplayMode: =If(Self.Visible && !reviewReadBusy && reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit && reviewType exactin ["Asset", "Change", "Risk"],
+                  Navigate(scrAssetEvidence, ScreenTransition.None,
+                      {evidenceTargetType: reviewType, evidenceTargetId: reviewTarget.ID, evidenceTargetTitle: reviewTarget.Title}
+                  )
+              )
+            Height: =44
+            Width: =132
+            X: =btnReviewObject.X + btnReviewObject.Width + 8
+            Y: =200
+      - lblReviewHistory:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Reviewhistorie"
+            Visible: =lblReviewObject.Visible
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Height: =44
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =If(btnReviewStartDecision.Visible, 302, 252)
+      - galReviewHistory:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Gespeicherte Reviews zum ausgewählten Objekt"
+            ItemAccessibleLabel: =lblReviewHistoryEntry.Text
+            Visible: =lblReviewHistory.Visible
+            Selectable: =false
+            TabIndex: =-1
+            LoadingSpinner: =LoadingSpinner.Data
+            ShowScrollbar: =true
+            TemplateSize: =130
+            TemplatePadding: =4
+            Items: |-
+              =If(Self.Visible && reviewTarget.ID > 0 && reviewType exactin ["Asset", "Change", "Risk"] &&
+                  reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                  With({targetId: reviewTarget.ID, nativeType: If(reviewType = "Risk", "Risiko", reviewType)},
+                      SortByColumns(
+                          Filter(Reviews, ReviewedItemID = targetId && ReviewedObjectType.Value = nativeType),
+                          "ReviewDate", SortOrder.Descending
+                      )
+                  )
+              )
+            Height: =Max(0, Parent.Height - Self.Y - 64)
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =lblReviewHistory.Y + lblReviewHistory.Height
+          Children:
+            - lblReviewHistoryEntry:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =Coalesce(Text(ThisItem.ReviewDate, "dd.mm.yyyy"), "Ohne Datum") & " · " &
+                        Coalesce(ThisItem.Reviewer.DisplayName, "Ohne Reviewer") & Char(10) &
+                        Coalesce(ThisItem.ReviewResult.Value, ThisItem.GovernanceStatus.Value, "Ohne Ergebnis") &
+                        If(IsBlank(ThisItem.ManualReviewState.Value), "", " · " & ThisItem.ManualReviewState.Value) &
+                        If(IsBlank(ThisItem.NextReviewDate), "", " · Folgetermin " & Text(ThisItem.NextReviewDate, "dd.mm.yyyy"))
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorText
+                  Fill: =gblTheme.ColorSurface
+                  Height: =72
+                  Width: =Parent.TemplateWidth - 8
+            - btnReviewResume:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Review wiederaufnehmen"
+                  Visible: |-
+                    =gblAssetPilotCanWrite && ThisItem.ManualReviewState.Value = "In Prüfung" &&
+                        !IsBlank(ThisItem.ReviewPreviousDueDate) && ThisItem.ReviewedItemID = reviewTarget.ID
+                  DisplayMode: =If(!Self.Visible || reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                  OnSelect: |-
+                    =If(Self.DisplayMode = DisplayMode.Edit && reviewType exactin ["Asset", "Change", "Risk"],
+                        Navigate(scrReviewDecision, ScreenTransition.None,
+                            {decisionTargetId: reviewTarget.ID, decisionTargetType: reviewType, decisionTargetTitle: reviewTarget.Title,
+                             decisionInitialStage: "resume", decisionOriginalDue: Text(ThisItem.ReviewPreviousDueDate, "[$-en-US]yyyy-mm-dd"),
+                             decisionInitialize: true}
+                        )
+                    )
+                  Font: =Font.'Open Sans'
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =44
+                  Width: =Min(230, Parent.TemplateWidth - 8)
+                  Y: =74
+      - btnReviewStartDecision:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Review erfassen"
+            Visible: |-
+              =gblAssetPilotCanWrite && lblReviewObject.Visible && reviewTarget.IsActive &&
+                  !IsBlank(reviewTarget.NextDue) && reviewTarget.NextDue < reviewDueBefore
+            DisplayMode: =If(!Self.Visible || reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit && reviewType exactin ["Asset", "Change", "Risk"] &&
+                  reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                  Navigate(scrReviewDecision, ScreenTransition.None,
+                      {decisionTargetId: reviewTarget.ID, decisionTargetType: reviewType, decisionTargetTitle: reviewTarget.Title,
+                       decisionInitialStage: "prepare", decisionOriginalDue: "", decisionInitialize: true}
+                  )
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =44
+            Width: =188
+            X: =16
+            Y: =252
+      - btnReviewRefresh:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            BorderColor: =gblTheme.ColorBorder
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Text: ="Aktualisieren"
+            DisplayMode: =If(reviewReadBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit && reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey),
+                  UpdateContext({reviewReadBusy: true, reviewReadError: ""});
+                  IfError(
+                      If(reviewTarget.ID > 0,
+                          Refresh(Reviews),
+                          Switch(reviewType,
+                              "Asset", Refresh(Assets),
+                              "Change", Refresh(Changes),
+                              "Risk", Refresh(Risks)
+                          )
+                      );
+                      true,
+                      UpdateContext({reviewReadError: "Die Quelle konnte nicht aktualisiert werden."});
+                      false
+                  );
+                  UpdateContext({reviewReadBusy: false, reviewDueBefore: DateAdd(Today(), 31, TimeUnit.Days)})
+              )
+            Height: =44
+            Width: =Min(140, (Parent.Width - 40) / 2)
+            X: =Parent.Width - Self.Width - 16
+            Y: =16
+      - lblReviewReadStatus:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(
+                  !IsBlank(reviewReadError), reviewReadError,
+                  reviewReadBusy, "Die Quelle wird aktualisiert …",
+                  reviewTarget.ID > 0, If(IsEmpty(galReviewHistory.AllItems), "Keine Review-Einträge geladen.", ""),
+                  !(reviewType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)), "Für diesen Objekttyp ist kein Review-Zugriff verfügbar.",
+                  Switch(reviewType,
+                      "Asset", IsEmpty(galDueAssets.AllItems),
+                      "Change", IsEmpty(galDueChanges.AllItems),
+                      "Risk", IsEmpty(galDueRisks.AllItems),
+                      true
+                  ), If(reviewLookupId > 0, "Kein zugängliches Objekt mit dieser Listen-ID geladen.", "Keine fälligen Objekte geladen."),
+                  ""
+              )
+            Live: =Live.Polite
+            Font: =Font.'Open Sans'
+            Color: =If(IsBlank(reviewReadError), gblTheme.ColorTextMuted, gblTheme.ColorError)
+            Height: =56
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =Parent.Height - Self.Height

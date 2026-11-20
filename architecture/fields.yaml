@@ -344,8 +344,7 @@
       "type": "Text",
       "required": true,
       "indexed": true,
-      "scope": "relation",
-      "unique": true
+      "scope": "relation"
     },
     {
       "key": "IsPrimary",

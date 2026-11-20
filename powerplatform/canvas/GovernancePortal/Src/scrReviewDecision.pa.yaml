@@ -1,0 +1,209 @@
+Screens:
+  scrReviewDecision:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: |-
+        =If(decisionInitialize,
+            Reset(drpReviewDecision);
+            Reset(datReviewNextDue);
+            UpdateContext({decisionInitialize: false, decisionBusy: false, decisionStage: decisionInitialStage,
+                decisionDue: decisionOriginalDue, decisionRevision: "", decisionStatus: "",
+                retryMode: "", retryDue: "", retryETag: "", retryOutcome: "", retryNextDue: ""});
+            If(decisionInitialStage = "prepare", Select(btnReviewSubmit))
+        )
+    Children:
+      - btnReviewDecisionBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück zu Reviews"
+            DisplayMode: =If(decisionBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  If(decisionStage = "saved",
+                      IfError(Refresh(Reviews); true, false);
+                      Navigate(scrReviews, ScreenTransition.None,
+                          {reviewTarget: Blank(), reviewLookupId: decisionTargetId, reviewReloadSource: true}),
+                      Back()
+                  )
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Width: =188
+            Height: =44
+            X: =16
+            Y: =16
+      - lblReviewDecisionTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(decisionInitialStage = "resume", "Review wiederaufnehmen", "Review erfassen") & Char(10) &
+                  Switch(decisionTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko") &
+                  " · " & decisionTargetTitle & " · ID " & Text(decisionTargetId)
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Size: =17
+            Width: =Parent.Width - 32
+            Height: =78
+            X: =16
+            Y: =66
+      - lblReviewDecisionDue:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(IsBlank(decisionDue), "", "Bisheriger Termin · " & Text(DateValue(decisionDue, "en-US"), "dd.mm.yyyy"))
+            Visible: =!IsBlank(decisionDue)
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Width: =Parent.Width - 32
+            Height: =38
+            X: =16
+            Y: =149
+      - lblReviewResult:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Entscheidung"
+            Visible: =drpReviewDecision.Visible
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Width: =Parent.Width - 32
+            Height: =32
+            X: =16
+            Y: =192
+      - drpReviewDecision:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Reviewergebnis"
+            AllowEmptySelection: =true
+            Default: =""
+            Items: =SortByColumns(Filter(colChoiceValues, ChoiceSetKey = "ReviewResult" && IsActive), "SortOrder", SortOrder.Ascending)
+            Value: ="DisplayNameDE"
+            Visible: =decisionStage = "editing"
+            DisplayMode: =If(decisionBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Width: =Min(360, Parent.Width - 32)
+            Height: =44
+            X: =16
+            Y: =224
+      - lblReviewNextDue:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Folgetermin"
+            Visible: =datReviewNextDue.Visible
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorText
+            Width: =Parent.Width - 32
+            Height: =32
+            X: =16
+            Y: =274
+      - datReviewNextDue:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            AccessibleLabel: ="Folgetermin nach heute und der bisherigen Fälligkeit"
+            DefaultDate: =Blank()
+            InputTextPlaceholder: ="Datum auswählen"
+            Visible: =decisionStage = "editing"
+            DisplayMode: =If(decisionBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Font: =Font.'Open Sans'
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Width: =Min(360, Parent.Width - 32)
+            Height: =44
+            X: =16
+            Y: =306
+      - btnReviewSubmit:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =Switch(decisionStage, "prepare", "Review laden", "editing", "Review abschließen",
+                  "resume", "Review wiederaufnehmen", "uncertain", "Speicherung erneut prüfen", "")
+            Visible: =decisionStage exactin ["prepare", "editing", "resume", "uncertain"]
+            DisplayMode: |-
+              =If(!Self.Visible || decisionBusy || !gblAssetPilotCanWrite || decisionTargetId <= 0 ||
+                  !(decisionTargetType exactin ["Asset", "Change", "Risk"]) ||
+                  !(decisionTargetType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)) ||
+                  (decisionStage = "editing" &&
+                      (IsBlank(drpReviewDecision.Selected.ChoiceKey) || IsBlank(datReviewNextDue.SelectedDate) ||
+                       datReviewNextDue.SelectedDate <= Today() || datReviewNextDue.SelectedDate <= DateValue(decisionDue, "en-US"))),
+                  DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit && gblAssetPilotCanWrite,
+                  With(
+                      {requestMode: Switch(decisionStage, "prepare", "prepare", "editing", "save", "resume", "resume", retryMode),
+                       requestDue: Switch(decisionStage, "prepare", "-", "editing", decisionDue, "resume", decisionDue, retryDue),
+                       requestETag: Switch(decisionStage, "editing", decisionRevision, "uncertain", retryETag, "-"),
+                       requestOutcome: Switch(decisionStage, "editing", Last(Split(drpReviewDecision.Selected.ChoiceKey, ":")).Value,
+                           "uncertain", retryOutcome, "-"),
+                       requestNextDue: Switch(decisionStage, "editing", Text(datReviewNextDue.SelectedDate, "yyyy-mm-dd", "en-US"),
+                           "uncertain", retryNextDue, "-")},
+                      UpdateContext({decisionBusy: true, decisionStatus: "", retryMode: requestMode, retryDue: requestDue,
+                          retryETag: requestETag, retryOutcome: requestOutcome, retryNextDue: requestNextDue});
+                      IfError(
+                          With({answer: GPCompleteReview.Run(decisionTargetId, decisionTargetType, requestMode,
+                                  requestDue, requestETag, requestOutcome, requestNextDue)},
+                              If(
+                                  answer.targetid = decisionTargetId && answer.targettype = decisionTargetType &&
+                                      requestMode = "prepare" && answer.status = "ready" &&
+                                      !IsBlank(answer.due) && !IsBlank(answer.revision) && answer.revision <> "*",
+                                  UpdateContext({decisionStage: "editing", decisionDue: Text(answer.due), decisionRevision: Text(answer.revision)}),
+                                  answer.targetid = decisionTargetId && answer.targettype = decisionTargetType &&
+                                      requestMode <> "prepare" && answer.status = "saved" && answer.reviewid > 0 &&
+                                      answer.due = requestDue && !IsBlank(answer.reviewdate) && !IsBlank(answer.nextdue) &&
+                                      (requestMode = "resume" || answer.nextdue = requestNextDue),
+                                  UpdateContext({decisionStage: "saved",
+                                      decisionStatus: "Review " & Text(answer.reviewid) & " gespeichert. Folgetermin " &
+                                          Text(DateValue(answer.nextdue, "en-US"), "dd.mm.yyyy") & "."}),
+                                  answer.status exactin ["blocked", "configuration", "invalid", "not_due", "conflict"],
+                                  UpdateContext({decisionStage: "stopped",
+                                      decisionStatus: Switch(answer.status,
+                                          "blocked", "Für dieses Konto fehlen Reviewer- oder SharePoint-Rechte.",
+                                          "configuration", "Der Review-Speicher ist noch nicht eingerichtet.",
+                                          "invalid", "Die Review-Angaben sind ungültig.",
+                                          "not_due", "Das Objekt hat derzeit keinen fälligen Reviewtermin.",
+                                          "conflict", "Die Objektversion oder die Reviewentscheidung hat sich geändert. Öffne das Objekt erneut.")}),
+                                  UpdateContext({decisionStage: If(requestMode = "prepare", "prepare", "uncertain"),
+                                      decisionStatus: If(requestMode = "prepare", "Das Objekt konnte nicht geprüft werden.",
+                                          "Speicherung noch offen. Prüfe denselben Vorgang erneut.")})
+                              )
+                          ),
+                          UpdateContext({decisionStage: If(requestMode = "prepare", "prepare", "uncertain"),
+                              decisionStatus: If(requestMode = "prepare", "Der Review konnte nicht geladen werden.",
+                                  "Das Ergebnis ist unklar. Prüfe denselben Vorgang erneut.")})
+                      );
+                      UpdateContext({decisionBusy: false})
+                  )
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Width: =Min(264, Parent.Width - 32)
+            Height: =44
+            X: =16
+            Y: =If(decisionStage = "editing", 360, 192)
+      - lblReviewDecisionStatus:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(decisionBusy, "Review wird geprüft …", !IsBlank(decisionStatus), decisionStatus,
+                  decisionStage = "resume", "Die gespeicherte Entscheidung und der Folgetermin werden erneut geprüft.",
+                  decisionStage = "editing" && !IsBlank(datReviewNextDue.SelectedDate) &&
+                      (datReviewNextDue.SelectedDate <= Today() || datReviewNextDue.SelectedDate <= DateValue(decisionDue, "en-US")),
+                  "Der Folgetermin muss nach heute und dem bisherigen Termin liegen.", "")
+            Live: =Live.Polite
+            Font: =Font.'Open Sans'
+            Color: =If(decisionStage exactin ["stopped", "uncertain"], gblTheme.ColorError, gblTheme.ColorText)
+            Width: =Parent.Width - 32
+            Height: =78
+            X: =16
+            Y: =If(decisionStage = "editing", 408, 244)

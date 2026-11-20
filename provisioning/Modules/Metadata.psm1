@@ -79,15 +79,14 @@ function Publish-GPMetadata {
    AllowMultiple=[bool]$r.multiple;IsDirectional=[bool]$r.directional;SortOrder=100;IsActive=$true
  }}
  foreach($o in $Model.objectTypes){
-   $baseKeys=@($Model.baseClasses[$o.baseClass].fields)
-   $allFields=@($Model.Fields|Where-Object{$baseKeys -contains $_.key})+@($Model.ObjectFields|Where-Object objectTypeKey -eq $o.key)
+   $allFields=@(Get-GPObjectFields -ObjectTypeKey $o.key -Model $Model)
    $position=0
    foreach($f in $allFields){$position+=10;$key="$($o.key):$($f.internalName)"
      $section=if($f.section){$f.section}elseif($f.internalName -in @('Owner','DeputyOwner','BusinessOwner','TechnicalOwner','DataSteward','DocumentOwner')){'Ownership'}elseif($f.internalName -in @('GovernanceID','GovernanceStatus','Criticality','ComplianceScope','LastReviewDate','NextReviewDate','ReviewCycleMonths','IsActive','Tags','DocumentStatus','DocumentReviewDate')){'Governance'}else{'General'}
      Set-GPSeedRow FieldDefinitions FieldDefinitionKey @{
        Title=$f.displayNameDE;FieldDefinitionKey=$key;ObjectTypeKey=$o.key;FieldInternalName=$f.internalName;DisplayNameDE=$f.displayNameDE
        SharePointType=$f.type;ChoiceSetKey=$f.choiceSet;LookupObjectTypeKey=$f.lookupObject;AllowMultiple=[bool]$f.allowMultiple;IsIndexed=[bool]$f.indexed
-       ControlType=$f.type;SectionKey=$section;SortOrder=if($f.sortOrder){$f.sortOrder}else{$position};IsRequired=[bool]$f.required;IsReadOnly=($f.internalName -in @('GovernanceID','DocumentGovernanceID'))
+       ControlType=$f.type;SectionKey=$section;SortOrder=if($f.ContainsKey('sortOrder')){$f.sortOrder}else{$position};IsRequired=[bool]$f.required;IsReadOnly=($f.internalName -in @('GovernanceID','DocumentGovernanceID') -or [bool]$f.editorReadOnly)
        IsVisible=if($f.ContainsKey('visible')){[bool]$f.visible}else{$true};IsSearchable=if($f.ContainsKey('searchable')){[bool]$f.searchable}else{$true};IsExportable=if($f.ContainsKey('exportable')){[bool]$f.exportable}else{$true}
        IsAIVisible=if($f.ContainsKey('aiVisible')){[bool]$f.aiVisible}else{$true};DefaultValue=if($f.ContainsKey('default')){[string]$f.default}else{''};ValidationExpression='';HelpTextDE='';IsActive=$true
      }
@@ -121,11 +120,17 @@ function Publish-GPMetadata {
  }}
  foreach($o in $Model.objectTypes){
    $formKey="$($o.key):Edit"
-   $baseKeys=@($Model.baseClasses[$o.baseClass].fields)
-   $allFields=@($Model.Fields|Where-Object{$baseKeys -contains $_.key})+@($Model.ObjectFields|Where-Object objectTypeKey -eq $o.key)
+   $allFields=@(Get-GPObjectFields -ObjectTypeKey $o.key -Model $Model)
    $row=0
-   foreach($f in $allFields){$row++;$section=if($f.section){$f.section}elseif($f.internalName -in @('Owner','DeputyOwner','BusinessOwner','TechnicalOwner','DataSteward','DocumentOwner')){'Ownership'}elseif($f.internalName -in @('GovernanceID','GovernanceStatus','Criticality','ComplianceScope','LastReviewDate','NextReviewDate','ReviewCycleMonths','IsActive','Tags','DocumentStatus','DocumentReviewDate')){'Governance'}else{'General'}
-     $key="$($o.key):Edit:$($f.internalName)";Set-GPSeedRow FormFieldDefinitions FormFieldDefinitionKey @{Title=$f.displayNameDE;FormFieldDefinitionKey=$key;FormDefinitionKey=$formKey;ObjectTypeKey=$o.key;FormMode='Edit';SectionKey=$section;FieldInternalName=$f.internalName;RowNumber=$row;ColumnNumber=1;Width=1;SortOrder=$row*10;IsActive=$true}
+   foreach($f in $allFields){
+     $isNativeTitle=$o.key -in @('Asset','System','Change','Risk') -and $f.internalName -eq 'Title'
+     if(-not $isNativeTitle){$row++}
+     $fieldRow=if($isNativeTitle){0}else{$row}
+     $requiredIf=if($isNativeTitle -and $f.required){'true'}else{''}
+     $section=if($f.section){$f.section}elseif($f.internalName -in @('Owner','DeputyOwner','BusinessOwner','TechnicalOwner','DataSteward','DocumentOwner')){'Ownership'}elseif($f.internalName -in @('GovernanceID','GovernanceStatus','Criticality','ComplianceScope','LastReviewDate','NextReviewDate','ReviewCycleMonths','IsActive','Tags','DocumentStatus','DocumentReviewDate')){'Governance'}else{'General'}
+     $key="$($o.key):Edit:$($f.internalName)";$formValues=@{Title=$f.displayNameDE;FormFieldDefinitionKey=$key;FormDefinitionKey=$formKey;ObjectTypeKey=$o.key;FormMode='Edit';SectionKey=$section;FieldInternalName=$f.internalName;RowNumber=$fieldRow;ColumnNumber=1;Width=1;SortOrder=$fieldRow*10;IsActive=$true}
+     if($isNativeTitle){$formValues.RequiredIf=$requiredIf}
+     Set-GPSeedRow FormFieldDefinitions FormFieldDefinitionKey $formValues
    }
  }
  foreach($p in $Model.Pages){Set-GPSeedRow PageDefinitions PageKey @{Title=$p.displayNameDE;PageKey=$p.key;DisplayNameDE=$p.displayNameDE;ScreenName=$p.screenName;PageType=$p.pageType;IconName=$p.icon;Route=$p.route;RequiredRoleKey=$p.requiresRole;SortOrder=$p.sortOrder;IsActive=[bool]$p.enabled}}

@@ -1,0 +1,16 @@
+{
+  "schemaVersion": 1,
+  "objectFieldOverrides": [
+    {
+      "objectTypeKey": "Risk",
+      "internalName": "SourceChannel",
+      "type": "Choice",
+      "choiceSet": "RiskSourceChannel"
+    },
+    {
+      "objectTypeKey": "Risk",
+      "internalName": "LastValidationAt",
+      "indexed": true
+    }
+  ]
+}

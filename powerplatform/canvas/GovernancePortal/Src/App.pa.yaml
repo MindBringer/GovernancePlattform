@@ -8,8 +8,18 @@
 # ************************************************************************************************
 App:
   Properties:
+    StartScreen: =scrShell
+    OnError: |-
+      =Set(gblRecordError, "Datenzugriff fehlgeschlagen. " & FirstError.Message);
+      If(gblSaveBusy || gblCurrentPage = "editor",
+          Set(gblSaveError, gblRecordError & " Vor erneutem Speichern Datenstand prüfen.");
+          Set(gblEditorConflict, true);
+          Set(gblEditorCanSave, false)
+      );
+      Set(gblLoadBusy, false);
+      Set(gblSaveBusy, false)
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-alpha.4.0.0");
+      =Set(gblAppVersion, "1.0.0-alpha.4.1.0");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -32,6 +42,225 @@ App:
       Set(gblSaveError, "");
       Set(gblSavedRecordId, 0);
       Set(gblShowDiscardDialog, false);
+      Set(gblPendingNavigationKey, "");
+      Set(gblPendingNavigationPage, "");
+      Set(gblLoadBusy, false);
+      Set(gblLoadedRecordId, 0);
+      Set(gblEditorLoadComplete, false);
+      Set(gblEditorConflict, false);
+      Set(gblRecordQuery, "");
+      Set(gblRecordQueryId, 0);
+      Set(gblRecordError, "");
+      Set(gblChangeOriginalStatusKey, "");
+      Set(gblChangeDecision, "");
+      Set(gblChangeActorClaims, "");
+      ClearCollect(colRecordValues, {FieldInternalName: "", NativeControlType: "", ValueText: "", ValueNumber: If(false, 0, Blank()), ValueBoolean: If(false, true, Blank()), ValueDate: If(false, Now(), Blank()), ValueLookupId: If(false, 0, Blank()), ValueLookupText: "", ValuePersonEmail: "", ValuePersonClaims: "", ValuePersonDepartment: "", ValuePersonJobTitle: ""});
+      Clear(colRecordValues);
+
+      /* BEGIN GENERATED RISK PILOT RUNTIME - DO NOT EDIT */
+      Set(gblRiskOriginalStatusKey, "");
+      Set(gblRiskOriginalOwnerClaims, "");
+      Set(gblRiskDecision, "");
+      Set(gblRiskActorClaims, "");
+      ClearCollect(colRiskRatingScale,
+          {ChoiceKey: "RiskLikelihood:Rare", Weight: 1},
+          {ChoiceKey: "RiskLikelihood:Unlikely", Weight: 2},
+          {ChoiceKey: "RiskLikelihood:Possible", Weight: 3},
+          {ChoiceKey: "RiskLikelihood:Likely", Weight: 4},
+          {ChoiceKey: "RiskLikelihood:AlmostCertain", Weight: 5},
+          {ChoiceKey: "RiskImpact:Insignificant", Weight: 1},
+          {ChoiceKey: "RiskImpact:Minor", Weight: 2},
+          {ChoiceKey: "RiskImpact:Moderate", Weight: 3},
+          {ChoiceKey: "RiskImpact:Major", Weight: 4},
+          {ChoiceKey: "RiskImpact:Severe", Weight: 5}
+      );
+      ClearCollect(colRiskScoreBands,
+          {LevelKey: "Low", DisplayNameDE: "Niedrig", Minimum: 1, Maximum: 4},
+          {LevelKey: "Medium", DisplayNameDE: "Mittel", Minimum: 5, Maximum: 9},
+          {LevelKey: "High", DisplayNameDE: "Hoch", Minimum: 10, Maximum: 14},
+          {LevelKey: "Critical", DisplayNameDE: "Kritisch", Minimum: 15, Maximum: 25}
+      );
+      ClearCollect(colRiskTransitions,
+          {FromKey: "RiskStatus:Identified", ToKey: "RiskStatus:Assessed"},
+          {FromKey: "RiskStatus:Assessed", ToKey: "RiskStatus:InProgress"},
+          {FromKey: "RiskStatus:Assessed", ToKey: "RiskStatus:Accepted"},
+          {FromKey: "RiskStatus:InProgress", ToKey: "RiskStatus:Accepted"},
+          {FromKey: "RiskStatus:InProgress", ToKey: "RiskStatus:Closed"},
+          {FromKey: "RiskStatus:Accepted", ToKey: "RiskStatus:Closed"}
+      );
+      /* END GENERATED RISK PILOT RUNTIME */
+
+      /* BEGIN GENERATED OBJECT PROVIDER RUNTIME - DO NOT EDIT */
+      ClearCollect(
+          colObjectProviderRegistry,
+          {
+              ObjectTypeKey: "",
+              DataSourceKey: "",
+              TitleField: "",
+              GovernanceIdField: "",
+              ActiveField: "",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          }
+      );
+      Clear(colObjectProviderRegistry);
+      Collect(
+          colObjectProviderRegistry,
+          {
+              ObjectTypeKey: "Asset",
+              DataSourceKey: "Assets",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "System",
+              DataSourceKey: "Systems",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "Contact",
+              DataSourceKey: "Contacts",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Incident",
+              DataSourceKey: "Incidents",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Problem",
+              DataSourceKey: "Problems",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Change",
+              DataSourceKey: "Changes",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "Risk",
+              DataSourceKey: "Risks",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: true,
+              SupportsCreate: true,
+              SupportsEdit: true,
+              SupportsSave: true
+          },
+          {
+              ObjectTypeKey: "Control",
+              DataSourceKey: "Controls",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          },
+          {
+              ObjectTypeKey: "Measure",
+              DataSourceKey: "Measures",
+              TitleField: "Title",
+              GovernanceIdField: "GovernanceID",
+              ActiveField: "IsActive",
+              SupportsList: false,
+              SupportsCreate: false,
+              SupportsEdit: false,
+              SupportsSave: false
+          }
+      );
+      Set(gblActiveProvider, Blank());
+      Set(gblWorkspaceEnabled, true);
+      Set(gblWorkspaceSiteSettingKey, "Runtime.SharePointSiteUrl");
+      Set(
+          gblWorkspaceSources,
+          Table(
+          {NavigationKey: "NavGovernance", ObjectTypeKey: "Asset", Title: "Assets", RelativePath: "/Lists/Assets/AllItems.aspx", CanvasProvider: "Asset"},
+          {NavigationKey: "NavGovernance", ObjectTypeKey: "System", Title: "Systeme", RelativePath: "/Lists/Systems/AllItems.aspx", CanvasProvider: "System"},
+          {NavigationKey: "NavGovernance", ObjectTypeKey: "Contact", Title: "Kontakte", RelativePath: "/Lists/Contacts/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavOperations", ObjectTypeKey: "Incident", Title: "Incidents", RelativePath: "/Lists/Incidents/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavOperations", ObjectTypeKey: "Problem", Title: "Problems", RelativePath: "/Lists/Problems/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavOperations", ObjectTypeKey: "Change", Title: "Changes", RelativePath: "/Lists/Changes/AllItems.aspx", CanvasProvider: "Change"},
+          {NavigationKey: "NavRisk", ObjectTypeKey: "Risk", Title: "Risiken", RelativePath: "/Lists/Risks/AllItems.aspx", CanvasProvider: "Risk"},
+          {NavigationKey: "NavRisk", ObjectTypeKey: "Control", Title: "Kontrollen", RelativePath: "/Lists/Controls/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavRisk", ObjectTypeKey: "Measure", Title: "Maßnahmen", RelativePath: "/Lists/Measures/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Policy", Title: "Policies", RelativePath: "/Policies/Forms/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Procedure", Title: "Procedures", RelativePath: "/Procedures/Forms/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Runbook", Title: "Runbooks", RelativePath: "/Runbooks/Forms/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Architecture", Title: "Architektur", RelativePath: "/Architecture/Forms/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Knowledge", Title: "Wissen", RelativePath: "/Lists/Knowledge/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavDocuments", ObjectTypeKey: "Evidence", Title: "Nachweise", RelativePath: "/Evidence/Forms/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReviews", ObjectTypeKey: "Review", Title: "Reviews", RelativePath: "/Lists/Reviews/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReports", ObjectTypeKey: "AssetsOverview", Title: "Asset-Übersicht", RelativePath: "/Lists/Assets/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReports", ObjectTypeKey: "RisksOverview", Title: "Risikoregister", RelativePath: "/Lists/Risks/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReports", ObjectTypeKey: "ReviewsOverview", Title: "Reviewhistorie", RelativePath: "/Lists/Reviews/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "ObjectTypes", Title: "Objekttypen", RelativePath: "/Lists/ObjectTypes/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "FormDefinitions", Title: "Formulare", RelativePath: "/Lists/FormDefinitions/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "FieldDefinitions", Title: "Felddefinitionen", RelativePath: "/Lists/FieldDefinitions/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "ChoiceValues", Title: "Auswahlwerte", RelativePath: "/Lists/ChoiceValues/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "NavigationDefinitions", Title: "Navigation", RelativePath: "/Lists/NavigationDefinitions/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "AppSettings", Title: "App-Einstellungen", RelativePath: "/Lists/AppSettings/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "WorkflowDefinitions", Title: "Workflowdefinitionen", RelativePath: "/Lists/WorkflowDefinitions/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "AIPrompts", Title: "KI-Prompts", RelativePath: "/Lists/AIPrompts/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavAdmin", ObjectTypeKey: "AISkills", Title: "KI-Skills", RelativePath: "/Lists/AISkills/AllItems.aspx", CanvasProvider: ""}
+          )
+      );
+      Set(gblAssetPilotEnabled, true);
+      Set(gblAssetPilotEditorSettingKey, "Runtime.AssetPilotEditorEntraObjectId");
+      Set(gblPilotExtendedAccessSettingKey, "Runtime.ExtendedPilotEntraObjectIds");
+      Set(gblAssetPilotNavigationKeys, ["NavHome", "NavGovernance"]);
+      Set(gblAssetPilotAssetNavigation, "NavGovernance");
+      Set(
+          gblPilotConfiguredRoutes,
+          Table(
+              {NavigationKey: "NavGovernance", ObjectTypeKey: "Asset", RequiresExtendedAccess: false},
+              {NavigationKey: "NavGovernance", ObjectTypeKey: "System", RequiresExtendedAccess: true},
+              {NavigationKey: "NavOperations", ObjectTypeKey: "Change", RequiresExtendedAccess: true},
+              {NavigationKey: "NavRisk", ObjectTypeKey: "Risk", RequiresExtendedAccess: true}
+          )
+      );
+      Set(gblAssetReviewCycleMin, 1);
+      Set(gblAssetReviewCycleMax, 120);
+      /* END GENERATED OBJECT PROVIDER RUNTIME */
 
       ClearCollect(
           colEditorValues,
@@ -384,9 +613,10 @@ App:
               ),
 
               TargetPage,
-              Coalesce(
-                  PageKey,
-                  NavigationKey
+              If(
+                  gblAssetPilotEnabled && NavigationKey in ShowColumns(gblPilotConfiguredRoutes, NavigationKey),
+                  "ObjectList",
+                  Coalesce(PageKey, NavigationKey)
               ),
 
               Label,
@@ -421,8 +651,8 @@ App:
               colNavigation,
 
               {
-                  Key: "home",
-                  NavKey: "home",
+                  Key: If(gblAssetPilotEnabled, First(gblAssetPilotNavigationKeys).Value, "home"),
+                  NavKey: If(gblAssetPilotEnabled, First(gblAssetPilotNavigationKeys).Value, "home"),
                   TargetPage: "home",
                   Label: "Start",
                   ShortLabel: "ST",
@@ -431,9 +661,9 @@ App:
               },
 
               {
-                  Key: "governance",
-                  NavKey: "governance",
-                  TargetPage: "objects",
+                  Key: If(gblAssetPilotEnabled, gblAssetPilotAssetNavigation, "governance"),
+                  NavKey: If(gblAssetPilotEnabled, gblAssetPilotAssetNavigation, "governance"),
+                  TargetPage: If(gblAssetPilotEnabled, "ObjectList", "objects"),
                   Label: "Governance",
                   ShortLabel: "GO",
                   SortOrder: 20,
@@ -502,6 +732,56 @@ App:
           )
       );
 
+      Set(
+          gblPilotHasExtendedAccess,
+          With(
+              {
+                  accessSettings: Filter(colAppSettings, SettingKey = gblPilotExtendedAccessSettingKey),
+                  actorId: Lower(Text(gblUser.EntraObjectId))
+              },
+              !gblDataError && !IsBlank(actorId) &&
+                  (gblWorkspaceEnabled || (CountRows(accessSettings) = 1
+                      && CountIf(Split(First(accessSettings).SettingValue, ","), Lower(Trim(Value)) = actorId) > 0))
+          )
+      );
+      Set(
+          gblPilotObjectRoutes,
+          Filter(
+              gblPilotConfiguredRoutes,
+              (!RequiresExtendedAccess || gblPilotHasExtendedAccess)
+                  && ObjectTypeKey in ShowColumns(colObjectTypes, ObjectTypeKey)
+          )
+      );
+      If(gblAssetPilotEnabled && !gblWorkspaceEnabled,
+          RemoveIf(colNavigation, !(NavKey in gblAssetPilotNavigationKeys || NavKey in ShowColumns(gblPilotObjectRoutes, NavigationKey)))
+      );
+      Set(
+          gblWorkspaceSiteUrl,
+          With({siteSettings: Filter(colAppSettings, SettingKey = gblWorkspaceSiteSettingKey)},
+              If(CountRows(siteSettings) = 1 &&
+                  IsMatch(First(siteSettings).SettingValue, "https://[A-Za-z0-9\-]+[.]sharepoint[.]com/(sites|teams)/[A-Za-z0-9_\-]+/?", MatchOptions.Complete),
+                  First(siteSettings).SettingValue,
+                  ""
+              )
+          )
+      );
+      Set(
+          gblAssetPilotCanWrite,
+          gblAssetPilotEnabled &&
+              With(
+                  {
+                      editorSettings: Filter(colAppSettings, SettingKey = gblAssetPilotEditorSettingKey),
+                      actorId: Lower(Text(gblUser.EntraObjectId))
+                  },
+                  !gblDataError && !IsBlank(actorId) && CountRows(editorSettings) = 1
+                      && Lower(Trim(First(editorSettings).SettingValue)) = actorId
+              )
+      );
+
+      If(gblWorkspaceEnabled && !gblAssetPilotCanWrite,
+          RemoveIf(colNavigation, NavKey = "NavAdmin")
+      );
+
       ClearCollect(
           colDashboardCards,
 
@@ -543,14 +823,6 @@ App:
               Value: CountRows(colValidationDefinitions),
               TargetPage: "validation",
               SortOrder: 50
-          },
-
-          {
-              Key: "assets",
-              Title: "Assets",
-              Value: CountRows(Assets),
-              TargetPage: "assets",
-              SortOrder: 60
           }
       );
 

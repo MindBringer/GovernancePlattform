@@ -1,0 +1,165 @@
+Screens:
+  scrWorkspace:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+    Children:
+      - btnWorkspaceHome:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Start"
+            OnSelect: |-
+              =Set(gblCurrentNavigationKey, "NavHome");
+              Set(gblCurrentPage, "home");
+              Navigate(scrShell, ScreenTransition.None)
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =100
+            X: =16
+            Y: =16
+      - lblWorkspaceTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Coalesce(LookUp(colNavigation, NavKey = workspaceNavigationKey, Label), "Governance Portal")
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Size: =22
+            Color: =gblTheme.ColorText
+            Height: =46
+            Width: =Parent.Width - 140
+            X: =124
+            Y: =16
+      - galWorkspaceNavigation:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Portalbereiche"
+            ItemAccessibleLabel: =ThisItem.Label
+            Selectable: =true
+            TabIndex: =-1
+            Items: =Filter(colNavigation, NavKey <> "NavHome")
+            Height: =If(Parent.Width >= 760, Parent.Height - 96, 150)
+            Width: =If(Parent.Width >= 760, 228, Parent.Width - 32)
+            TemplateSize: =48
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            X: =16
+            Y: =80
+            OnSelect: |-
+              =UpdateContext({workspaceNavigationKey: ThisItem.NavKey})
+          Children:
+            - btnWorkspaceNavigation:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Label
+                  OnSelect: =Select(Parent)
+                  Fill: =If(ThisItem.NavKey = workspaceNavigationKey, gblTheme.ColorSelected, gblTheme.ColorSurface)
+                  Color: =gblTheme.ColorText
+                  Font: =Font.'Open Sans'
+                  FontWeight: =If(ThisItem.NavKey = workspaceNavigationKey, FontWeight.Semibold, FontWeight.Normal)
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =44
+                  Width: =Parent.TemplateWidth - 4
+      - galWorkspaceSources:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Listen und Funktionen im gewählten Bereich"
+            ItemAccessibleLabel: =ThisItem.Title
+            Selectable: =false
+            TabIndex: =-1
+            Items: |-
+              =Filter(gblWorkspaceSources, NavigationKey = workspaceNavigationKey &&
+                  (NavigationKey <> "NavAdmin" || gblAssetPilotCanWrite))
+            Height: =Max(0, Parent.Height - Self.Y - 72)
+            Width: =Parent.Width - Self.X - 16
+            X: =If(Parent.Width >= 760, 260, 16)
+            Y: =If(Parent.Width >= 760, 80, 244)
+            TemplateSize: =90
+            TemplatePadding: =5
+            ShowScrollbar: =true
+          Children:
+            - btnWorkspaceSource:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & If(ThisItem.ObjectTypeKey = "Review" || !IsBlank(ThisItem.CanvasProvider), " in der App öffnen", " in SharePoint öffnen")
+                  OnSelect: |-
+                    =If(
+                        Self.DisplayMode = DisplayMode.Edit,
+                        If(
+                            ThisItem.ObjectTypeKey = "Review",
+                            Navigate(scrReviews, ScreenTransition.None,
+                                {
+                                    reviewType: First(Filter(gblPilotObjectRoutes, ObjectTypeKey exactin ["Asset", "Change", "Risk"])).ObjectTypeKey,
+                                    reviewTarget: Blank(), reviewLookupId: 0, reviewReadBusy: false, reviewReadError: "",
+                                    reviewDueFrom: Date(1900, 1, 2), reviewDueBefore: DateAdd(Today(), 31, TimeUnit.Days),
+                                    reviewEnterFresh: true
+                                }
+                            ),
+                            !IsBlank(ThisItem.CanvasProvider),
+                            Set(gblCurrentNavigationKey, workspaceNavigationKey);
+                            Set(gblCurrentPage, "ObjectList");
+                            Set(gblSelectedObjectTypeKey, ThisItem.CanvasProvider);
+                            Set(gblObjectType, ThisItem.CanvasProvider);
+                            Set(gblActiveProvider, LookUp(colObjectProviderRegistry, ObjectTypeKey = ThisItem.CanvasProvider));
+                            Set(gblSelectedRecordId, 0);
+                            Set(gblLoadedRecordId, 0);
+                            Set(gblEditorLoadComplete, false);
+                            Set(gblEditorDirty, false);
+                            Set(gblEditorConflict, false);
+                            Set(gblRecordQuery, "");
+                            Set(gblRecordQueryId, 0);
+                            Set(gblRecordError, "");
+                            Navigate(scrShell, ScreenTransition.None),
+                            Launch(
+                                If(EndsWith(gblWorkspaceSiteUrl, "/"), Left(gblWorkspaceSiteUrl, Len(gblWorkspaceSiteUrl) - 1), gblWorkspaceSiteUrl) &
+                                    ThisItem.RelativePath,
+                                {},
+                                LaunchTarget.New
+                            )
+                        )
+                    )
+                  DisplayMode: |-
+                    =If(
+                        !gblWorkspaceEnabled || (workspaceNavigationKey = "NavAdmin" && !gblAssetPilotCanWrite) ||
+                        (ThisItem.ObjectTypeKey = "Review" && (gblDataError || IsEmpty(Filter(gblPilotObjectRoutes, ObjectTypeKey exactin ["Asset", "Change", "Risk"])))) ||
+                        (ThisItem.ObjectTypeKey <> "Review" && IsBlank(ThisItem.CanvasProvider) && IsBlank(gblWorkspaceSiteUrl)),
+                        DisplayMode.Disabled, DisplayMode.Edit
+                    )
+                  Font: =Font.'Open Sans'
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  BorderColor: =gblTheme.ColorBorder
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =52
+                  Width: =Parent.TemplateWidth - 8
+            - lblWorkspaceSource:
+                Control: Label@2.5.1
+                Properties:
+                  Text: =If(ThisItem.ObjectTypeKey = "Review", "Fällige Prüfungen und Reviewhistorie", IsBlank(ThisItem.CanvasProvider), "Liste oder Bibliothek mit den vorhandenen SharePoint-Berechtigungen", "Liste, Suche und Bearbeitung mit der Portalrolle")
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorTextMuted
+                  Height: =28
+                  Width: =Parent.TemplateWidth - 8
+                  Y: =54
+      - lblWorkspaceConfiguration:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(IsBlank(gblWorkspaceSiteUrl), "Der SharePoint-Sitelink fehlt in den App-Einstellungen.", "")
+            Visible: =IsBlank(gblWorkspaceSiteUrl)
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorError
+            Live: =Live.Polite
+            Height: =58
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =Parent.Height - 64

@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "objectTypeKey": "Risk",
+  "pilotFields": ["Title", "LinkedAsset", "IsActive", "Owner", "RiskOwner", "RiskCategory", "RiskScenario", "Likelihood", "Impact", "RiskScore", "RiskLevel", "TreatmentStrategy", "RiskStatus", "RiskAcceptanceDate", "RiskAcceptanceUntil", "RiskAcceptanceReason"],
+  "derivedFields": ["RiskScore", "RiskLevel", "RiskAcceptanceDate"],
+  "ratingScale": [
+    {"choiceKey": "RiskLikelihood:Rare", "weight": 1},
+    {"choiceKey": "RiskLikelihood:Unlikely", "weight": 2},
+    {"choiceKey": "RiskLikelihood:Possible", "weight": 3},
+    {"choiceKey": "RiskLikelihood:Likely", "weight": 4},
+    {"choiceKey": "RiskLikelihood:AlmostCertain", "weight": 5},
+    {"choiceKey": "RiskImpact:Insignificant", "weight": 1},
+    {"choiceKey": "RiskImpact:Minor", "weight": 2},
+    {"choiceKey": "RiskImpact:Moderate", "weight": 3},
+    {"choiceKey": "RiskImpact:Major", "weight": 4},
+    {"choiceKey": "RiskImpact:Severe", "weight": 5}
+  ],
+  "scoreBands": [
+    {"key": "Low", "displayNameDE": "Niedrig", "minimum": 1, "maximum": 4},
+    {"key": "Medium", "displayNameDE": "Mittel", "minimum": 5, "maximum": 9},
+    {"key": "High", "displayNameDE": "Hoch", "minimum": 10, "maximum": 14},
+    {"key": "Critical", "displayNameDE": "Kritisch", "minimum": 15, "maximum": 25}
+  ],
+  "acceptance": {
+    "actor": "persisted-RiskOwner",
+    "requiresExplicitDecision": true,
+    "dateFormat": "DateOnly",
+    "untilInclusive": true,
+    "coreLockedAfterAcceptance": true,
+    "expiredAcceptance": "block-edits-except-close"
+  }
+}

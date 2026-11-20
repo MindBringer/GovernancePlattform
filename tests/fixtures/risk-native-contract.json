@@ -1,0 +1,241 @@
+{
+  "Fixture": "Synthetic field-contract-only fixture; no tenant identifiers, business rows or principals",
+  "List": "Risks",
+  "Settings": {
+    "EnableVersioning": true
+  },
+  "Schema": [
+    {
+      "InternalName": "ComplianceScope",
+      "TypeAsString": "MultiChoice",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"MultiChoice\" Name=\"ComplianceScope\" Required=\"FALSE\"><CHOICES><CHOICE>ISO 27001</CHOICE><CHOICE>NIS2</CHOICE><CHOICE>DSGVO</CHOICE><CHOICE>Intern</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "CorrelationID",
+      "TypeAsString": "Text",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Text\" Name=\"CorrelationID\" Required=\"FALSE\" Indexed=\"TRUE\" MaxLength=\"255\" />"
+    },
+    {
+      "InternalName": "Criticality",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"Criticality\" Required=\"FALSE\" Indexed=\"TRUE\"><CHOICES><CHOICE>Niedrig</CHOICE><CHOICE>Mittel</CHOICE><CHOICE>Hoch</CHOICE><CHOICE>Kritisch</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "DeputyOwner",
+      "TypeAsString": "User",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"User\" Name=\"DeputyOwner\" Required=\"FALSE\" />"
+    },
+    {
+      "InternalName": "Description",
+      "TypeAsString": "Note",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": true,
+      "SchemaXml": "<Field Name=\"Description\" Type=\"Note\" />"
+    },
+    {
+      "InternalName": "GovernanceID",
+      "TypeAsString": "Text",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Text\" Name=\"GovernanceID\" Required=\"FALSE\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "GovernanceStatus",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"GovernanceStatus\" Required=\"FALSE\" Indexed=\"TRUE\"><CHOICES><CHOICE>Entwurf</CHOICE><CHOICE>Aktiv</CHOICE><CHOICE>In Review</CHOICE><CHOICE>Außer Betrieb</CHOICE><CHOICE>Archiviert</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "Impact",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"Impact\" Required=\"FALSE\" Indexed=\"TRUE\"><CHOICES><CHOICE>Unwesentlich</CHOICE><CHOICE>Gering</CHOICE><CHOICE>Mittel</CHOICE><CHOICE>Hoch</CHOICE><CHOICE>Sehr hoch</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "IsActive",
+      "TypeAsString": "Boolean",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Name=\"IsActive\" Type=\"Boolean\" Required=\"FALSE\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "LastReviewDate",
+      "TypeAsString": "DateTime",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"DateTime\" Name=\"LastReviewDate\" Required=\"FALSE\" Format=\"DateOnly\" />"
+    },
+    {
+      "InternalName": "LastValidationAt",
+      "TypeAsString": "DateTime",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"DateTime\" Name=\"LastValidationAt\" Required=\"FALSE\" Indexed=\"TRUE\" Format=\"DateOnly\" />"
+    },
+    {
+      "InternalName": "Likelihood",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"Likelihood\" Required=\"FALSE\" Indexed=\"TRUE\"><CHOICES><CHOICE>Selten</CHOICE><CHOICE>Unwahrscheinlich</CHOICE><CHOICE>Möglich</CHOICE><CHOICE>Wahrscheinlich</CHOICE><CHOICE>Fast sicher</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "NextReviewDate",
+      "TypeAsString": "DateTime",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"DateTime\" Name=\"NextReviewDate\" Required=\"FALSE\" Format=\"DateOnly\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "Owner",
+      "TypeAsString": "User",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"User\" Name=\"Owner\" Required=\"FALSE\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "ReviewCycleMonths",
+      "TypeAsString": "Number",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Number\" Name=\"ReviewCycleMonths\" Required=\"FALSE\" />"
+    },
+    {
+      "InternalName": "RiskAcceptanceDate",
+      "TypeAsString": "DateTime",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"DateTime\" Name=\"RiskAcceptanceDate\" Required=\"FALSE\" Indexed=\"FALSE\" Format=\"DateOnly\" />"
+    },
+    {
+      "InternalName": "RiskAcceptanceReason",
+      "TypeAsString": "Note",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Note\" Name=\"RiskAcceptanceReason\" Required=\"FALSE\" Indexed=\"FALSE\" />"
+    },
+    {
+      "InternalName": "RiskAcceptanceUntil",
+      "TypeAsString": "DateTime",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"DateTime\" Name=\"RiskAcceptanceUntil\" Required=\"FALSE\" Indexed=\"TRUE\" Format=\"DateOnly\" />"
+    },
+    {
+      "InternalName": "RiskCategory",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"RiskCategory\" Required=\"FALSE\" Indexed=\"TRUE\"><CHOICES><CHOICE>Strategisch</CHOICE><CHOICE>Operativ</CHOICE><CHOICE>Informationssicherheit</CHOICE><CHOICE>Compliance</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "RiskLevel",
+      "TypeAsString": "Text",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Text\" Name=\"RiskLevel\" Required=\"FALSE\" Indexed=\"TRUE\" MaxLength=\"255\" />"
+    },
+    {
+      "InternalName": "RiskOwner",
+      "TypeAsString": "User",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"User\" Name=\"RiskOwner\" Required=\"FALSE\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "RiskScenario",
+      "TypeAsString": "Note",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Note\" Name=\"RiskScenario\" Required=\"FALSE\" Indexed=\"FALSE\" />"
+    },
+    {
+      "InternalName": "RiskScore",
+      "TypeAsString": "Number",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Number\" Name=\"RiskScore\" Required=\"FALSE\" Indexed=\"TRUE\" />"
+    },
+    {
+      "InternalName": "SearchKeywords",
+      "TypeAsString": "Note",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Note\" Name=\"SearchKeywords\" Required=\"FALSE\" Indexed=\"FALSE\" />"
+    },
+    {
+      "InternalName": "SourceChannel",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"SourceChannel\" Required=\"FALSE\" Indexed=\"TRUE\" Format=\"Dropdown\"><CHOICES><CHOICE>Canvas App</CHOICE><CHOICE>Power Automate</CHOICE><CHOICE>Import</CHOICE><CHOICE>API</CHOICE><CHOICE>SharePoint</CHOICE><CHOICE>System</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "Tags",
+      "TypeAsString": "MultiChoice",
+      "Required": false,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"MultiChoice\" Name=\"Tags\" Required=\"FALSE\" Indexed=\"FALSE\"><CHOICES><CHOICE>Security</CHOICE><CHOICE>Operations</CHOICE><CHOICE>Compliance</CHOICE><CHOICE>Architektur</CHOICE></CHOICES></Field>"
+    },
+    {
+      "InternalName": "Title",
+      "TypeAsString": "Text",
+      "Required": true,
+      "Indexed": false,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Text\" Name=\"Title\" Required=\"TRUE\" />"
+    },
+    {
+      "InternalName": "TreatmentStrategy",
+      "TypeAsString": "Text",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Text\" Name=\"TreatmentStrategy\" Required=\"FALSE\" Indexed=\"TRUE\" MaxLength=\"255\" />"
+    },
+    {
+      "InternalName": "ValidationStatus",
+      "TypeAsString": "Choice",
+      "Required": false,
+      "Indexed": true,
+      "ReadOnlyField": false,
+      "SchemaXml": "<Field Type=\"Choice\" Name=\"ValidationStatus\" Required=\"FALSE\" Indexed=\"TRUE\" Format=\"Dropdown\"><CHOICES><CHOICE>Nicht geprüft</CHOICE><CHOICE>Gültig</CHOICE><CHOICE>Warnung</CHOICE><CHOICE>Ungültig</CHOICE></CHOICES></Field>"
+    }
+  ]
+}

@@ -1,4 +1,28 @@
 {
+  "assetPilot": {
+    "enabled": true,
+    "editorSettingKey": "Runtime.AssetPilotEditorEntraObjectId",
+    "objectTypeKey": "Asset",
+    "navigationKeys": [
+      "NavHome",
+      "NavGovernance"
+    ],
+    "extendedAccessSettingKey": "Runtime.ExtendedPilotEntraObjectIds",
+    "extendedObjectRoutes": [
+      {
+        "navigationKey": "NavGovernance",
+        "objectTypeKey": "System"
+      },
+      {
+        "navigationKey": "NavOperations",
+        "objectTypeKey": "Change"
+      },
+      {
+        "navigationKey": "NavRisk",
+        "objectTypeKey": "Risk"
+      }
+    ]
+  },
   "pages": [
     {
       "key": "Home",
@@ -586,5 +610,136 @@
       "context": "Validation",
       "description": "Pflichtfeldmeldung"
     }
-  ]
+  ],
+  "workspace": {
+    "enabled": true,
+    "siteSettingKey": "Runtime.SharePointSiteUrl",
+    "modules": [
+      {
+        "navigationKey": "NavGovernance",
+        "sources": [
+          "Asset",
+          "System",
+          "Contact"
+        ]
+      },
+      {
+        "navigationKey": "NavOperations",
+        "sources": [
+          "Incident",
+          "Problem",
+          "Change"
+        ]
+      },
+      {
+        "navigationKey": "NavRisk",
+        "sources": [
+          "Risk",
+          "Control",
+          "Measure"
+        ]
+      },
+      {
+        "navigationKey": "NavDocuments",
+        "sources": [
+          "Policy",
+          "Procedure",
+          "Runbook",
+          "Architecture",
+          "Knowledge",
+          "Evidence"
+        ]
+      },
+      {
+        "navigationKey": "NavReviews",
+        "sources": [
+          "Review"
+        ]
+      },
+      {
+        "navigationKey": "NavReports",
+        "sources": [
+          "AssetsOverview",
+          "RisksOverview",
+          "ReviewsOverview"
+        ]
+      },
+      {
+        "navigationKey": "NavAdmin",
+        "sources": [
+          "ObjectTypes",
+          "FormDefinitions",
+          "FieldDefinitions",
+          "ChoiceValues",
+          "NavigationDefinitions",
+          "AppSettings",
+          "WorkflowDefinitions",
+          "AIPrompts",
+          "AISkills"
+        ]
+      }
+    ],
+    "technicalSources": [
+      {
+        "key": "AssetsOverview",
+        "source": "Assets",
+        "label": "Asset-Übersicht"
+      },
+      {
+        "key": "RisksOverview",
+        "source": "Risks",
+        "label": "Risikoregister"
+      },
+      {
+        "key": "ReviewsOverview",
+        "source": "Reviews",
+        "label": "Reviewhistorie"
+      },
+      {
+        "key": "ObjectTypes",
+        "source": "ObjectTypes",
+        "label": "Objekttypen"
+      },
+      {
+        "key": "FormDefinitions",
+        "source": "FormDefinitions",
+        "label": "Formulare"
+      },
+      {
+        "key": "FieldDefinitions",
+        "source": "FieldDefinitions",
+        "label": "Felddefinitionen"
+      },
+      {
+        "key": "ChoiceValues",
+        "source": "ChoiceValues",
+        "label": "Auswahlwerte"
+      },
+      {
+        "key": "NavigationDefinitions",
+        "source": "NavigationDefinitions",
+        "label": "Navigation"
+      },
+      {
+        "key": "AppSettings",
+        "source": "AppSettings",
+        "label": "App-Einstellungen"
+      },
+      {
+        "key": "WorkflowDefinitions",
+        "source": "WorkflowDefinitions",
+        "label": "Workflowdefinitionen"
+      },
+      {
+        "key": "AIPrompts",
+        "source": "AIPrompts",
+        "label": "KI-Prompts"
+      },
+      {
+        "key": "AISkills",
+        "source": "AISkills",
+        "label": "KI-Skills"
+      }
+    ]
+  }
 }
