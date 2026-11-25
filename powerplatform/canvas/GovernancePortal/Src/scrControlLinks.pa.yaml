@@ -1,0 +1,215 @@
+Screens:
+  scrControlLinks:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =UpdateContext({controlLinkPicking: controlLinkKind = "evidence", controlLinkBusy: false,
+            controlLinkMessage: "", controlLinkSourceId: 0, controlLinkSearchAtPick: "", controlLinkEvidence: Blank()});
+        Reset(txtControlLinkSearch);
+        IfError(Refresh(GovernanceRelations), UpdateContext({controlLinkMessage: "Verknüpfungen konnten nicht geladen werden."}))
+    Children:
+      - btnControlLinkBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            DisplayMode: =If(controlLinkBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(controlLinkKind = "risk" && controlLinkPicking,
+                  UpdateContext({controlLinkPicking: false, controlLinkSourceId: 0, controlLinkMessage: ""}), Back())
+            X: =16
+            Y: =16
+            Width: =100
+            Height: =42
+      - lblControlLinkHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(controlLinkKind = "risk", "Risiken · ", "Nachweis zuordnen · ") & controlLinkTitle
+            Size: =20
+            FontWeight: =FontWeight.Semibold
+            X: =128
+            Y: =16
+            Width: =Parent.Width - Self.X - 16
+            Height: =44
+      - btnControlStartRiskLink:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Risiko zuordnen"
+            Visible: =controlLinkKind = "risk" && !controlLinkPicking && controlLinkCanEdit && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =If(controlLinkBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  Reset(txtControlLinkSearch);
+                  UpdateContext({controlLinkPicking: true, controlLinkSourceId: 0, controlLinkMessage: ""}))
+            X: =16
+            Y: =76
+            Width: =172
+            Height: =42
+      - galControlRiskLinks:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Zugeordnete Risiken"
+            ItemAccessibleLabel: ="Risiko-ID " & Text(ThisItem.SourceItemID)
+            Visible: =controlLinkTarget > 0 && controlLinkKind = "risk" && !controlLinkPicking
+            Items: |-
+              =If(controlLinkTarget > 0 && controlLinkKind = "risk",
+                  Filter(GovernanceRelations, TargetItemID = controlLinkTarget && TargetObjectTypeKey = "Control" &&
+                      SourceObjectTypeKey = "Risk" && RelationTypeKey = "RiskMitigatedByControl" && IsActive = true))
+            X: =16
+            Y: =If(btnControlStartRiskLink.Visible, 132, 76)
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 72)
+            TemplateSize: =46
+            TemplatePadding: =2
+          Children:
+            - lblControlRiskLink:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With({sourceId: ThisItem.SourceItemID},
+                        Coalesce(IfError(LookUp(Risks, ID = sourceId, Title), Blank()), "Risiko nicht verfügbar") & " · ID " & Text(sourceId))
+                  Color: =gblTheme.ColorText
+                  Width: =Parent.TemplateWidth - 4
+                  Height: =42
+      - txtControlLinkSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: =If(controlLinkKind = "risk", "Risiko nach Titel oder Listen-ID suchen", "Listen-ID des Nachweises eingeben")
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            OnChange: |-
+              =If(Trim(Self.Text) <> controlLinkSearchAtPick,
+                  UpdateContext({controlLinkSourceId: 0, controlLinkEvidence: Blank(), controlLinkMessage: ""}))
+            Visible: =controlLinkPicking && controlLinkCanEdit && Coalesce(gblAssetPilotCanWrite, false)
+            X: =16
+            Y: =76
+            Width: =If(controlLinkKind = "risk", Min(540, Parent.Width - 32), Min(400, Parent.Width - 180))
+            Height: =42
+      - galControlRiskMatches:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Risiken zur Auswahl"
+            ItemAccessibleLabel: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+            Visible: =txtControlLinkSearch.Visible && controlLinkKind = "risk"
+            Items: |-
+              =With({term: Trim(txtControlLinkSearch.Text)},
+                  If(Len(term) >= 1 && IsMatch(term, "[0-9]{1,10}"),
+                      Filter(Risks, ID = Value(term) && IsActive = true),
+                      If(Len(term) >= 2, SortByColumns(Filter(Risks, StartsWith(Title, term) && IsActive = true), "Title"))))
+            X: =16
+            Y: =132
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 142)
+            TemplateSize: =48
+            TemplatePadding: =2
+          Children:
+            - btnControlChooseRisk:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =If(controlLinkSourceId = ThisItem.ID && controlLinkSearchAtPick = Trim(txtControlLinkSearch.Text),
+                        "Ausgewählt: ", "") & ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  OnSelect: |-
+                    =UpdateContext({controlLinkSourceId: ThisItem.ID, controlLinkSearchAtPick: Trim(txtControlLinkSearch.Text), controlLinkMessage: ""})
+                  DisplayMode: =If(controlLinkBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =42
+      - btnControlFetchEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="ID anzeigen"
+            Visible: =txtControlLinkSearch.Visible && controlLinkKind = "evidence"
+            DisplayMode: |-
+              =If(!controlLinkBusy && IsMatch(Trim(txtControlLinkSearch.Text), "[0-9]{1,10}") &&
+                  Value(Trim(txtControlLinkSearch.Text)) > 0 && Value(Trim(txtControlLinkSearch.Text)) <= 2147483647,
+                  DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  With({term: Trim(txtControlLinkSearch.Text)},
+                      UpdateContext({controlLinkBusy: true, controlLinkEvidence: Blank(), controlLinkSourceId: 0, controlLinkSearchAtPick: term,
+                          controlLinkMessage: ""});
+                      IfError(UpdateContext({controlLinkEvidence: LookUp(Evidence, ID = Value(term))}),
+                          UpdateContext({controlLinkMessage: "Die Datei konnte nicht gelesen werden."}));
+                      If(IsBlank(controlLinkMessage) && (IsBlank(controlLinkEvidence.ID) || controlLinkEvidence.'{IsFolder}'),
+                          UpdateContext({controlLinkEvidence: Blank(), controlLinkMessage: "Für diese ID ist keine Nachweisdatei verfügbar."}));
+                      UpdateContext({controlLinkBusy: false})))
+            X: =txtControlLinkSearch.X + txtControlLinkSearch.Width + 8
+            Y: =txtControlLinkSearch.Y
+            Width: =126
+            Height: =42
+      - btnControlBrowseEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Nachweisbibliothek öffnen"
+            Visible: =btnControlFetchEvidence.Visible && !IsBlank(gblWorkspaceSiteUrl)
+            DisplayMode: =If(controlLinkBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  Launch(If(EndsWith(gblWorkspaceSiteUrl, "/"), Left(gblWorkspaceSiteUrl, Len(gblWorkspaceSiteUrl) - 1), gblWorkspaceSiteUrl) &
+                      "/Evidence/Forms/AllItems.aspx", {}, LaunchTarget.New))
+            X: =16
+            Y: =132
+            Width: =Min(260, Parent.Width - 32)
+            Height: =42
+      - btnControlChooseEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =If(controlLinkSourceId = controlLinkEvidence.ID, "Ausgewählt: ", "Auswählen: ") &
+                  Coalesce(controlLinkEvidence.'{FilenameWithExtension}', controlLinkEvidence.Title) & " · ID " & Text(controlLinkEvidence.ID)
+            Visible: =btnControlFetchEvidence.Visible && controlLinkEvidence.ID > 0 && !Coalesce(controlLinkEvidence.'{IsFolder}', true) && controlLinkSearchAtPick = Trim(txtControlLinkSearch.Text)
+            DisplayMode: =If(controlLinkBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({controlLinkSourceId: controlLinkEvidence.ID, controlLinkMessage: ""}))
+            Fill: =gblTheme.ColorSurface
+            Color: =gblTheme.ColorText
+            Align: =Align.Left
+            X: =16
+            Y: =190
+            Width: =Parent.Width - 32
+            Height: =48
+      - btnControlSaveLink:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zuordnung speichern"
+            Visible: =txtControlLinkSearch.Visible
+            DisplayMode: |-
+              =If(!controlLinkBusy && controlLinkTarget > 0 && controlLinkSourceId > 0 && !IsBlank(controlLinkRevision) &&
+                  controlLinkSearchAtPick = Trim(txtControlLinkSearch.Text), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({controlLinkBusy: true, controlLinkMessage: ""});
+                  IfError(With({answer: GPControlWrite.Run(controlLinkTarget, controlLinkKind, controlLinkRevision, controlLinkSourceId, "-")},
+                      If(answer.status = "linked" && answer.itemid = controlLinkTarget && answer.relationid > 0,
+                          Refresh(GovernanceRelations);
+                          UpdateContext({controlLinkPicking: controlLinkKind = "evidence", controlLinkMessage: "Zuordnung bestätigt.", controlLinkSourceId: 0}),
+                          UpdateContext({controlLinkMessage: Switch(answer.status,
+                              "conflict", "Die Kontrolle wurde geändert. Zurückgehen und den Stand neu laden.",
+                              "blocked", "Die Zuordnung ist für dieses Konto gesperrt.",
+                              "source_unavailable", "Die gewählte Quelle ist nicht verfügbar.",
+                              "relation_conflict", "Es besteht eine abweichende Zuordnung. Bitte prüfen lassen.",
+                              "configuration", "Der eindeutige Relationsschlüssel ist nicht verfügbar.",
+                              "Zuordnung nicht bestätigt. Bestehende Zuordnungen prüfen."), controlLinkSourceId: 0}))),
+                      UpdateContext({controlLinkMessage: "Zuordnung nicht bestätigt. Bestehende Zuordnungen prüfen.", controlLinkSourceId: 0}));
+                  UpdateContext({controlLinkBusy: false}))
+            X: =16
+            Y: =Parent.Height - 118
+            Width: =Min(224, Parent.Width - 32)
+            Height: =42
+      - lblControlLinkMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(controlLinkBusy, "Zuordnung wird geprüft …", !IsBlank(controlLinkMessage), controlLinkMessage,
+                  galControlRiskLinks.Visible && IsEmpty(galControlRiskLinks.AllItems), "Keine Risiken zugeordnet.", "")
+            Live: =Live.Polite
+            X: =16
+            Y: =Parent.Height - 64
+            Width: =Parent.Width - 32
+            Height: =60

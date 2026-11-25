@@ -1,0 +1,299 @@
+Screens:
+  scrControls:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =If(Coalesce(controlEnterFresh, true),
+            UpdateContext({controlEnterFresh: false, controlBusy: false, controlMode: "list", controlId: 0,
+                controlItem: Blank(), controlRevision: "", controlCanEdit: false, controlFeedback: "",
+                controlReadable: IfError(CountRows(FirstN(Controls, 1)) >= 0, false)}),
+            If(controlId > 0, Select(btnControlLoad)))
+    Children:
+      - btnControlBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            DisplayMode: =If(controlBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =Switch(controlMode,
+                  "owner", UpdateContext({controlMode: "detail", controlFeedback: ""}),
+                  "new", UpdateContext({controlMode: "list", controlFeedback: ""}),
+                  "detail", UpdateContext({controlMode: "list", controlId: 0, controlItem: Blank(), controlFeedback: ""}),
+                  Back())
+            X: =16
+            Y: =16
+            Width: =100
+            Height: =42
+      - lblControlTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Switch(controlMode, "new", "Kontrolle erfassen", "owner", "Verantwortung ändern", "Kontrollen")
+            Size: =22
+            FontWeight: =FontWeight.Semibold
+            X: =128
+            Y: =16
+            Width: =Parent.Width - Self.X - 16
+            Height: =42
+      - txtControlSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Kontrollen nach Titel, Governance-ID oder Anlagecode suchen"
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            Visible: =controlReadable && controlMode = "list"
+            X: =16
+            Y: =74
+            Width: =Min(500, Parent.Width - 144)
+            Height: =42
+      - btnControlNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            Visible: =txtControlSearch.Visible && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =If(controlBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({controlMode: "new", controlId: 0, controlItem: Blank(), controlFeedback: "",
+                      controlNewKey: "GP-CTL-REQ-" & Upper(Substitute(Text(GUID()), "-", ""))});
+                  Reset(txtControlName); Reset(txtControlOwnerSearch); Reset(drpControlOwner); Reset(drpControlType))
+            X: =txtControlSearch.X + txtControlSearch.Width + 8
+            Y: =txtControlSearch.Y
+            Width: =104
+            Height: =42
+      - galControls:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Kontrollen"
+            ItemAccessibleLabel: =ThisItem.Title
+            Visible: =txtControlSearch.Visible
+            Items: |-
+              =With({term: Trim(txtControlSearch.Text)},
+                  If(IsBlank(term), SortByColumns(Controls, "ID", SortOrder.Descending),
+                      StartsWith(Upper(term), "GP-CTL-REQ-"), Filter(Controls, CorrelationID = Upper(term)),
+                      StartsWith(Upper(term), "CTL-"), Filter(Controls, GovernanceID = Upper(term)),
+                      SortByColumns(Filter(Controls, StartsWith(Title, term)), "ID", SortOrder.Descending)))
+            X: =16
+            Y: =128
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            TemplateSize: =54
+            TemplatePadding: =2
+          Children:
+            - btnControlOpen:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID) & " · " & Coalesce(ThisItem.ControlStatus.Value, "Status offen")
+                  OnSelect: |-
+                    =UpdateContext({controlId: ThisItem.ID, controlMode: "detail", controlFeedback: "", controlItem: Blank()});
+                    Select(btnControlLoad)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =48
+      - btnControlLoad:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            Visible: =controlId > 0 && controlMode = "detail"
+            DisplayMode: =If(controlBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(controlId > 0 && !controlBusy,
+                  UpdateContext({controlBusy: true, controlCanEdit: false, controlRevision: "", controlItem: Blank()});
+                  IfError(Refresh(Controls); UpdateContext({controlItem: LookUp(Controls, ID = controlId)}),
+                      UpdateContext({controlFeedback: "Der aktuelle Stand konnte nicht geladen werden."}));
+                  If(IsBlank(controlItem.ID),
+                      UpdateContext({controlFeedback: "Diese Kontrolle ist für dieses Konto nicht verfügbar."}),
+                      If(Coalesce(gblAssetPilotCanWrite, false),
+                          IfError(With({snapshot: GPControlWrite.Run(controlId, "prepare", "-", 0, "-")},
+                              UpdateContext({controlCanEdit: snapshot.status = "ready" && snapshot.itemid = controlId && snapshot.canedit &&
+                                      Lower(Coalesce(snapshot.ownerclaim, "")) = Lower(Coalesce(controlItem.Owner.Claims, "")),
+                                  controlRevision: If(snapshot.status = "ready" && snapshot.itemid = controlId, snapshot.revision, "")})),
+                              UpdateContext({controlFeedback: "Die Bearbeitungsrechte konnten nicht geprüft werden."}))));
+                  UpdateContext({controlBusy: false}))
+            X: =16
+            Y: =190
+            Width: =128
+            Height: =42
+      - lblControlDetails:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =controlItem.Title & " · " & Coalesce(controlItem.GovernanceID, "ID " & Text(controlId)) & Char(10) &
+                  "Verantwortlich: " & Coalesce(controlItem.Owner.DisplayName, "Offen") & Char(10) &
+                  "Typ: " & Coalesce(controlItem.ControlType.Value, "Offen") & " · Status: " &
+                  Coalesce(controlItem.ControlStatus.Value, "Offen") &
+                  If(controlItem.IsActive, "", " · Inaktiv")
+            Visible: =(controlMode = "detail" || controlMode = "owner") && controlItem.ID = controlId && controlId > 0
+            X: =16
+            Y: =72
+            Width: =Parent.Width - 32
+            Height: =112
+      - btnControlOwnerMode:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Verantwortung ändern"
+            Visible: =lblControlDetails.Visible && controlMode = "detail" && Coalesce(gblAssetPilotCanWrite, false) && controlCanEdit
+            DisplayMode: =If(controlBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({controlMode: "owner", controlFeedback: ""});
+                  Reset(txtControlOwnerSearch); Reset(drpControlOwner))
+            X: =btnControlLoad.X + btnControlLoad.Width + 8
+            Y: =btnControlLoad.Y
+            Width: =Min(220, Parent.Width - Self.X - 16)
+            Height: =42
+      - btnControlRisk:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Risiken"
+            Visible: =lblControlDetails.Visible && controlMode = "detail"
+            DisplayMode: =If(controlBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =Navigate(scrControlLinks, ScreenTransition.None,
+                  {controlLinkTarget: controlId, controlLinkTitle: controlItem.Title, controlLinkKind: "risk",
+                   controlLinkRevision: controlRevision, controlLinkCanEdit: controlCanEdit})
+            X: =16
+            Y: =246
+            Width: =Min(200, (Parent.Width - 40) / 2)
+            Height: =42
+      - btnControlEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Nachweise"
+            Visible: =btnControlRisk.Visible
+            DisplayMode: =btnControlRisk.DisplayMode
+            OnSelect: |-
+              =Navigate(scrAssetEvidence, ScreenTransition.None,
+                  {evidenceTargetId: controlId, evidenceTargetType: "Control", evidenceTargetTitle: controlItem.Title,
+                   evidenceControlRevision: controlRevision, evidenceControlCanEdit: controlCanEdit})
+            X: =btnControlRisk.X + btnControlRisk.Width + 8
+            Y: =btnControlRisk.Y
+            Width: =btnControlRisk.Width
+            Height: =42
+      - txtControlName:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Titel der Kontrolle"
+            AccessibleLabel: =Self.HintText
+            MaxLength: =255
+            Visible: =controlMode = "new"
+            X: =16
+            Y: =74
+            Width: =Parent.Width - 32
+            Height: =42
+      - txtControlOwnerSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Verantwortliche Person suchen"
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            OnChange: =Reset(drpControlOwner)
+            Visible: =controlMode exactin ["new", "owner"] && Coalesce(gblAssetPilotCanWrite, false)
+            X: =16
+            Y: =If(controlMode = "new", 128, 190)
+            Width: =Min(620, Parent.Width - 32)
+            Height: =42
+      - drpControlOwner:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Verantwortliche Person auswählen"
+            AllowEmptySelection: =true
+            Default: =""
+            Value: ="ChoiceLabel"
+            Items: |-
+              =If(Len(Trim(txtControlOwnerSearch.Text)) >= 2,
+                  ForAll('Office365-Benutzer'.SearchUserV2(
+                      {searchTerm: Trim(txtControlOwnerSearch.Text), top: 20, isSearchTermRequired: true}).value As person,
+                      {DisplayName: person.DisplayName, UserPrincipalName: person.UserPrincipalName,
+                       ChoiceLabel: Coalesce(person.DisplayName, person.UserPrincipalName) & " · " & person.UserPrincipalName}),
+                  FirstN(Table({DisplayName: "", UserPrincipalName: "", ChoiceLabel: ""}), 0))
+            Visible: =txtControlOwnerSearch.Visible
+            X: =txtControlOwnerSearch.X
+            Y: =txtControlOwnerSearch.Y + txtControlOwnerSearch.Height + 8
+            Width: =txtControlOwnerSearch.Width
+            Height: =42
+      - drpControlType:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Kontrolltyp"
+            Items: =Choices(Controls.ControlType)
+            Value: ="Value"
+            Default: =""
+            AllowEmptySelection: =true
+            Visible: =txtControlName.Visible
+            X: =16
+            Y: =drpControlOwner.Y + drpControlOwner.Height + 46
+            Width: =Min(340, Parent.Width - 32)
+            Height: =42
+      - lblControlType:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Kontrolltyp (optional)"
+            Visible: =drpControlType.Visible
+            X: =drpControlType.X
+            Y: =drpControlType.Y - 32
+            Width: =drpControlType.Width
+            Height: =30
+      - btnControlSave:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(controlMode = "owner", "Verantwortung speichern", "Kontrolle anlegen")
+            Visible: =txtControlOwnerSearch.Visible
+            DisplayMode: |-
+              =If(!controlBusy && !IsBlank(drpControlOwner.Selected.UserPrincipalName) &&
+                  ((controlMode = "new" && !IsBlank(Trim(txtControlName.Text)) && !IsBlank(controlNewKey)) ||
+                   (controlMode = "owner" && controlCanEdit && !IsBlank(controlRevision))), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({controlBusy: true, controlFeedback: ""});
+                  With({person: drpControlOwner.Selected},
+                      If(controlMode = "new",
+                          With({requestKey: controlNewKey, enteredTitle: Trim(txtControlName.Text), enteredType: drpControlType.Selected,
+                                claims: "i:0#.f|membership|" & Lower(person.UserPrincipalName)},
+                              UpdateContext({controlNewKey: "", controlMode: "list"});
+                              IfError(
+                                  Patch(Controls, Defaults(Controls), {Title: enteredTitle, CorrelationID: requestKey,
+                                      Owner: {Claims: claims, DisplayName: person.DisplayName,
+                                          Email: person.UserPrincipalName, Department: "", JobTitle: "", Picture: ""},
+                                      ControlType: enteredType,
+                                      ControlStatus: {Value: "Konzipiert"}, IsActive: true});
+                                  true, false);
+                              IfError(Refresh(Controls);
+                                  With({persisted: LookUp(Controls, CorrelationID = requestKey)},
+                                      If(!IsBlank(persisted.ID) && Lower(persisted.Owner.Claims) = claims && persisted.Title = enteredTitle &&
+                                              persisted.IsActive && persisted.ControlStatus.Value = "Konzipiert" &&
+                                              Coalesce(persisted.ControlType.Value, "") = Coalesce(enteredType.Value, ""),
+                                          UpdateContext({controlId: persisted.ID, controlMode: "detail", controlFeedback: "Kontrolle angelegt."}),
+                                          UpdateContext({controlFeedback: "Anlage nicht bestätigt. In der Liste nach " & requestKey & " suchen."}))),
+                                  UpdateContext({controlFeedback: "Anlage nicht bestätigt. In der Liste nach " & requestKey & " suchen."}))),
+                          IfError(With({answer: GPControlWrite.Run(controlId, "owner", controlRevision, 0, person.UserPrincipalName)},
+                              UpdateContext({controlMode: "detail", controlFeedback: Switch(answer.status,
+                                  "assigned", "Verantwortung gespeichert.", "unchanged", "Diese Person ist bereits verantwortlich.",
+                                  "conflict", "Die Kontrolle wurde geändert. Der Stand wird neu geladen.",
+                                  "owner_unavailable", "Die gewählte Person ist auf dieser SharePoint-Site nicht verfügbar.",
+                                  "blocked", "Die Bearbeitung ist für dieses Konto nicht verfügbar.",
+                                  "Speicherergebnis unklar. Der Stand wird neu geladen.")})),
+                              UpdateContext({controlMode: "detail", controlFeedback: "Speicherergebnis unklar. Der Stand wird neu geladen."}))));
+                  UpdateContext({controlBusy: false});
+                  If(controlId > 0, Select(btnControlLoad)))
+            X: =16
+            Y: =If(controlMode = "new", drpControlType.Y + drpControlType.Height + 12, drpControlOwner.Y + drpControlOwner.Height + 12)
+            Width: =Min(258, Parent.Width - 32)
+            Height: =42
+      - lblControlFeedback:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(controlBusy, "Kontrolle wird geladen …", !IsBlank(controlFeedback), controlFeedback,
+                  !controlReadable, "Die Kontrollen-Liste ist für dieses Konto nicht verfügbar.",
+                  txtControlSearch.Visible && IsEmpty(galControls.AllItems), "Keine Kontrollen gefunden.", "")
+            Live: =Live.Polite
+            X: =16
+            Y: =Parent.Height - 58
+            Width: =Parent.Width - 32
+            Height: =54

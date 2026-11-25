@@ -18,3 +18,6 @@ jobs:
 
       - name: Test Incident transitions
         run: python3 tests/test_incident_transition_flow.py
+
+      - name: Test Control ownership and relationships
+        run: python3 tests/test_control_write_flow.py

@@ -50,10 +50,32 @@ Screens:
             Width: =Min(164, Parent.Width - Self.X - 16)
             X: =btnEvidenceBack.X + btnEvidenceBack.Width + 8
             Y: =16
+      - btnEvidenceLinkControl:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Nachweis zuordnen"
+            Visible: |-
+              =evidenceTargetType = "Control" && evidenceTargetId > 0 && Coalesce(evidenceControlCanEdit, false) &&
+                  !IsBlank(evidenceControlRevision) && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =If(evidenceLookupBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  Navigate(scrControlLinks, ScreenTransition.None,
+                      {controlLinkTarget: evidenceTargetId, controlLinkKind: "evidence", controlLinkTitle: evidenceTargetTitle,
+                       controlLinkRevision: evidenceControlRevision, controlLinkCanEdit: evidenceControlCanEdit}))
+            Color: =gblTheme.ColorTextInverse
+            Fill: =gblTheme.ColorPrimary
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =40
+            Width: =Min(200, Parent.Width - Self.X - 16)
+            X: =btnEvidenceBack.X + btnEvidenceBack.Width + 8
+            Y: =16
       - lblAssetEvidenceTitle:
           Control: Label@2.5.1
           Properties:
-            Text: ="Nachweise · " & Switch(evidenceTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Objekt") & " · " & evidenceTargetTitle & " · ID " & Text(evidenceTargetId)
+            Text: ="Nachweise · " & Switch(evidenceTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Control", "Kontrolle", "Objekt") & " · " & evidenceTargetTitle & " · ID " & Text(evidenceTargetId)
             Font: =Font.'Open Sans'
             FontWeight: =FontWeight.Semibold
             Color: =gblTheme.ColorText
@@ -77,7 +99,7 @@ Screens:
             TabIndex: =-1
             Items: |-
               =If(
-                  evidenceTargetId > 0 && evidenceTargetType exactin ["Asset", "Change", "Risk"],
+                  evidenceTargetId > 0 && evidenceTargetType exactin ["Asset", "Change", "Risk", "Control"],
                   Filter(
                       GovernanceRelations,
                       TargetItemID = evidenceTargetId &&
