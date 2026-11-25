@@ -1,0 +1,281 @@
+Screens:
+  scrDocumentLibrary:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      LoadingSpinner: =LoadingSpinner.Data
+      LoadingSpinnerColor: =gblTheme.ColorPrimary
+      OnVisible: =Reset(txtDocumentId)
+    Children:
+      - btnDocumentBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            OnSelect: =Back()
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =44
+            Width: =100
+            X: =16
+            Y: =16
+      - lblDocumentLibraryTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =documentLibraryTitle
+            Font: =Font.'Open Sans'
+            FontWeight: =FontWeight.Semibold
+            Color: =gblTheme.ColorText
+            Size: =22
+            Height: =45
+            Width: =Parent.Width - 140
+            X: =124
+            Y: =16
+      - txtDocumentId:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="SharePoint-Listen-ID des Dokuments oder Ordners"
+            HintText: ="Listen-ID"
+            Default: =""
+            Height: =44
+            Width: =Min(140, (Parent.Width - 40) / 2)
+            X: =16
+            Y: =74
+      - btnDocumentFind:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(IsBlank(Trim(txtDocumentId.Text)), "Alle anzeigen", "ID anzeigen")
+            DisplayMode: |-
+              =If(IsBlank(Trim(txtDocumentId.Text)) ||
+                  IsMatch(Trim(txtDocumentId.Text), "[1-9][0-9]{0,9}", MatchOptions.Complete),
+                  DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({documentItemId: If(IsBlank(Trim(txtDocumentId.Text)), 0, Value(Trim(txtDocumentId.Text)))})
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =44
+            Width: =Min(146, (Parent.Width - 40) / 2)
+            X: =txtDocumentId.X + txtDocumentId.Width + 8
+            Y: =txtDocumentId.Y
+      - lblDocumentQuery:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(btnDocumentFind.DisplayMode = DisplayMode.Disabled, "Gib eine positive Listen-ID ein.",
+                  documentItemId > 0, "Gefiltert nach Listen-ID " & Text(documentItemId),
+                  "Zuletzt geändert")
+            Live: =Live.Polite
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextMuted
+            Height: =34
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =txtDocumentId.Y + txtDocumentId.Height + 4
+      - btnDocumentLibraryOpen:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Bibliothek in SharePoint öffnen"
+            DisplayMode: =If(StartsWith(gblWorkspaceSiteUrl, "https://") && !IsBlank(documentLibraryPath), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  Launch(If(EndsWith(gblWorkspaceSiteUrl, "/"),
+                      Left(gblWorkspaceSiteUrl, Len(gblWorkspaceSiteUrl) - 1),
+                      gblWorkspaceSiteUrl) & documentLibraryPath, {}, LaunchTarget.New)
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorPrimary
+            Fill: =gblTheme.ColorSurface
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            TabIndex: =0
+            Height: =44
+            Width: =Min(300, Parent.Width - 32)
+            X: =16
+            Y: =Parent.Height - Self.Height - 16
+      - lblDocumentsEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(documentItemId > 0, "Für diese ID ist kein Eintrag sichtbar.", "Keine Einträge geladen.")
+            Visible: |-
+              =Switch(documentType,
+                  "Policy", galPolicies.AllItemsCount = 0,
+                  "Procedure", galProcedures.AllItemsCount = 0,
+                  "Runbook", galRunbooks.AllItemsCount = 0,
+                  false
+              )
+            Font: =Font.'Open Sans'
+            Color: =gblTheme.ColorTextMuted
+            Height: =48
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
+      - galPolicies:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: =documentLibraryTitle
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+            Selectable: =false
+            TabIndex: =-1
+            Visible: =documentType = "Policy"
+            Items: |-
+              =If(Self.Visible,
+                  If(documentItemId > 0,
+                      Filter(Policies, ID = documentItemId),
+                      SortByColumns(Policies, "Modified", SortOrder.Descending)
+                  )
+              )
+            X: =16
+            Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
+            Width: =Parent.Width - 32
+            Height: =Max(0, btnDocumentLibraryOpen.Y - Self.Y - 12)
+            TemplateSize: =82
+            TemplatePadding: =4
+            ShowScrollbar: =true
+          Children:
+            - btnOpenPolicy:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =If(ThisItem.'{IsFolder}', "Ordner · ", "") &
+                        Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+                  Tooltip: =Coalesce(ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', ThisItem.Title, Self.Text)
+                  DisplayMode: =If(StartsWith(ThisItem.'{Link}', "https://"), DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: =If(Self.DisplayMode = DisplayMode.Edit, Launch(ThisItem.'{Link}', {}, LaunchTarget.New))
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  BorderColor: =gblTheme.ColorBorder
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Parent.TemplateWidth - 8
+            - lblPolicyVersion:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="ID " & Text(ThisItem.ID) &
+                        If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
+                        If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorTextMuted
+                  Height: =29
+                  Width: =Parent.TemplateWidth - 8
+                  Y: =48
+      - galProcedures:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: =documentLibraryTitle
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+            Selectable: =false
+            TabIndex: =-1
+            Visible: =documentType = "Procedure"
+            Items: |-
+              =If(Self.Visible,
+                  If(documentItemId > 0,
+                      Filter(Procedures, ID = documentItemId),
+                      SortByColumns(Procedures, "Modified", SortOrder.Descending)
+                  )
+              )
+            X: =16
+            Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
+            Width: =Parent.Width - 32
+            Height: =Max(0, btnDocumentLibraryOpen.Y - Self.Y - 12)
+            TemplateSize: =82
+            TemplatePadding: =4
+            ShowScrollbar: =true
+          Children:
+            - btnOpenProcedure:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =If(ThisItem.'{IsFolder}', "Ordner · ", "") &
+                        Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+                  Tooltip: =Coalesce(ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', ThisItem.Title, Self.Text)
+                  DisplayMode: =If(StartsWith(ThisItem.'{Link}', "https://"), DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: =If(Self.DisplayMode = DisplayMode.Edit, Launch(ThisItem.'{Link}', {}, LaunchTarget.New))
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  BorderColor: =gblTheme.ColorBorder
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Parent.TemplateWidth - 8
+            - lblProcedureVersion:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="ID " & Text(ThisItem.ID) &
+                        If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
+                        If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorTextMuted
+                  Height: =29
+                  Width: =Parent.TemplateWidth - 8
+                  Y: =48
+      - galRunbooks:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: =documentLibraryTitle
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+            Selectable: =false
+            TabIndex: =-1
+            Visible: =documentType = "Runbook"
+            Items: |-
+              =If(Self.Visible,
+                  If(documentItemId > 0,
+                      Filter(Runbooks, ID = documentItemId),
+                      SortByColumns(Runbooks, "Modified", SortOrder.Descending)
+                  )
+              )
+            X: =16
+            Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
+            Width: =Parent.Width - 32
+            Height: =Max(0, btnDocumentLibraryOpen.Y - Self.Y - 12)
+            TemplateSize: =82
+            TemplatePadding: =4
+            ShowScrollbar: =true
+          Children:
+            - btnOpenRunbook:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =If(ThisItem.'{IsFolder}', "Ordner · ", "") &
+                        Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Eintrag " & Text(ThisItem.ID))
+                  Tooltip: =Coalesce(ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', ThisItem.Title, Self.Text)
+                  DisplayMode: =If(StartsWith(ThisItem.'{Link}', "https://"), DisplayMode.Edit, DisplayMode.Disabled)
+                  OnSelect: =If(Self.DisplayMode = DisplayMode.Edit, Launch(ThisItem.'{Link}', {}, LaunchTarget.New))
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  BorderColor: =gblTheme.ColorBorder
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Parent.TemplateWidth - 8
+            - lblRunbookVersion:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    ="ID " & Text(ThisItem.ID) &
+                        If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
+                        If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorTextMuted
+                  Height: =29
+                  Width: =Parent.TemplateWidth - 8
+                  Y: =48

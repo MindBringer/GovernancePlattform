@@ -7,7 +7,8 @@ from zipfile import ZipFile
 
 from verify_canvas_write_contract import (patch_fields, read_sources, read_connections, validate,
                                          validate_connections, validate_change_required,
-                                         change_datetime_fields, validate_change_datetime)
+                                         change_datetime_fields, validate_change_datetime,
+                                         validate_document_reads)
 
 
 def fixture(permission="read-write", field="SystemDescription"):
@@ -20,6 +21,31 @@ def fixture(permission="read-write", field="SystemDescription"):
 
 
 class CanvasWriteContractRegression(unittest.TestCase):
+    def test_document_libraries_require_distinct_native_bindings_and_read_fields(self):
+        properties = {
+            "ID": {"type": "integer"},
+            "Modified": {"type": "string", "format": "date-time"},
+            "{IsFolder}": {"type": "boolean"},
+        }
+        for field in ("Title", "{FilenameWithExtension}", "{Name}", "{Link}", "{VersionNumber}"):
+            properties[field] = {"type": "string"}
+        sources = [
+            {
+                "Name": name, "DatasetName": "synthetic-site", "TableName": name,
+                "ApiId": "/providers/microsoft.powerapps/apis/shared_sharepointonline",
+                "DataEntityMetadataJson": {name: {"schema": {"items": {"properties": copy.deepcopy(properties)}}}},
+            }
+            for name in ("Policies", "Procedures", "Runbooks")
+        ]
+        self.assertEqual(validate_document_reads(sources), [])
+        self.assertIn("Runbooks: expected one generated SharePoint library reference",
+                      validate_document_reads(sources[:2]))
+        del sources[0]["DataEntityMetadataJson"]["Policies"]["schema"]["items"]["properties"]["{Link}"]
+        self.assertIn("Policies.{Link}: expected generated library field of type string",
+                      validate_document_reads(sources))
+        sources[1]["TableName"] = "Runbooks"
+        self.assertIn("Procedures: library binding aliases another source", validate_document_reads(sources))
+
     def test_risk_patch_requires_a_real_generated_source(self):
         source = '''Patch(Assets, Defaults(Assets), {
   Title: "asset"
