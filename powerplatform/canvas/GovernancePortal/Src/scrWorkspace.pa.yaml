@@ -76,8 +76,11 @@ Screens:
             Selectable: =false
             TabIndex: =-1
             Items: |-
-              =Filter(gblWorkspaceSources, NavigationKey = workspaceNavigationKey &&
-                  (NavigationKey <> "NavAdmin" || gblAssetPilotCanWrite))
+              =AddColumns(
+                  Filter(gblWorkspaceSources, NavigationKey = workspaceNavigationKey &&
+                      (NavigationKey <> "NavAdmin" || gblAssetPilotCanWrite)),
+                  OpensDocumentLibrary, ObjectTypeKey exactin ["Policy", "Procedure", "Runbook"]
+              )
             Height: =Max(0, Parent.Height - Self.Y - 72)
             Width: =Parent.Width - Self.X - 16
             X: =If(Parent.Width >= 760, 260, 16)
@@ -89,7 +92,7 @@ Screens:
             - btnWorkspaceSource:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  Text: =ThisItem.Title & If(ThisItem.ObjectTypeKey = "Review" || !IsBlank(ThisItem.CanvasProvider), " in der App öffnen", " in SharePoint öffnen")
+                  Text: =ThisItem.Title & If(ThisItem.ObjectTypeKey = "Review" || ThisItem.OpensDocumentLibrary || !IsBlank(ThisItem.CanvasProvider), " in der App öffnen", " in SharePoint öffnen")
                   OnSelect: |-
                     =If(
                         Self.DisplayMode = DisplayMode.Edit,
@@ -103,6 +106,10 @@ Screens:
                                     reviewEnterFresh: true
                                 }
                             ),
+                            ThisItem.OpensDocumentLibrary,
+                            Navigate(scrDocumentLibrary, ScreenTransition.None,
+                                {documentType: ThisItem.ObjectTypeKey, documentLibraryTitle: ThisItem.Title,
+                                 documentLibraryPath: ThisItem.RelativePath, documentItemId: 0}),
                             !IsBlank(ThisItem.CanvasProvider),
                             Set(gblCurrentNavigationKey, workspaceNavigationKey);
                             Set(gblCurrentPage, "ObjectList");
@@ -130,7 +137,7 @@ Screens:
                     =If(
                         !gblWorkspaceEnabled || (workspaceNavigationKey = "NavAdmin" && !gblAssetPilotCanWrite) ||
                         (ThisItem.ObjectTypeKey = "Review" && (gblDataError || IsEmpty(Filter(gblPilotObjectRoutes, ObjectTypeKey exactin ["Asset", "Change", "Risk"])))) ||
-                        (ThisItem.ObjectTypeKey <> "Review" && IsBlank(ThisItem.CanvasProvider) && IsBlank(gblWorkspaceSiteUrl)),
+                        (ThisItem.ObjectTypeKey <> "Review" && !ThisItem.OpensDocumentLibrary && IsBlank(ThisItem.CanvasProvider) && IsBlank(gblWorkspaceSiteUrl)),
                         DisplayMode.Disabled, DisplayMode.Edit
                     )
                   Font: =Font.'Open Sans'
@@ -145,7 +152,7 @@ Screens:
             - lblWorkspaceSource:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =If(ThisItem.ObjectTypeKey = "Review", "Fällige Prüfungen und Reviewhistorie", IsBlank(ThisItem.CanvasProvider), "Liste oder Bibliothek mit den vorhandenen SharePoint-Berechtigungen", "Liste, Suche und Bearbeitung mit der Portalrolle")
+                  Text: =If(ThisItem.ObjectTypeKey = "Review", "Fällige Prüfungen und Reviewhistorie", ThisItem.OpensDocumentLibrary, "Dateien und Ordner der SharePoint-Bibliothek", IsBlank(ThisItem.CanvasProvider), "Liste oder Bibliothek mit den vorhandenen SharePoint-Berechtigungen", "Liste, Suche und Bearbeitung mit der Portalrolle")
                   Font: =Font.'Open Sans'
                   Color: =gblTheme.ColorTextMuted
                   Height: =28

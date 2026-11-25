@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Reject Patch fields that the canonical or packed connector cannot write.
+"""Validate generated connector contracts in canonical and packed Canvas references.
 
 Read-only validation: never modify connector permissions or infer them from the
 architecture. A new architecture field still needs a native field and a generated
@@ -65,6 +65,39 @@ def read_sources(path: Path) -> list[dict]:
         if len(candidates) != 1:
             raise ValueError("Expected one connector reference entry")
         return json.loads(archive.read(entries[candidates[0]]))["DataSources"]
+
+
+def validate_document_reads(sources: list[dict]) -> list[str]:
+    """Require three separate native libraries with the fields used by the gallery."""
+    fields = {
+        "ID": "integer", "Title": "string", "Modified": "string",
+        "{FilenameWithExtension}": "string", "{Name}": "string",
+        "{IsFolder}": "boolean", "{Link}": "string", "{VersionNumber}": "string",
+    }
+    errors = []
+    for name in ("Policies", "Procedures", "Runbooks"):
+        matches = [source for source in sources if source.get("Name") == name]
+        if len(matches) != 1:
+            errors.append(f"{name}: expected one generated SharePoint library reference")
+            continue
+        source = matches[0]
+        dataset, table = source.get("DatasetName"), source.get("TableName")
+        api = source.get("ApiId", "").lower()
+        if api != "/providers/microsoft.powerapps/apis/shared_sharepointonline" or not dataset or not table:
+            errors.append(f"{name}: missing native SharePoint library binding")
+            continue
+        if any(other is not source and other.get("DatasetName") == dataset
+               and other.get("TableName") == table for other in sources):
+            errors.append(f"{name}: library binding aliases another source")
+        raw = source.get("DataEntityMetadataJson", {}).get(table)
+        metadata = json.loads(raw) if isinstance(raw, str) else raw or {}
+        properties = metadata.get("schema", {}).get("items", {}).get("properties", {})
+        for field, field_type in fields.items():
+            if properties.get(field, {}).get("type") != field_type:
+                errors.append(f"{name}.{field}: expected generated library field of type {field_type}")
+        if properties.get("Modified", {}).get("format") != "date-time":
+            errors.append(f"{name}.Modified: expected generated date-time format")
+    return errors
 
 
 def validate(sources: list[dict], contracts: dict[str, list[str]]) -> list[str]:
@@ -217,6 +250,7 @@ def main() -> int:
     root = args.root.resolve()
     source = (root / CANVAS / "Src/scrShell.pa.yaml").read_text(encoding="utf-8-sig")
     contracts = patch_fields(source)
+    has_document_library = (root / CANVAS / "Src/scrDocumentLibrary.pa.yaml").is_file()
     references = list((root / CANVAS).glob("*.msapr"))
     if len(references) != 1:
         raise ValueError("Expected one canonical generated reference package")
@@ -230,12 +264,14 @@ def main() -> int:
         if "Changes" in contracts:
             errors += validate_change_required(sources, change_required_fields(root))
             errors += validate_change_datetime(sources, change_datetime_fields(root))
+        if has_document_library:
+            errors += validate_document_reads(sources)
         errors += validate_connections(sources, read_connections(path), solution_connections)
         for error in errors:
             print(f"{path.name}: {error}")
         failed |= bool(errors)
     if failed:
-        print("Write contract blocked. Inspect native schema and Solution registrations; preserve generated bindings and use the approved workflow for any native refresh.")
+        print("Connector contract blocked. Inspect native schema and Solution registrations.")
         return 1
     print(f"Canvas write contract passed: {sum(map(len, contracts.values()))} Patch fields, Change permanent requirements/date-time precision and complete Solution source/dataset registrations in canonical and packed connector references.")
     return 0
