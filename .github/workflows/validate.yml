@@ -15,3 +15,6 @@ jobs:
           Get-ChildItem powerplatform/scripts -Filter *.ps1 -Recurse | ForEach-Object { [void][scriptblock]::Create((Get-Content $_.FullName -Raw)) }
       - name: Test document approval workflow
         run: python3 tests/test_document_approval_flow.py
+
+      - name: Test Incident transitions
+        run: python3 tests/test_incident_transition_flow.py

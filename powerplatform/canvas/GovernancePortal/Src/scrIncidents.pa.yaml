@@ -1,0 +1,372 @@
+Screens:
+  scrIncidents:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =UpdateContext({incidentId: 0, incidentNew: false, incidentBusy: false,
+            incidentSnapshot: Blank(), incidentMessage: "", incidentReadReady: false,
+            incidentSystemId: 0, incidentSystemTitle: "", incidentSystemQuery: "",
+            incidentStates: Table({Key: "New", Label: "Neu"}, {Key: "InProgress", Label: "In Bearbeitung"},
+                {Key: "Resolved", Label: "Gelöst"}, {Key: "Closed", Label: "Geschlossen"})});
+        UpdateContext({incidentReadReady: IfError(CountRows(FirstN(Incidents, 1)) >= 0, false)});
+        If(!incidentReadReady, UpdateContext({incidentMessage: "Die Incident-Liste ist für dieses Konto nicht verfügbar."}))
+    Children:
+      - btnIncidentBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            OnSelect: =Back()
+            DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Fill: =gblTheme.ColorSurface
+            Color: =gblTheme.ColorPrimary
+            Height: =42
+            Width: =100
+            X: =16
+            Y: =16
+      - lblIncidentHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(incidentNew, "Störung erfassen", "Incidents")
+            Size: =22
+            FontWeight: =FontWeight.Semibold
+            Height: =46
+            Width: =Parent.Width - 130
+            X: =128
+            Y: =14
+      - txtIncidentSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            AccessibleLabel: ="Incidents nach Titel suchen"
+            HintText: ="Nach Titel suchen"
+            DelayOutput: =true
+            Visible: =incidentReadReady && !incidentNew && incidentId = 0
+            Height: =42
+            Width: =Max(160, Min(500, Parent.Width - 172))
+            X: =16
+            Y: =72
+      - btnIncidentNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            Visible: =txtIncidentSearch.Visible && DataSourceInfo(Incidents, DataSourceInfo.CreatePermission)
+            DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =UpdateContext({incidentMessage: "", incidentNew: true, incidentSystemId: 0,
+                  incidentSystemTitle: "", incidentSystemQuery: ""});
+              Reset(txtIncidentTitle); Reset(txtIncidentOwnerSearch); Reset(txtIncidentSystemSearch);
+              Reset(drpIncidentOwner);
+              Reset(drpIncidentPriority); Reset(tglSecurityIncident); Reset(txtIncidentImpact);
+              Reset(txtIncidentUrgency); Reset(txtIncidentBusinessImpact)
+            Height: =42
+            Width: =118
+            X: =txtIncidentSearch.X + txtIncidentSearch.Width + 10
+            Y: =72
+      - galIncidents:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Betriebsstörungen und Sicherheitsvorfälle"
+            ItemAccessibleLabel: =ThisItem.Title
+            Visible: =txtIncidentSearch.Visible
+            Items: |-
+              =If(IsBlank(Trim(txtIncidentSearch.Text)), SortByColumns(Incidents, "ID", SortOrder.Descending),
+                  SortByColumns(Filter(Incidents, StartsWith(Title, Trim(txtIncidentSearch.Text))), "ID", SortOrder.Descending))
+            Height: =Max(0, Parent.Height - Self.Y - 58)
+            Width: =Parent.Width - 32
+            TemplateSize: =54
+            TemplatePadding: =3
+            X: =16
+            Y: =126
+          Children:
+            - btnIncidentOpen:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Title & " · " & If(ThisItem.SecurityIncident, "Sicherheitsvorfall", "Betriebsstörung") &
+                        " · " & Coalesce(LookUp(incidentStates, Key = ThisItem.PortalStatus, Label), "Status offen")
+                  OnSelect: |-
+                    =UpdateContext({incidentId: ThisItem.ID, incidentSnapshot: Blank(), incidentMessage: ""});
+                    Select(btnIncidentReload)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Height: =48
+                  Width: =Parent.TemplateWidth - 8
+      - lblIncidentRecord:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =With({item: LookUp(Incidents, ID = incidentId)},
+                  item.Title & Char(10) & "ID " & Text(incidentId) & " · " &
+                  If(incidentSnapshot.securityincident, "Sicherheitsvorfall", "Betriebsstörung") & " · " &
+                  Coalesce(LookUp(incidentStates, Key = incidentSnapshot.portalstatus, Label), "Status offen") &
+                  " · Version " & incidentSnapshot.nativeversion & Char(10) &
+                  "Verantwortlich: " & Coalesce(item.Owner.DisplayName, "Offen") & " · System: " &
+                  Coalesce(item.LinkedSystem.Value, "Offen") & " · Priorität: " & Coalesce(item.Priority.Value, "Offen") &
+                  Char(10) & "Auswirkung: " & Coalesce(item.Impact, "Offen") & " · Dringlichkeit: " & Coalesce(item.Urgency, "Offen") &
+                  If(IsBlank(item.ResolvedDate), "", " · Gelöst am " & Text(item.ResolvedDate, "dd.mm.yyyy")) &
+                  If(IsBlank(item.BusinessImpact), "", Char(10) & item.BusinessImpact))
+            Visible: =incidentId > 0 && incidentSnapshot.itemid = incidentId
+            Height: =144
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =68
+      - btnIncidentReload:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            Visible: =incidentId > 0 && !incidentNew
+            DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(incidentId > 0 && !incidentBusy,
+                  UpdateContext({incidentBusy: true, incidentSnapshot: Blank(), incidentMessage: ""});
+                  IfError(
+                      With({result: GPIncidentTransition.Run(incidentId, "prepare", "-", "-", "-")},
+                          If(result.status = "ready", UpdateContext({incidentSnapshot: result}),
+                              UpdateContext({incidentMessage: "Der Vorfall ist für dieses Konto nicht verfügbar."}))),
+                      UpdateContext({incidentMessage: "Der aktuelle Stand konnte nicht geladen werden."}));
+                  UpdateContext({incidentBusy: false}))
+            Height: =42
+            Width: =130
+            X: =16
+            Y: =226
+      - btnIncidentAdvance:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =Coalesce(LookUp(incidentStates, Key = incidentSnapshot.nextstatus, Label), "Status setzen")
+            Visible: =incidentId > 0 && Coalesce(incidentSnapshot.canadvance, false)
+            DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit && Self.Visible,
+                  UpdateContext({incidentBusy: true, incidentMessage: ""});
+                  IfError(
+                      With({result: GPIncidentTransition.Run(incidentId, "advance", incidentSnapshot.revision,
+                          incidentSnapshot.nativeversion, incidentSnapshot.nextstatus)},
+                          If(result.status = "saved",
+                              UpdateContext({incidentSnapshot: result, incidentMessage: "Status gespeichert."}); Refresh(Incidents),
+                              UpdateContext({incidentSnapshot: Blank(), incidentMessage: Switch(result.status,
+                                  "conflict", "Der Vorfall wurde zwischenzeitlich geändert. Stand neu laden.",
+                                  "blocked", "Dieser Statuswechsel ist derzeit gesperrt.", "Ergebnis unklar. Stand neu laden.")}))),
+                      UpdateContext({incidentSnapshot: Blank(), incidentMessage: "Ergebnis unklar. Stand neu laden."}));
+                  UpdateContext({incidentBusy: false}))
+            Height: =42
+            Width: =170
+            X: =156
+            Y: =226
+      - btnIncidentList:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zur Liste"
+            Visible: =incidentId > 0 || incidentNew
+            DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =UpdateContext({incidentId: 0, incidentNew: false, incidentSnapshot: Blank(), incidentMessage: ""})
+            Height: =42
+            Width: =120
+            X: =If(incidentNew, 246, 336)
+            Y: =If(incidentNew, btnIncidentCreate.Y, 226)
+      - txtIncidentTitle:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Titel der Störung"
+            AccessibleLabel: ="Titel der Störung"
+            MaxLength: =255
+            Visible: =incidentNew
+            Height: =42
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =72
+      - txtIncidentOwnerSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Verantwortliche Person suchen"
+            AccessibleLabel: ="Verantwortliche Person suchen"
+            DelayOutput: =true
+            OnChange: =Reset(drpIncidentOwner)
+            Visible: =incidentNew
+            Height: =42
+            Width: =(Parent.Width - 44) / 2
+            X: =16
+            Y: =128
+      - txtIncidentSystemSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Betroffenes System suchen"
+            AccessibleLabel: ="Betroffenes System suchen"
+            DelayOutput: =true
+            OnChange: |-
+              =If(Trim(Self.Text) <> incidentSystemQuery,
+                  UpdateContext({incidentSystemId: 0, incidentSystemTitle: "", incidentSystemQuery: ""}))
+            Visible: =incidentNew
+            Height: =42
+            Width: =txtIncidentOwnerSearch.Width
+            X: =txtIncidentOwnerSearch.X + txtIncidentOwnerSearch.Width + 12
+            Y: =128
+      - drpIncidentOwner:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Verantwortliche Person auswählen"
+            AllowEmptySelection: =true
+            Default: =""
+            Value: ="ChoiceLabel"
+            Items: |-
+              =If(Len(Trim(txtIncidentOwnerSearch.Text)) >= 2,
+                  ForAll('Office365-Benutzer'.SearchUserV2(
+                      {searchTerm: Trim(txtIncidentOwnerSearch.Text), top: 20, isSearchTermRequired: true}).value As person,
+                      {DisplayName: person.DisplayName, UserPrincipalName: person.UserPrincipalName,
+                       ChoiceLabel: Coalesce(person.DisplayName, person.UserPrincipalName) & " · " & person.UserPrincipalName}),
+                  FirstN(Table({DisplayName: "", UserPrincipalName: "", ChoiceLabel: ""}), 0))
+            Visible: =incidentNew
+            Height: =42
+            Width: =txtIncidentOwnerSearch.Width
+            X: =txtIncidentOwnerSearch.X
+            Y: =178
+      - galIncidentSystems:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Betroffenes System auswählen"
+            ItemAccessibleLabel: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+            Items: |-
+              =If(Len(Trim(txtIncidentSystemSearch.Text)) >= 2,
+                  SortByColumns(Filter(Systems, StartsWith(Title, Trim(txtIncidentSystemSearch.Text))), "Title"))
+            Visible: =incidentNew && Len(Trim(txtIncidentSystemSearch.Text)) >= 2
+            Height: =82
+            Width: =txtIncidentSystemSearch.Width
+            TemplateSize: =38
+            TemplatePadding: =2
+            X: =txtIncidentSystemSearch.X
+            Y: =178
+          Children:
+            - btnIncidentSelectSystem:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =If(incidentSystemId = ThisItem.ID && incidentSystemQuery = Trim(txtIncidentSystemSearch.Text),
+                        "Ausgewählt: ", "") & ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  OnSelect: |-
+                    =UpdateContext({incidentSystemId: ThisItem.ID, incidentSystemTitle: ThisItem.Title,
+                        incidentSystemQuery: Trim(txtIncidentSystemSearch.Text)})
+                  DisplayMode: =If(incidentBusy, DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Height: =36
+                  Width: =Parent.TemplateWidth - 8
+      - txtIncidentImpact:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Auswirkung"
+            AccessibleLabel: ="Auswirkung"
+            MaxLength: =255
+            Visible: =incidentNew
+            Height: =42
+            Width: =txtIncidentOwnerSearch.Width
+            X: =16
+            Y: =272
+      - txtIncidentUrgency:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Dringlichkeit"
+            AccessibleLabel: ="Dringlichkeit"
+            MaxLength: =255
+            Visible: =incidentNew
+            Height: =42
+            Width: =txtIncidentSystemSearch.Width
+            X: =txtIncidentSystemSearch.X
+            Y: =272
+      - lblIncidentPriority:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Priorität"
+            Visible: =incidentNew
+            Height: =32
+            Width: =txtIncidentOwnerSearch.Width
+            X: =16
+            Y: =327
+      - drpIncidentPriority:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Priorität"
+            Items: =Choices(Incidents.Priority)
+            Value: ="Value"
+            Default: ="Normal"
+            Visible: =incidentNew
+            Height: =42
+            Width: =txtIncidentOwnerSearch.Width
+            X: =16
+            Y: =360
+      - tglSecurityIncident:
+          Control: Classic/Toggle@2.1.0
+          Properties:
+            AccessibleLabel: ="Art des Incidents"
+            FalseText: ="Betriebsstörung"
+            TrueText: ="Sicherheitsvorfall"
+            Default: =false
+            Visible: =incidentNew
+            Height: =38
+            Width: =txtIncidentSystemSearch.Width
+            X: =txtIncidentSystemSearch.X
+            Y: =363
+      - txtIncidentBusinessImpact:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Auswirkungen auf den Betrieb beschreiben"
+            AccessibleLabel: ="Auswirkungen auf den Betrieb"
+            Mode: =TextMode.MultiLine
+            Visible: =incidentNew
+            Height: =76
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =417
+      - btnIncidentCreate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Störung speichern"
+            Visible: =incidentNew
+            DisplayMode: |-
+              =If(!incidentBusy && incidentNew && !IsBlank(Trim(txtIncidentTitle.Text)) &&
+                  !IsBlank(drpIncidentOwner.Selected.UserPrincipalName) && incidentSystemId > 0 &&
+                  incidentSystemQuery = Trim(txtIncidentSystemSearch.Text) &&
+                  !IsBlank(drpIncidentPriority.Selected.Value) && DataSourceInfo(Incidents, DataSourceInfo.CreatePermission),
+                  DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({incidentBusy: true, incidentMessage: "", incidentSnapshot: Blank()});
+                  IfError(
+                      With({saved: Patch(Incidents, Defaults(Incidents),
+                          {Title: Trim(txtIncidentTitle.Text),
+                           Owner: {Claims: "i:0#.f|membership|" & Lower(drpIncidentOwner.Selected.UserPrincipalName),
+                               DisplayName: drpIncidentOwner.Selected.DisplayName, Email: drpIncidentOwner.Selected.UserPrincipalName,
+                               Department: "", JobTitle: "", Picture: ""},
+                           LinkedSystem: {Id: incidentSystemId, Value: incidentSystemTitle},
+                           Priority: drpIncidentPriority.Selected,
+                           Impact: Trim(txtIncidentImpact.Text), Urgency: Trim(txtIncidentUrgency.Text),
+                           BusinessImpact: Trim(txtIncidentBusinessImpact.Text),
+                           PortalStatus: "New", IsActive: true, SecurityIncident: tglSecurityIncident.Value})},
+                          UpdateContext({incidentId: Coalesce(saved.ID, 0), incidentNew: false,
+                              incidentMessage: If(IsBlank(saved.ID), "Ergebnis unklar. Liste prüfen.", "Störung erfasst.")})),
+                      UpdateContext({incidentId: 0, incidentNew: false, incidentMessage: "Ergebnis unklar. Liste prüfen."}));
+                  UpdateContext({incidentBusy: false});
+                  If(incidentId > 0, Select(btnIncidentReload)))
+            Height: =42
+            Width: =218
+            X: =16
+            Y: =511
+      - lblIncidentMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: =incidentMessage
+            Live: =Live.Polite
+            Visible: =!IsBlank(incidentMessage)
+            Height: =48
+            Width: =Parent.Width - 32
+            X: =16
+            Y: =Parent.Height - 50
