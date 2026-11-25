@@ -92,7 +92,7 @@ Screens:
             - btnWorkspaceSource:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  Text: =ThisItem.Title & If(ThisItem.ObjectTypeKey exactin ["Review", "Incident"] || ThisItem.OpensDocumentLibrary || !IsBlank(ThisItem.CanvasProvider), " in der App öffnen", " in SharePoint öffnen")
+                  Text: =ThisItem.Title & If(ThisItem.ObjectTypeKey exactin ["Review", "Incident", "Control"] || ThisItem.OpensDocumentLibrary || !IsBlank(ThisItem.CanvasProvider), " in der App öffnen", " in SharePoint öffnen")
                   OnSelect: |-
                     =If(
                         Self.DisplayMode = DisplayMode.Edit,
@@ -108,6 +108,8 @@ Screens:
                             ),
                             ThisItem.ObjectTypeKey = "Incident",
                             Navigate(scrIncidents, ScreenTransition.None),
+                            ThisItem.ObjectTypeKey = "Control",
+                            Navigate(scrControls, ScreenTransition.None, {controlEnterFresh: true}),
                             ThisItem.OpensDocumentLibrary,
                             Navigate(scrDocumentLibrary, ScreenTransition.None,
                                 {documentType: ThisItem.ObjectTypeKey, documentLibraryTitle: ThisItem.Title,
@@ -139,7 +141,7 @@ Screens:
                     =If(
                         !gblWorkspaceEnabled || (workspaceNavigationKey = "NavAdmin" && !gblAssetPilotCanWrite) ||
                         (ThisItem.ObjectTypeKey = "Review" && (gblDataError || IsEmpty(Filter(gblPilotObjectRoutes, ObjectTypeKey exactin ["Asset", "Change", "Risk"])))) ||
-                        (!(ThisItem.ObjectTypeKey exactin ["Review", "Incident"]) && !ThisItem.OpensDocumentLibrary && IsBlank(ThisItem.CanvasProvider) && IsBlank(gblWorkspaceSiteUrl)),
+                        (!(ThisItem.ObjectTypeKey exactin ["Review", "Incident", "Control"]) && !ThisItem.OpensDocumentLibrary && IsBlank(ThisItem.CanvasProvider) && IsBlank(gblWorkspaceSiteUrl)),
                         DisplayMode.Disabled, DisplayMode.Edit
                     )
                   Font: =Font.'Open Sans'
@@ -154,7 +156,7 @@ Screens:
             - lblWorkspaceSource:
                 Control: Label@2.5.1
                 Properties:
-                  Text: =If(ThisItem.ObjectTypeKey = "Review", "Fällige Prüfungen und Reviewhistorie", ThisItem.ObjectTypeKey = "Incident", "Betriebsstörungen und Sicherheitsvorfälle", ThisItem.OpensDocumentLibrary, "Dateien und Ordner der SharePoint-Bibliothek", IsBlank(ThisItem.CanvasProvider), "Liste oder Bibliothek mit den vorhandenen SharePoint-Berechtigungen", "Liste, Suche und Bearbeitung mit der Portalrolle")
+                  Text: =If(ThisItem.ObjectTypeKey = "Review", "Fällige Prüfungen und Reviewhistorie", ThisItem.ObjectTypeKey = "Incident", "Betriebsstörungen und Sicherheitsvorfälle", ThisItem.ObjectTypeKey = "Control", "Verantwortung, Risiken und Nachweise", ThisItem.OpensDocumentLibrary, "Dateien und Ordner der SharePoint-Bibliothek", IsBlank(ThisItem.CanvasProvider), "Liste oder Bibliothek mit den vorhandenen SharePoint-Berechtigungen", "Liste, Suche und Bearbeitung mit der Portalrolle")
                   Font: =Font.'Open Sans'
                   Color: =gblTheme.ColorTextMuted
                   Height: =28

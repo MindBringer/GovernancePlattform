@@ -13,6 +13,12 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.2
+
+- Kontrollen unter „Risiko & Compliance“ erfassen, verantwortlichen Personen zuweisen und mit Risiken und vorhandenen Nachweisen verknüpfen.
+- Veraltete Verantwortungsänderungen abweisen und wiederholte Zuordnungen anhand desselben Relationsschlüssels erkennen.
+- Rollenabnahme und Betriebsfreigabe für Solution `1.0.0.30508` dokumentiert. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p10--kontrollen-mit-risiken-und-nachweisen)
+
 ## Canvas 1.0.0-beta.1
 
 - Betriebsstörungen und Sicherheitsvorfälle mit Systembezug, Verantwortung, Priorität und Statusverlauf in der App erfassen.

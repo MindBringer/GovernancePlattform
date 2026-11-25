@@ -34,6 +34,8 @@ $details = Get-ControlFormula $screen btnEvidenceDetails OnSelect
 $canOpen = (Get-ControlFormula $screen btnEvidenceOpen DisplayMode).Replace('DisplayMode.Edit', '"Edit"').Replace('DisplayMode.Disabled', '"Disabled"')
 $open = Get-ControlFormula $screen btnEvidenceOpen OnSelect
 $readUploadVisible = Get-ControlFormula $screen btnEvidenceUploadOpen Visible
+$controlLinkVisible = Get-ControlFormula $screen btnEvidenceLinkControl Visible
+$controlLinkOpen = Get-ControlFormula $screen btnEvidenceLinkControl OnSelect
 $uploadVisible = Get-ControlFormula $upload frmEvidenceUpload Visible
 $entries = foreach ($type in 'Asset','Change','Risk') {
     $entry = Get-ControlFormula $shell "btn${type}Evidence" OnSelect
@@ -74,7 +76,7 @@ function Assert-Formula([string]$Formula, $Expected, [string]$Scenario) {
     }
     $script:assertions++
 }
-foreach ($formula in ($entries + @($details, $open, (Get-ControlFormula $upload btnEvidenceUpload OnSelect)))) {
+foreach ($formula in ($entries + @($details, $open, $controlLinkOpen, (Get-ControlFormula $upload btnEvidenceUpload OnSelect)))) {
     $parsed = $engine.Parse($formula, $options)
     if (!$parsed.IsSuccess) { throw "Invalid behavior formula: $formula" }
 }
@@ -91,7 +93,9 @@ Table(
     {TargetItemID:3002, TargetObjectTypeKey:"Asset", SourceItemID:7007, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
     {TargetItemID:0, TargetObjectTypeKey:"Asset", SourceItemID:7008, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
     {TargetItemID:3001, TargetObjectTypeKey:"Change", SourceItemID:7009, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
-    {TargetItemID:3001, TargetObjectTypeKey:"System", SourceItemID:7010, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true}
+    {TargetItemID:3001, TargetObjectTypeKey:"System", SourceItemID:7010, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
+    {TargetItemID:3001, TargetObjectTypeKey:"Control", SourceItemID:7011, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
+    {TargetItemID:3001, TargetObjectTypeKey:"Control", SourceItemID:7012, SourceObjectTypeKey:"Risk", RelationTypeKey:"RiskMitigatedByControl", IsActive:true}
 )
 '@))
 $engine.UpdateVariable('evidenceTargetId', 3001)
@@ -100,7 +104,8 @@ Assert-Formula "CountRows($items)" 2 'Matches only active Evidence relations on 
 Assert-Formula "First($items).SourceItemID" 7001 'Keeps native library ID'
 foreach ($case in @(
     @{Type='Risk'; FileId=7003},
-    @{Type='Change'; FileId=7009}
+    @{Type='Change'; FileId=7009},
+    @{Type='Control'; FileId=7011}
 )) {
     $engine.UpdateVariable('evidenceTargetType', $case.Type)
     Assert-Formula "CountRows($items)" 1 "$($case.Type) with the same native ID has its own relation"
@@ -124,7 +129,8 @@ foreach ($case in @(
     @{Type='Risk'; Id=3001; Writer=$false; Allowed=$false},
     @{Type='Asset'; Id=3001; Writer=$false; Allowed=$false},
     @{Type='System'; Id=3001; Writer=$true; Allowed=$false},
-    @{Type='Risk'; Id=0; Writer=$true; Allowed=$false}
+    @{Type='Risk'; Id=0; Writer=$true; Allowed=$false},
+    @{Type='Control'; Id=3001; Writer=$true; Allowed=$false}
 )) {
     $engine.UpdateVariable('evidenceTargetType', $case.Type)
     $engine.UpdateVariable('evidenceTargetId', [int]$case.Id)
@@ -134,6 +140,19 @@ foreach ($case in @(
     Assert-Formula $readUploadVisible $case.Allowed "Upload entry for $($case.Type) ID $($case.Id) writer=$($case.Writer)"
     Assert-Formula $uploadVisible $case.Allowed "Upload form for $($case.Type) ID $($case.Id) writer=$($case.Writer)"
 }
+$engine.UpdateVariable('evidenceTargetType', 'Control')
+$engine.UpdateVariable('evidenceTargetId', 3001)
+$engine.UpdateVariable('evidenceControlCanEdit', $true)
+$engine.UpdateVariable('evidenceControlRevision', '"5"')
+Assert-Formula $controlLinkVisible $true 'Control editor with native permission and revision can link an existing file'
+$engine.UpdateVariable('evidenceControlRevision', '')
+Assert-Formula $controlLinkVisible $false 'Missing native revision prevents linking an existing file'
+$engine.UpdateVariable('evidenceControlRevision', '"5"')
+$engine.UpdateVariable('gblAssetPilotCanWrite', $false)
+Assert-Formula $controlLinkVisible $false 'Control reader cannot link an existing file'
+$engine.UpdateVariable('gblAssetPilotCanWrite', $true)
+$engine.UpdateVariable('evidenceTargetType', 'Risk')
+$engine.UpdateVariable('evidenceUploadTargetType', 'Risk')
 $engine.UpdateVariable('gblPilotObjectRoutes', (Invoke-Formula 'Table({ObjectTypeKey:"Asset"}, {ObjectTypeKey:"Change"})'))
 $engine.UpdateVariable('evidenceTargetId', 3001)
 $engine.UpdateVariable('evidenceUploadTargetId', 3001)
