@@ -126,7 +126,18 @@ $engine.UpdateVariable('decisionTargetId', 7)
 $engine.UpdateVariable('decisionTargetType', 'Asset')
 $engine.UpdateVariable('decisionStage', 'editing')
 $engine.UpdateVariable('decisionDue', '2099-05-14')
-$engine.UpdateVariable('drpReviewDecision', (Read-Formula '{Selected:{ChoiceKey:"ReviewResult:Updated"}}'))
+$engine.UpdateVariable('colChoiceValues', (Read-Formula @'
+Table(
+    {ChoiceSetKey:"ReviewResult", ChoiceKey:"ReviewResult:Updated", DisplayNameDE:"Aktualisiert", SortOrder:20, IsActive:true},
+    {ChoiceSetKey:"ReviewResult", ChoiceKey:"ReviewResult:NoChange", DisplayNameDE:"Keine Änderung", SortOrder:10, IsActive:true},
+    {ChoiceSetKey:"ReviewResult", ChoiceKey:"ReviewResult:Retire", DisplayNameDE:"Ausmustern", SortOrder:30, IsActive:false},
+    {ChoiceSetKey:"WorkflowStatus", ChoiceKey:"WorkflowStatus:Done", DisplayNameDE:"Fertig", SortOrder:5, IsActive:true}
+)
+'@))
+$decisionChoices = $formulas['drpReviewDecision.Items']
+Assert-Formula "CountRows($decisionChoices)" 2
+Assert-Formula "First($decisionChoices).DisplayNameDE" 'Keine Änderung'
+$engine.UpdateVariable('drpReviewDecision', (Read-Formula '{Selected:{DisplayNameDE:"Aktualisiert"}}'))
 $displayMode = $formulas['btnReviewSubmit.DisplayMode'].Replace('Self.Visible', 'decisionActionVisible').
     Replace('DisplayMode.Disabled', '"Disabled"').Replace('DisplayMode.Edit', '"Edit"')
 foreach ($case in @(@(13, 'Disabled'), @(14, 'Disabled'), @(15, 'Edit'))) {

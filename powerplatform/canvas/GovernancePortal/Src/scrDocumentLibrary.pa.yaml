@@ -158,7 +158,25 @@ Screens:
                   FocusedBorderThickness: =3
                   TabIndex: =0
                   Height: =46
-                  Width: =Parent.TemplateWidth - 8
+                  Width: =Parent.TemplateWidth - If(ThisItem.'{IsFolder}', 8, btnApprovePolicy.Width + 16)
+            - btnApprovePolicy:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Freigabe · ID " & Text(ThisItem.ID)
+                  Visible: =!ThisItem.'{IsFolder}'
+                  OnSelect: |-
+                    =Navigate(scrDocumentApproval, ScreenTransition.None,
+                        {approvalItemId: ThisItem.ID, approvalKind: "Policy",
+                          approvalFileName: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}')})
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Min(155, (Parent.TemplateWidth - 16) / 2)
+                  X: =Parent.TemplateWidth - Self.Width - 8
             - lblPolicyVersion:
                 Control: Label@2.5.1
                 Properties:
@@ -212,7 +230,25 @@ Screens:
                   FocusedBorderThickness: =3
                   TabIndex: =0
                   Height: =46
-                  Width: =Parent.TemplateWidth - 8
+                  Width: =Parent.TemplateWidth - If(ThisItem.'{IsFolder}', 8, btnApproveProcedure.Width + 16)
+            - btnApproveProcedure:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Freigabe · ID " & Text(ThisItem.ID)
+                  Visible: =!ThisItem.'{IsFolder}'
+                  OnSelect: |-
+                    =Navigate(scrDocumentApproval, ScreenTransition.None,
+                        {approvalItemId: ThisItem.ID, approvalKind: "Procedure",
+                          approvalFileName: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}')})
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Min(155, (Parent.TemplateWidth - 16) / 2)
+                  X: =Parent.TemplateWidth - Self.Width - 8
             - lblProcedureVersion:
                 Control: Label@2.5.1
                 Properties:
@@ -266,7 +302,25 @@ Screens:
                   FocusedBorderThickness: =3
                   TabIndex: =0
                   Height: =46
-                  Width: =Parent.TemplateWidth - 8
+                  Width: =Parent.TemplateWidth - If(ThisItem.'{IsFolder}', 8, btnApproveRunbook.Width + 16)
+            - btnApproveRunbook:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: ="Freigabe · ID " & Text(ThisItem.ID)
+                  Visible: =!ThisItem.'{IsFolder}'
+                  OnSelect: |-
+                    =Navigate(scrDocumentApproval, ScreenTransition.None,
+                        {approvalItemId: ThisItem.ID, approvalKind: "Runbook",
+                          approvalFileName: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}')})
+                  Font: =Font.'Open Sans'
+                  Color: =gblTheme.ColorPrimary
+                  Fill: =gblTheme.ColorSurface
+                  FocusedBorderColor: =gblTheme.ColorText
+                  FocusedBorderThickness: =3
+                  TabIndex: =0
+                  Height: =46
+                  Width: =Min(155, (Parent.TemplateWidth - 16) / 2)
+                  X: =Parent.TemplateWidth - Self.Width - 8
             - lblRunbookVersion:
                 Control: Label@2.5.1
                 Properties:

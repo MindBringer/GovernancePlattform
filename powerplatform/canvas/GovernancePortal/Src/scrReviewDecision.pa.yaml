@@ -80,7 +80,9 @@ Screens:
             AccessibleLabel: ="Reviewergebnis"
             AllowEmptySelection: =true
             Default: =""
-            Items: =SortByColumns(Filter(colChoiceValues, ChoiceSetKey = "ReviewResult" && IsActive), "SortOrder", SortOrder.Ascending)
+            Items: |-
+              =ShowColumns(SortByColumns(Filter(colChoiceValues, ChoiceSetKey = "ReviewResult" && IsActive),
+                  "SortOrder", SortOrder.Ascending), DisplayNameDE)
             Value: ="DisplayNameDE"
             Visible: =decisionStage = "editing"
             DisplayMode: =If(decisionBusy, DisplayMode.Disabled, DisplayMode.Edit)
@@ -131,7 +133,7 @@ Screens:
                   !(decisionTargetType exactin ["Asset", "Change", "Risk"]) ||
                   !(decisionTargetType in ShowColumns(gblPilotObjectRoutes, ObjectTypeKey)) ||
                   (decisionStage = "editing" &&
-                      (IsBlank(drpReviewDecision.Selected.ChoiceKey) || IsBlank(datReviewNextDue.SelectedDate) ||
+                      (IsBlank(drpReviewDecision.Selected.DisplayNameDE) || IsBlank(datReviewNextDue.SelectedDate) ||
                        datReviewNextDue.SelectedDate <= Today() || datReviewNextDue.SelectedDate <= DateValue(decisionDue, "en-US"))),
                   DisplayMode.Disabled, DisplayMode.Edit)
             OnSelect: |-
@@ -140,7 +142,9 @@ Screens:
                       {requestMode: Switch(decisionStage, "prepare", "prepare", "editing", "save", "resume", "resume", retryMode),
                        requestDue: Switch(decisionStage, "prepare", "-", "editing", decisionDue, "resume", decisionDue, retryDue),
                        requestETag: Switch(decisionStage, "editing", decisionRevision, "uncertain", retryETag, "-"),
-                       requestOutcome: Switch(decisionStage, "editing", Last(Split(drpReviewDecision.Selected.ChoiceKey, ":")).Value,
+                       requestOutcome: Switch(decisionStage, "editing", Last(Split(LookUp(colChoiceValues,
+                           ChoiceSetKey = "ReviewResult" && IsActive && DisplayNameDE = drpReviewDecision.Selected.DisplayNameDE,
+                           ChoiceKey), ":")).Value,
                            "uncertain", retryOutcome, "-"),
                        requestNextDue: Switch(decisionStage, "editing", Text(datReviewNextDue.SelectedDate, "yyyy-mm-dd", "en-US"),
                            "uncertain", retryNextDue, "-")},

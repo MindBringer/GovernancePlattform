@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 25. November 2026. **P8a ist mit beiden Pilotrollen abgenommen und als Canvas-Version 223 veröffentlicht.** Policies, Procedures und Runbooks sind in der App angebunden. Nachweise und manuelle Reviews bleiben für Assets, Changes und Risiken verfügbar. Die Freigabe für den ersten begrenzten Echtbetrieb folgt in **P7b**.
+Stand 25. November 2026. **P8b ist als Solution 1.0.0.30496 veröffentlicht.** Policies, Procedures und Runbooks verfügen über eine Freigabeansicht und einen fachlichen Freigabeablauf. Der synthetische Referenzfall für **P7b** ist bestanden. Die Freigabe für den ersten begrenzten Echtbetrieb setzt noch den ausgewählten realen Pilotfall voraus.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -78,9 +78,13 @@ Der GitHub-Liefercommit umfasst die Release-Dokumentation. Der konsistente Stage
 
 ## P7b · Erster begrenzter Echtbetrieb
 
-1. Die Pilotgruppe und die ersten realen Objekte für Canvas 222 festlegen. Nur für diese Objekte Verantwortliche und erste Fälligkeiten vervollständigen. Asset-Stellvertretungen und bei Changes oder Risiken den vorgesehenen Genehmiger beziehungsweise Risk Owner prüfen, soweit diese Pfade im ersten Pilotumfang enthalten sind.
+1. Die Pilotgruppe und die ersten realen Objekte für die veröffentlichte Haupt-App festlegen. Nur für diese Objekte Verantwortliche und erste Fälligkeiten vervollständigen. Asset-Stellvertretungen und bei Changes oder Risiken den vorgesehenen Genehmiger beziehungsweise Risk Owner prüfen, soweit diese Pfade im ersten Pilotumfang enthalten sind.
 2. Einen durchgängigen Referenzfall in der veröffentlichten Haupt-App mit beiden Rollen abnehmen. Der Fall reicht vom Öffnen des ausgewählten Objekts über den Nachweis bis zur Reviewentscheidung. Ein unabhängiger Readback bestätigt Folgetermin, Historie und Auditspuren. Der Leser öffnet denselben Fall und bleibt auf Leserechte beschränkt.
-3. Die benannte Betriebsfreigabe bestätigt den Umfang, den Startzeitpunkt, den Supportkontakt und den Rückweg auf Canvas 221. Nach dem ersten Nutzungsfall werden Audit und offene Punkte einmal geprüft. Eine separate Entwicklungsinstanz folgt nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs.
+3. Die benannte Betriebsfreigabe bestätigt den Umfang, den Startzeitpunkt, den Supportkontakt und den gesicherten Rückweg. Nach dem ersten Nutzungsfall werden Audit und offene Punkte einmal geprüft. Eine separate Entwicklungsinstanz folgt nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs.
+
+Der synthetische Referenzfall in Live 223 ist mit Bearbeiter- und Leserrolle geprüft. Die Bearbeiterrolle schloss genau einen Review ab. SharePoint bestätigte Entscheidung, Folgetermin, Reviewer und Ersteller. Die Leserrolle sah das verknüpfte Dokument und dieselbe Reviewhistorie schreibgeschützt. Die Testdatei wurde als Ausgangsdaten in SharePoint bereitgestellt. Der anschließende Upload in der App verwendete dieselbe Datei und dieselbe Zuordnung erneut. Der native Vergleich bestätigte die identischen Werte, Listen-IDs, Versionen und den Datei-Hash. Alle vier Testeinträge wurden anschließend im ersten SharePoint-Papierkorb bestätigt.
+
+Vor der Abnahme hatte keines der vier vorhandenen Assets einen nächsten Reviewtermin. GovernanceRelations und Reviews waren leer. Im Asset-Dialog der Leserrolle blieb bei einem vorhandenen Asset die Owner-Anzeige leer, obwohl SharePoint einen Owner-Lookup liefert. Die Reviewansicht zeigte die verantwortliche Person des Testfalls. Für den operativen Start sind weiterhin die fachliche Auswahl, die Verantwortlichen, ein tatsächlicher Nachweis und die Betriebsfreigabe erforderlich.
 
 ## P8a · Policies, Procedures und Runbooks
 
@@ -104,7 +108,19 @@ Die anschließend freigegebene Leserzuweisung ist auf Policies, Procedures und R
 
 Beide Pilotrollen lieferten bei der genauen Suche ausschließlich Runbook-ID 2 mit Version 0.1. Die Prüfung blieb in der Listenansicht. Der anschließende SharePoint-Vergleich bestätigt dieselben 20 Dateien, sechs Ordner und Metadaten wie vor dem Test. Das freigegebene Einzelpaket **1.0.0.30490** veröffentlichte die Haupt-App als **Canvas 223**. Maker und der native Rückexport bestätigten Live-Version, App-Binary und Verbindungen. Die Abnahme-App und die drei Flow-Definitionen wurden beim Rückexport abgeglichen. **Canvas 222** und der Export vor 30490 stehen als Rückweg bereit.
 
-Für P8b müssen die vorhandenen Dokumentfelder und Inhaltstypen geprüft werden. Der erste Ablauf verwendet synthetische Dokumente und übernimmt das vorhandene Dokumentstatusmodell mit Entwurf, Prüfung und Veröffentlichung. Die App-Freigabe und eine mögliche SharePoint-Inhaltsgenehmigung werden beim Berechtigungs- und Versionsabgleich aufeinander abgestimmt.
+## P8b · Dokumentenpflege und fachliche Freigabe
+
+Die Dokumentansicht bietet für Dateien einen Einstieg zur Freigabe. Die verantwortliche Person kann im Entwurf Titel und Reviewtermin pflegen und das Dokument zur Prüfung einreichen. Ein berechtigter Freigeber kann es zurückgeben oder die angezeigte Version fachlich freigeben. Ein unzugeordnetes Dokument kann ein zugelassener Bearbeiter beim Speichern übernehmen.
+
+Die Leserrolle lädt den Freigabestatus über die bestehende SharePoint-Anbindung anhand der Listen-ID. Für Bearbeitung und Freigabe verwendet `GPDocumentApproval` die SharePoint-Verbindung der aufrufenden Person. Der Flow prüft native Schreibrechte, konfigurierte Bearbeiter und Freigeber, Status und Owner sowie die genaue Version und den ETag. Jede Aktion schreibt die Metadaten einmal mit bedingtem `IF-MATCH`. Ein Readback bestätigt die gespeicherten Werte und die Bearbeiter-ID. Nach einer unklaren Antwort lädt die App den Stand erneut und bietet auf der alten Revision keinen weiteren Schreibversuch an.
+
+Alle drei Bibliotheken führen Haupt- und Nebenversionen und haben die native Inhaltsgenehmigung deaktiviert. SharePoint verwendet damit weiterhin seine vorhandenen Sichtbarkeitsregeln. Die fachliche Freigabe setzt den vorhandenen Governance-Status auf „Veröffentlicht“ und erfasst die geprüfte SharePoint-Version, die freigebende Person und das Freigabedatum in Website-Zeit. SharePoint kann für die Metadatenänderung eine weitere Version erzeugen. Die native Versionshistorie führt die Bearbeitung und den Änderungszeitpunkt.
+
+Die Abnahme erfolgt in der separaten Test-App mit je einer synthetischen Datei pro Bibliothek. Bestätigt werden Metadatenpflege, Einreichung, Rückgabe und Freigabe, die Leseransicht, der Konflikt bei einer veralteten Sitzung und der Abgleich der Versionen und Dateiinhalte. Die vorhandenen Dokumente werden dabei über ihre Metadaten gezählt. Erst nach dieser Abnahme folgt die Veröffentlichung der Haupt-App.
+
+In der Test-App durchlief eine Policy die Metadatenpflege, die Einreichung, die Rückgabe und die erneute Einreichung. Der Konfliktversuch mit Version 0.2 wurde bei laufender Prüfung von 0.3 abgewiesen. Die fachliche Freigabe erfasste die geprüfte Version 0.5 und erzeugte den Metadatenstand 0.6. Der native Abgleich bestätigte Freigebenden, Freigabedatum, Reviewtermin und sechs Historienversionen. Die Leserrolle konnte die freigegebene Policy und jeweils einen Entwurf in Procedures und Runbooks in der App einsehen. Die Auswahlmenüs für Reviews und Dokumentaktionen zeigen die deutschen Bezeichnungen und übergeben die internen Schlüssel an die unveränderten Workflow-Schnittstellen.
+
+Alle 36 lokalen Projektprüfungen des Teststands 30495 bestanden. Das Einzelpaket 30496 übernahm denselben Canvas in die Haupt-App. Der native Rückexport bestätigte das bytegleiche App-Binary, die vier Workflow-Abhängigkeiten und den Erhalt der Abnahme-App und aller vier Workflow-Definitionen. Der SHA-256-Wert des Releasepakets lautet `71a727a8efe476c77b9e445a65295de3b05abca5b80ef8e3dee2564db30d3a03`. Canvas 223 und der vor der Veröffentlichung zurückgelesene Solution-Stand 30495 bilden den gesicherten Rückweg.
 
 ## Abschluss und Veröffentlichung je Paket
 

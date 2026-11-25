@@ -13,3 +13,5 @@ jobs:
         run: |
           git diff --check HEAD~1 HEAD 2>/dev/null || git diff --check
           Get-ChildItem powerplatform/scripts -Filter *.ps1 -Recurse | ForEach-Object { [void][scriptblock]::Create((Get-Content $_.FullName -Raw)) }
+      - name: Test document approval workflow
+        run: python3 tests/test_document_approval_flow.py
