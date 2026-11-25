@@ -35,3 +35,7 @@ jobs:
       - name: Run architecture compiler test
         shell: pwsh
         run: ./provisioning/Scripts/Test-Architecture.ps1
+
+      - name: Validate Incident schema and lifecycle
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-IncidentContract.ps1

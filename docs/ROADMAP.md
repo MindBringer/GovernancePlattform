@@ -1,8 +1,8 @@
 # Governance Portal Roadmap
 
-Stand: 2026-09-09
+Stand: 2026-11-25
 
-Die Reihenfolge für Asset-Pilot, Risk-Abnahme, Evidence und Reviews steht im [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md).
+Der [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md) führt Pilot, Abnahmen und Veröffentlichungen. Incidents sind in der Betriebs-App als `1.0.0-beta.1` verfügbar. Als nächstes Fachmodul folgen [Kontrollen](GOV-PORTAL-LIEFERPLAN.md#nächste-fachmodule-nach-p8b).
 
 ## 1. Aktueller Entwicklungsstrang
 
