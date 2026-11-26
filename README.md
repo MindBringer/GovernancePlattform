@@ -77,6 +77,7 @@ Build-Ausgaben entstehen unter `artifacts/` und gehören nicht in Git.
 
 ## Verbindliche Dokumente
 
+- [ER-Diagramm des Governance Portals](docs/ER-DIAGRAMM.md)
 - [Canvas Stage 3.6](docs/development/Stage-3.6.md)
 - [Developer Companion Stage 3.7](docs/development/Stage-3.7-Developer-Companion.md)
 - [Lokaler Git-/Test-Workflow](docs/development/Local-Companion-Workflow.md)
