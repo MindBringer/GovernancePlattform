@@ -2,6 +2,8 @@
 
 Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power Apps Canvas, Power Automate und PowerShell-Provisioning.
 
+**Erstbefüllung mit Microsoft 365 Copilot.** [Prompt kopieren und einen zusammenhängenden Fall zur Admin-Prüfung vorbereiten](docs/COPILOT-ERSTBEFUELLUNG.md).
+
 ## Aktueller Stand
 
 | Teilprodukt | Version | Status |
