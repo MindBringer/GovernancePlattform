@@ -858,6 +858,132 @@
       "required": false,
       "indexed": false,
       "scope": "finding"
+    },
+    {
+      "key": "BiaStatus",
+      "internalName": "BiaStatus",
+      "displayNameDE": "BIA-Status",
+      "type": "Choice",
+      "required": true,
+      "indexed": true,
+      "scope": "businessContinuity",
+      "choiceSet": "BiaStatus"
+    },
+    {
+      "key": "BiaAssetItemID",
+      "internalName": "BiaAssetItemID",
+      "displayNameDE": "Geschäftskritisches Asset · Listen-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": true,
+      "scope": "businessContinuity",
+      "min": 1
+    },
+    {
+      "key": "BiaSystemItemID",
+      "internalName": "BiaSystemItemID",
+      "displayNameDE": "Abhängiges System · Listen-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": true,
+      "scope": "businessContinuity",
+      "min": 1
+    },
+    {
+      "key": "BiaMtpdMinutes",
+      "internalName": "BiaMtpdMinutes",
+      "displayNameDE": "Maximal tolerierbare Ausfallzeit (Minuten)",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "min": 1
+    },
+    {
+      "key": "BiaRtoMinutes",
+      "internalName": "BiaRtoMinutes",
+      "displayNameDE": "Geforderte Wiederanlaufzeit (Minuten)",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "min": 1
+    },
+    {
+      "key": "BiaRpoMinutes",
+      "internalName": "BiaRpoMinutes",
+      "displayNameDE": "Maximal tolerierbarer Datenverlust (Minuten)",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "min": 0
+    },
+    {
+      "key": "BiaMinimumService",
+      "internalName": "BiaMinimumService",
+      "displayNameDE": "Mindestniveau im Notbetrieb",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity"
+    },
+    {
+      "key": "BiaAssessedAt",
+      "internalName": "BiaAssessedAt",
+      "displayNameDE": "BIA bestätigt am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "dateFormat": "DateTime"
+    },
+    {
+      "key": "BiaAssessedBy",
+      "internalName": "BiaAssessedBy",
+      "displayNameDE": "BIA bestätigt von",
+      "type": "User",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity"
+    },
+    {
+      "key": "BcmExerciseDate",
+      "internalName": "BcmExerciseDate",
+      "displayNameDE": "Übung am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "dateFormat": "DateOnly"
+    },
+    {
+      "key": "BcmExerciseResult",
+      "internalName": "BcmExerciseResult",
+      "displayNameDE": "Szenario und Übungsergebnis",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity"
+    },
+    {
+      "key": "BcmEvidenceItemID",
+      "internalName": "BcmEvidenceItemID",
+      "displayNameDE": "Übungsnachweis · Listen-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity",
+      "min": 1
+    },
+    {
+      "key": "BcmEvidenceVersion",
+      "internalName": "BcmEvidenceVersion",
+      "displayNameDE": "Geprüfte Übungsnachweisversion",
+      "type": "Text",
+      "required": false,
+      "indexed": false,
+      "scope": "businessContinuity"
     }
   ]
 }

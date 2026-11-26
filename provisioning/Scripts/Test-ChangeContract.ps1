@@ -29,10 +29,16 @@ $declaredFormats = @($explicitDates | ForEach-Object {
     $objectOrScope = if ($_.ContainsKey('objectTypeKey')) { $_.objectTypeKey } else { $_.scope }
     "$objectOrScope.$($_.internalName)=$($_.dateFormat)"
 } | Sort-Object)
-$expectedFormats = @('Change.ApprovedDate=DateTime', 'finding.FindingClosedAt=DateTime', 'finding.FindingDueDate=DateOnly') | Sort-Object
+$expectedFormats = @(
+    'Change.ApprovedDate=DateTime'
+    'finding.FindingClosedAt=DateTime'
+    'finding.FindingDueDate=DateOnly'
+    'businessContinuity.BiaAssessedAt=DateTime'
+    'businessContinuity.BcmExerciseDate=DateOnly'
+) | Sort-Object
 if (($declaredFormats -join '|') -cne ($expectedFormats -join '|') -or $approvedDate.Type -cne 'DateTime' -or
     $approvedDate.DateFormat -cne 'DateTime' -or $approvedDate.Required -or $approvedDate.Indexed) {
-    throw 'Approval and Finding closure must retain time. The Finding deadline and remaining date fields are DateOnly.'
+    throw 'Explicit date formats must match approval, finding closure and BIA confirmation timestamps and the date-only deadline and exercise.'
 }
 function Test-NativeApprovalDate($NativeFields) {
     $actual = @($NativeFields | Where-Object InternalName -eq 'ApprovedDate')
@@ -189,8 +195,10 @@ try {
         foreach ($date in @($list.Fields | Where-Object Type -eq 'DateTime')) {
             if ($list.ObjectKey -eq 'Change' -and $date.InternalName -eq 'ApprovedDate') { continue }
             [xml]$dx = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $date
-            if ($list.ObjectKey -cin @('Finding', 'AuditFinding') -and $date.InternalName -ceq 'FindingClosedAt') {
-                if ($dx.Field.Format -cne 'DateTime') { throw "Finding closure timestamp missing: $($list.Title)." }
+            $isFindingClosure = $list.ObjectKey -cin @('Finding', 'AuditFinding') -and $date.InternalName -ceq 'FindingClosedAt'
+            $isBiaConfirmation = $list.ObjectKey -ceq 'BusinessProcess' -and $date.InternalName -ceq 'BiaAssessedAt'
+            if ($isFindingClosure -or $isBiaConfirmation) {
+                if ($dx.Field.Format -cne 'DateTime') { throw "Required timestamp format missing: $($list.Title).$($date.InternalName)." }
                 continue
             }
             if ($dx.Field.Format -cne 'DateOnly') { throw "Unplanned timestamp format change: $($list.Title).$($date.InternalName)" }

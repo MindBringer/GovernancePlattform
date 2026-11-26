@@ -1,6 +1,6 @@
 # Lieferplan für das Governance Portal
 
-Stand 26. November 2026. **P13 ist als Canvas 1.0.0-beta.6 mit Solution 1.0.0.30521 veröffentlicht.** Unter „Prüfungen“ stehen Review- und Audit-Findings mit getrennten Zugriffsrechten bereit. Der synthetische Referenzfall für **P7b** ist bestanden. Für den ersten begrenzten Echtbetrieb steht die Auswahl und fachliche Freigabe eines realen Pilotfalls aus.
+Stand 26. November 2026. **P14 ist als Canvas 1.0.0-beta.7 mit Solution 1.0.0.30526 in IT-Steinicke live.** Unter „Betrieb → Geschäftsprozesse und BCM“ stehen Prozessregister, BIA und Übungsdokumentation bereit. Die beiden Pilotrollen sind geprüft. Für den ersten begrenzten Echtbetrieb steht die fachliche Freigabe eines realen Pilotfalls aus.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -283,6 +283,28 @@ In der Abnahme schloss die Bearbeiterrolle ein Review-Finding (SharePoint-Versio
 Der Einzelimport `1.0.0.30521` veröffentlichte die Betriebs-App in IT-Steinicke als `1.0.0-beta.6`. Der Player-Download und der Solution-Rückexport bestätigen den bytegleichen Abnahme-Canvas, beide veröffentlichten `GPFindingWrite`-Abhängigkeiten sowie den Erhalt der Abnahme-App und der neun Flow-Definitionen. Der anschließende Live-Test war lesend. Die Bearbeiterrolle erreichte beide Listen mit „Neu“. Die Leserrolle sah die Review-Liste ohne „Neu“ und erhielt die Audit-Sperre. Vor dem Import wurde der vorige Betriebsstand im Solution-Rückexport gesichert.
 
 52 lokale Projektprüfungen für den Abschluss liefen mit Exit-Code 0. Paket-SHA-256 `43ff48399a30f9e575f4afcdfd4c94fd70ee0f17ebd856c4035786009410c955`. Canvas-SHA-256 `e1a39384bfff78bedbfd39cd8c1d33ef1470a4be36afc73b30c3728133fd64bd`. Native Testdetails und Paketkopien liegen in der internen Übergabe.
+
+### P14 · Kritische Geschäftsprozesse und BCM
+
+Die lesende Vorprüfung vom 26. November 2026 fand in IT-Steinicke keine eigene Prozess- oder BIA-Liste. Vier aktive Assets sind als geschäftskritisch markiert. Für drei ist eine verantwortliche Person hinterlegt. Die vorhandenen Asset-Felder für Wiederanlaufzeit und Datenverlust sind leer. Systems und GovernanceRelations enthalten keine aktiven Datensätze. Evidence und Runbooks sind versioniert und für beide Pilotrollen lesbar. Die Vorprüfung hat Dateimetadaten ausgewertet.
+
+Der Pilot führt Geschäftsprozesse unter „Betrieb → Geschäftsprozesse und BCM“. Der eigene versionierte Prozessdatensatz hält Verantwortung, Auswirkung mit Zeitbezug, Mindestniveau im Notbetrieb sowie je eine primäre Referenz auf ein geschäftskritisches Asset und ein aktives System. Die Prozessziele werden in Minuten erfasst. Die Wiederanlaufzeit (RTO) liegt unter der maximal tolerierbaren Ausfallzeit (MTPD). Der maximal tolerierbare Datenverlust (RPO) ist ein eigenes Ziel. Null Minuten bedeutet, dass kein Datenverlust toleriert wird. [BSI-Standard 200-4, Kapitel 7](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/BSI_Standards/standard_200_4.pdf?__blob=publicationFile&v=8)
+
+IT hat Mitwirken, die benannte Pilot-Leserrolle hat Lesen. Die verantwortliche Person bestätigt die BIA. Eine Änderung als Entwurf setzt den Bewertungsstatus zurück. Die App erlaubt der verantwortlichen Person nach bestätigter BIA, ein vergangenes oder heutiges Übungsdatum, Szenario und Ergebnis sowie einen vorhandenen versionierten Evidence-Nachweis zu speichern. Der Workflow liest Zugriffsrechte und Referenzen über die Verbindung der aufrufenden Person. Der eindeutige Schlüssel schützt die Anlage vor Wiederholung. Edits prüfen die native Version und verwenden `IF-MATCH`. Die Statusansicht bietet Namenssuche und Auswahl nach Entwurf oder Bewertet.
+
+Die gezielte Einrichtung in IT-Steinicke bestätigte die leere Liste `BusinessProcesses` mit 17 Fachspalten, Versionshistorie und eigenen Listenrechten. Der Bearbeiter darf anlegen und ändern. Der Leser hat effektive Leserechte. Der frische Solution-Rückexport stimmt für beide Apps und die neun vorhandenen Workflows mit dem Freigabestand 30521 überein. Das geprüfte Paket `1.0.0.30522` enthält ausschließlich den neuen inaktiven manuellen Flow `GPBusinessContinuityWrite`.
+
+Der Einzelimport 30522 ergänzte den Flow, der anschließend gezielt aktiviert wurde. Die Studio-Kopie bestätigte 43 erhaltene und zwei neue native Quellen. Der Rückexport nach dem gezielten Import von 30523 bestätigte das geprüfte Canvas der Abnahme-App, die registrierte Flow-Abhängigkeit und die unveränderte Betriebs-App.
+
+Der synthetische Schreibtest führte den Prozess von Entwurf v1.0 über die bestätigte BIA v2.0 zur dokumentierten Übung v3.0. SharePoint bestätigte die verantwortliche Person, MTPD 240 Minuten, RTO 90 Minuten, RPO 0 Minuten, Asset- und Systembezug, den lokalen Übungstag und die Nachweisversion 0.1. Eine RTO gleich der Ausfallgrenze, ein veralteter Entwurf im zweiten Tab und ein künftiges Übungsdatum wurden abgewiesen. In allen drei Negativfällen blieb der jeweilige SharePoint-Stand vollständig erhalten.
+
+Die Leserrolle konnte den bewerteten Prozess über den Statusfilter öffnen und hatte keine Schreibaktionen. In 30523 lagen Teile der Prozessdetails und der Übungsangaben im Player übereinander. 30525 zeigt beide Abschnitte in einem scrollbaren Textbereich und verbreitert den Speichern-Button. Alle 55 Projektprüfungen einschließlich der Syntaxprüfung der 437 Canvas-Formeln sind grün. Beide Rollen bestätigten die lesbare Darstellung am vorhandenen Testprozess. Der App Checker meldete 16 Delegierungswarnungen, davon vier im BCM-Bildschirm, und keine Formelfehler. Die vier synthetischen Objekte wurden im ersten SharePoint-Papierkorb bestätigt.
+
+Abnahme-Canvas 52 und Betriebs-Canvas 231 sind live. Der gezielte Betriebsimport 30526 übernahm den korrigierten, abgenommenen Canvas bytegleich. Solution-Rückexport und separater App-Download bestätigen SHA-256 `b21e7131be51166433890f1468a208348c704b0b6011d33620e9058a84bb980a`. Das importierte Paket hatte SHA-256 `205a57598b3b212a03210d273c5445058ae947ae628ec0ec90ffdcbb380ab42e`. Die Abnahme-App und die zehn Workflow-Definitionen sind im Rückexport unverändert. Beide Rollen erreichten die Prozessliste im veröffentlichten Betriebs-Player. Mitwirken zeigt „Neu“, Lesen öffnet die Liste ohne Anlageaktion. Die Betriebsprüfung arbeitete lesend auf der bereinigten Liste.
+
+Mehrere Prozesse je Wertschöpfungskette, zusätzliche Abhängigkeiten, die Auswertung zeitgestaffelter Schadenskategorien, Übungshistorie über mehrere Datensätze und ein fachlicher Notfallplan sind Erweiterungen nach dem ersten Pilot. Die fachliche Zuordnung zu realen Assets und Systemen folgt mit den zuständigen Prozessverantwortlichen.
+
+**Nächster Schritt ist ein fachlich freigegebener realer BIA-Referenzfall.** Die Betriebsfreigabe benennt einen kritischen Geschäftsprozess und seine verantwortliche Person, bestätigt Asset, aktives System und erlaubten Übungsnachweis und legt den Umfang für die Leserrolle fest.
 
 ## Abschluss und Veröffentlichung je Paket
 

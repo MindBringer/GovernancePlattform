@@ -801,6 +801,13 @@
           30
         ]
       ]
+    },
+    {
+      "key": "BiaStatus",
+      "values": [
+        ["Draft", "Entwurf", 10],
+        ["Assessed", "Bewertet", 20]
+      ]
     }
   ]
 }

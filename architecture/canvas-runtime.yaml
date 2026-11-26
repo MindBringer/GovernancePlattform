@@ -628,7 +628,8 @@
         "sources": [
           "Incident",
           "Problem",
-          "Change"
+          "Change",
+          "BusinessProcess"
         ]
       },
       {

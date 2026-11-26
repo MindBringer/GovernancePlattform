@@ -352,6 +352,29 @@
           []
         ]
       ]
+    },
+    {
+      "key": "BusinessContinuity",
+      "states": [
+        [
+          "Draft",
+          "Entwurf",
+          true,
+          false,
+          [
+            "Assessed"
+          ]
+        ],
+        [
+          "Assessed",
+          "Bewertet",
+          false,
+          false,
+          [
+            "Draft"
+          ]
+        ]
+      ]
     }
   ]
 }

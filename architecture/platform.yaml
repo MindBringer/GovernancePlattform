@@ -111,6 +111,27 @@
         "FindingClosedAt",
         "FindingEvidenceVersion"
       ]
+    },
+    "BusinessContinuityObject": {
+      "fields": [
+        "GovernanceID",
+        "Description",
+        "Owner",
+        "IsActive",
+        "BiaStatus",
+        "BiaAssetItemID",
+        "BiaSystemItemID",
+        "BiaMtpdMinutes",
+        "BiaRtoMinutes",
+        "BiaRpoMinutes",
+        "BiaMinimumService",
+        "BiaAssessedAt",
+        "BiaAssessedBy",
+        "BcmExerciseDate",
+        "BcmExerciseResult",
+        "BcmEvidenceItemID",
+        "BcmEvidenceVersion"
+      ]
     }
   },
   "objectTypes": [
@@ -559,6 +580,31 @@
       "allowVersioning": true,
       "aiEnabled": false,
       "defaultView": "FindingsRegister",
+      "defaultForm": "Edit",
+      "defaultRole": "Contributor",
+      "primaryColor": "",
+      "secondaryColor": ""
+    },
+    {
+      "key": "BusinessProcess",
+      "displayNameDE": "Geschäftsprozess",
+      "pluralNameDE": "Geschäftsprozesse und BCM",
+      "source": "BusinessProcesses",
+      "kind": "List",
+      "baseClass": "BusinessContinuityObject",
+      "prefix": "BIA",
+      "domain": "Operations",
+      "statusModel": "BusinessContinuity",
+      "icon": "Processing",
+      "sortOrder": 93,
+      "allowCreate": true,
+      "allowDelete": false,
+      "allowAttachments": false,
+      "allowRelations": false,
+      "allowComments": false,
+      "allowVersioning": true,
+      "aiEnabled": false,
+      "defaultView": "BusinessContinuityRegister",
       "defaultForm": "Edit",
       "defaultRole": "Contributor",
       "primaryColor": "",
