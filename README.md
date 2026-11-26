@@ -2,17 +2,17 @@
 
 Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power Apps Canvas, Power Automate und PowerShell-Provisioning.
 
-**Erstbefüllung mit Microsoft 365 Copilot.** [Prompt kopieren und einen zusammenhängenden Fall zur Admin-Prüfung vorbereiten](docs/COPILOT-ERSTBEFUELLUNG.md).
+**Erstbefüllung mit Microsoft 365 Copilot.** [Prompt für den Vorschlagsblock](docs/COPILOT-ERSTBEFUELLUNG.md) · [Admin-Ablauf für den ersten Import](docs/COPILOT-IMPORT-ADMIN-ABLAUF.md).
 
 ## Aktueller Stand
 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-alpha.3.6.0` | Stage 3.6 integriert; Person- und Choice-Provider im Test |
+| Canvas App | `1.0.0-beta.7` | Canvas 231 und Solution `1.0.0.30526` in IT-Steinicke live |
 | Developer Workflow | `Stage 3.7` | Companion-, Audit- und Git-Pull-Zwischenstufe |
 
-Die Versionsreihen bleiben getrennt: `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-/Solution-Version. Stage 3.7 verändert den Entwicklungsworkflow, nicht die Canvas-Laufzeitversion.
+Die Versionsreihen bleiben getrennt. `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-Version. Die [Roadmap](docs/ROADMAP.md) und der [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md) dokumentieren Veröffentlichung und nächste Schritte.
 
 ## Architektur in Kürze
 

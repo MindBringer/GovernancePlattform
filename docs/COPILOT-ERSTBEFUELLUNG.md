@@ -48,6 +48,8 @@ Du unterstützt die kuratierte Erstbefüllung des Governance Portals. Erstelle e
 
 ## Admin-Kuration und Übernahme
 
+Für den ersten echten Fall führt der [Admin-Ablauf für den Copilot-Import](COPILOT-IMPORT-ADMIN-ABLAUF.md) durch die Formulare, Freigaben und die Prüfung mit der Leserrolle.
+
 1. Halte den Block bis zur Entscheidung zusammen. Prüfe Bestand und Quellen, bestätige die fachliche Verantwortung und kläre den zulässigen Lesekreis für jedes Ziel. Halte pro Objekt und Beziehung die Entscheidung fest. Bei Konflikten entscheidet die dafür verantwortliche Person.
 2. Übernimm freigegebene Basisobjekte zuerst. Bestätige Asset und System, dann Risiko und BCM-Bezug. Ergänze Kontrollen, Maßnahmen, Dokumente und zulässige Nachweise über die bestehenden App-Funktionen. Nutze danach den für den Fall vorgesehenen Review- oder Freigabeweg. [ER-Diagramm](ER-DIAGRAMM.md) · [Lieferplan](GOV-PORTAL-LIEFERPLAN.md)
 3. Lese die übernommenen IDs, Zuordnungen und Dokumentversionen zurück und ergänze sie im Block. Halte offene oder zurückgestellte Teile sichtbar. Übungs-, Wirksamkeits- und Freigabenachweise entstehen aus den tatsächlichen Entscheidungen und Abläufen.

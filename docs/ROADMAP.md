@@ -1,12 +1,14 @@
 # Governance Portal Roadmap
 
-Stand: 2026-11-26
+Stand 26. November 2026
 
-Der [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md) führt Pilot, Abnahmen und Veröffentlichungen. Review- und Audit-Findings sind in der Betriebs-App als `1.0.0-beta.6` verfügbar. Das nächste Fachpaket beginnt mit der lesenden Vorprüfung für kritische Geschäftsprozesse und BCM.
+Die Betriebs-App läuft in IT-Steinicke auf **Beta 7** (`1.0.0-beta.7`, Canvas 231, Solution `1.0.0.30526`). P14 ergänzt das Prozessregister, die Business-Impact-Analyse und dokumentierte BCM-Übungen. Die technische Abnahme mit beiden Rollen ist im [Lieferplan](GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm) dokumentiert.
 
-## 1. Aktueller Entwicklungsstrang
+**Nächster Schritt ist der kuratierte Import einer realen Asset-/Prozesskette mit Copilot.** Eine fachkundige Person erstellt mit dem [veröffentlichten Prompt](COPILOT-ERSTBEFUELLUNG.md) genau einen zusammenhängenden Vorschlagsblock. Die verantwortliche Person bestätigt dessen Umfang und Inhalte. Ein Admin übernimmt die bestätigten Einträge und Beziehungen in Beta 7 und prüft sie mit der vorgesehenen Leserrolle. Die [Durchführung für Admins](COPILOT-IMPORT-ADMIN-ABLAUF.md) beschreibt den Weg bis zur Betriebsfreigabe für P7b.
 
-Die aktuelle technische Basis folgt weiterhin dem bestehenden Produktpfad:
+## 1. Technischer Entwicklungspfad
+
+Beta 7 baut auf dem bestehenden Produktpfad auf.
 
 1. Stage 3.6 – dynamischer Editor / Choice-, Lookup- und Personenprovider
 2. Stage 3.7 – Developer Companion / lokaler Git- und Audit-Workflow
@@ -140,11 +142,11 @@ Risk / Control / Evidence
 
 benötigt.
 
-P14 ist seit dem 26. November 2026 in IT-Steinicke als Beta 7 veröffentlicht und mit beiden Pilotrollen abgenommen. Die erste BIA je Geschäftsprozess umfasst Prozessverantwortung, primäre Asset- und Systemreferenzen, strukturierte Wiederanlaufziele und einen versionierten Übungsnachweis. Die Wiederanlaufziele werden am Prozessdatensatz gepflegt. Der nächste Schritt ist die fachliche Freigabe eines realen BIA-Referenzfalls. [P14 im Lieferplan](GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm)
+Die erste BIA je Geschäftsprozess umfasst Prozessverantwortung, primäre Asset- und Systemreferenzen, strukturierte Wiederanlaufziele und einen versionierten Übungsnachweis. Die Wiederanlaufziele werden am Prozessdatensatz gepflegt. Die fachliche Freigabe des ersten realen BIA-Falls erfolgt im Rahmen des Copilot-gestützten Imports. [Admin-Ablauf](COPILOT-IMPORT-ADMIN-ABLAUF.md) · [P14 im Lieferplan](GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm)
 
 ## 6. Priorisierung
 
-NIS2-relevante Änderungen werden in dieser Reihenfolge eingeplant:
+Nach der Abnahme der ersten realen Asset-/Prozesskette gilt für NIS2-relevante Änderungen diese Reihenfolge.
 
 1. bestehenden Object-Provider-Ausbau stabil abschließen,
 2. Schutzbedarf/Kritikalität sauber trennen,

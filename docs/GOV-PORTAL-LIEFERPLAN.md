@@ -4,7 +4,7 @@ Stand 26. November 2026. **P14 ist als Canvas 1.0.0-beta.7 mit Solution 1.0.0.30
 
 Die fachlichen Listen, Bibliotheken und Beziehungen des veröffentlichten Stands sind im [ER-Diagramm](ER-DIAGRAMM.md) dokumentiert.
 
-Für die Erstbefüllung bereitet der [Copilot-Prompt](COPILOT-ERSTBEFUELLUNG.md) einen Fall mit Einträgen, Dokumententwürfen und Quellen als gemeinsamen Vorschlagsblock für die Admin-Kuration vor.
+**Nächster Schritt ist der kuratierte Import einer realen Asset-/Prozesskette.** Der [Copilot-Prompt](COPILOT-ERSTBEFUELLUNG.md) erzeugt den Vorschlagsblock. Der [Admin-Ablauf](COPILOT-IMPORT-ADMIN-ABLAUF.md) beschreibt Prüfung, Übernahme und Abnahme in Beta 7.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
@@ -83,6 +83,8 @@ Der GitHub-Liefercommit umfasst die Release-Dokumentation. Der konsistente Stage
 
 ## P7b · Erster begrenzter Echtbetrieb
 
+Die erste reale Kette wird nach dem [Admin-Ablauf für den Copilot-Import](COPILOT-IMPORT-ADMIN-ABLAUF.md) vorbereitet und übernommen.
+
 1. Die Pilotgruppe und die ersten realen Objekte für die veröffentlichte Haupt-App festlegen. Nur für diese Objekte Verantwortliche und erste Fälligkeiten vervollständigen. Asset-Stellvertretungen und bei Changes oder Risiken den vorgesehenen Genehmiger beziehungsweise Risk Owner prüfen, soweit diese Pfade im ersten Pilotumfang enthalten sind.
 2. Einen durchgängigen Referenzfall in der veröffentlichten Haupt-App mit beiden Rollen abnehmen. Der Fall reicht vom Öffnen des ausgewählten Objekts über den Nachweis bis zur Reviewentscheidung. Ein unabhängiger Readback bestätigt Folgetermin, Historie und Auditspuren. Der Leser öffnet denselben Fall und bleibt auf Leserechte beschränkt.
 3. Die benannte Betriebsfreigabe bestätigt den Umfang, den Startzeitpunkt, den Supportkontakt und den gesicherten Rückweg. Nach dem ersten Nutzungsfall werden Audit und offene Punkte einmal geprüft. Eine separate Entwicklungsinstanz folgt nach vollständiger Produktivfreigabe und Aufnahme des Echtbetriebs.
@@ -127,7 +129,7 @@ In der Test-App durchlief eine Policy die Metadatenpflege, die Einreichung, die 
 
 Alle 36 lokalen Projektprüfungen des Teststands 30495 bestanden. Das Einzelpaket 30496 übernahm denselben Canvas in die Haupt-App. Der native Rückexport bestätigte das bytegleiche App-Binary, die vier Workflow-Abhängigkeiten und den Erhalt der Abnahme-App und aller vier Workflow-Definitionen. Der SHA-256-Wert des Releasepakets lautet `71a727a8efe476c77b9e445a65295de3b05abca5b80ef8e3dee2564db30d3a03`. Canvas 223 und der vor der Veröffentlichung zurückgelesene Solution-Stand 30495 bilden den gesicherten Rückweg.
 
-## Nächste Fachmodule nach P8b
+## Veröffentlichte Fachmodule seit P8b
 
 Die SharePoint-Inventur vom 25. November 2026 bestätigt `Incidents`, `Problems`, `Controls` und `Measures`. Für alle vier liegen Objektdefinitionen und eigene App-Ansichten vor. Problems ist seit Beta 4 verfügbar. Beta 6 ergänzt geprüfte Review- und Audit-Findings. [Provider-Registry](../powerplatform/config/ObjectProviderRegistry.json)
 
@@ -135,7 +137,7 @@ Die SharePoint-Inventur vom 25. November 2026 bestätigt `Incidents`, `Problems`
 2. **Kontrollen und Maßnahmen · Beta veröffentlicht.** Die Kontrollansicht verbindet Risiken, Verantwortliche und Nachweise. Maßnahmen ergänzen Kontrollbezug, Verantwortlichkeit, Frist, Status und Wirksamkeitsnachweis. Für spätere Katalogbezüge stehen `ControlCatalog` und `ComplianceMappings` zur Verfügung. [Relationsmodell](../architecture/relations.yaml), [BSI-Stand-der-Technik-Bibliothek mit Grundschutz++](https://github.com/BSI-Bund/Stand-der-Technik-Bibliothek)
 3. **Problems · Beta 4 veröffentlicht.** Wiederkehrende oder schwerwiegende Incidents bündeln, Ursache, Workaround und Known Error festhalten und den dauerhaften Fix mit einem Change verknüpfen. [PeopleCert ITIL Practices](https://www.peoplecert.org/help-and-support/faq-itil), [Relationsmodell](../architecture/relations.yaml)
 4. **Findings und Abweichungen · Beta 6 veröffentlicht.** Feststellungen aus Reviews oder Audits mit Zielobjekt, Verantwortlichem, Frist, Maßnahme und geprüftem Abschlussnachweis verfolgen. [BSI IT-Grundschutz, DER.3.1](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/IT-GS-Kompendium_Einzel_PDFs_2023/05_DER_Detektion_und_Reaktion/DER_3_1_Audits_und_Revisionen_Edition_2023.pdf?__blob=publicationFile&v=3), [Technische Roadmap](ROADMAP.md)
-5. **Kritische Geschäftsprozesse und BCM · nächstes Fachpaket.** Eine lesende Vorprüfung klärt, welche kritischen Prozesse, Verantwortlichen, Schutzbedarfe und Systemabhängigkeiten bereits erfasst sind. Auf dieser Basis folgt der Pilot für Business-Impact-Analyse, Wiederanlaufziele und dokumentierte Übungen für einen Prozess. [BSI-Standard 200-4](https://www.bsi.bund.de/SharedDocs/Downloads/DE/BSI/Grundschutz/BSI_Standards/standard_200_4.pdf?__blob=publicationFile&v=8)
+5. **Kritische Geschäftsprozesse und BCM · Beta 7 veröffentlicht.** Prozessregister, Business-Impact-Analyse, Wiederanlaufziele und dokumentierte Übungen sind für einen Prozess abgenommen. Die erste reale Kette wird mit dem [Copilot-Import](COPILOT-IMPORT-ADMIN-ABLAUF.md) übernommen. [P14](#p14--kritische-geschäftsprozesse-und-bcm)
 
 ### P9a · Incident-Vorprüfung und Pilotumfang
 
@@ -308,7 +310,7 @@ Abnahme-Canvas 52 und Betriebs-Canvas 231 sind live. Der gezielte Betriebsimport
 
 Mehrere Prozesse je Wertschöpfungskette, zusätzliche Abhängigkeiten, die Auswertung zeitgestaffelter Schadenskategorien, Übungshistorie über mehrere Datensätze und ein fachlicher Notfallplan sind Erweiterungen nach dem ersten Pilot. Die fachliche Zuordnung zu realen Assets und Systemen folgt mit den zuständigen Prozessverantwortlichen.
 
-**Nächster Schritt ist ein fachlich freigegebener realer BIA-Referenzfall.** Die Betriebsfreigabe benennt einen kritischen Geschäftsprozess und seine verantwortliche Person, bestätigt Asset, aktives System und erlaubten Übungsnachweis und legt den Umfang für die Leserrolle fest.
+Für den ersten realen BIA-Referenzfall bestätigt die fachliche Freigabe Prozess, verantwortliche Person, Asset, aktives System und Leserumfang im Copilot-Block. Ein erlaubter Übungsnachweis wird nach tatsächlich durchgeführter Übung zugeordnet. [Admin-Ablauf](COPILOT-IMPORT-ADMIN-ABLAUF.md)
 
 ## Abschluss und Veröffentlichung je Paket
 
