@@ -1,8 +1,8 @@
 # Governance Portal Roadmap
 
-Stand: 2026-11-25
+Stand: 2026-11-26
 
-Der [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md) führt Pilot, Abnahmen und Veröffentlichungen. Incidents sind in der Betriebs-App als `1.0.0-beta.1` verfügbar. Als nächstes Fachmodul folgen [Kontrollen](GOV-PORTAL-LIEFERPLAN.md#nächste-fachmodule-nach-p8b).
+Der [Lieferplan für das Governance Portal](GOV-PORTAL-LIEFERPLAN.md) führt Pilot, Abnahmen und Veröffentlichungen. Review- und Audit-Findings sind in der Betriebs-App als `1.0.0-beta.6` verfügbar. Das nächste Fachpaket beginnt mit der lesenden Vorprüfung für kritische Geschäftsprozesse und BCM.
 
 ## 1. Aktueller Entwicklungsstrang
 
@@ -85,10 +85,7 @@ Die Kennzahlen sollen aus dem vorhandenen Objektmodell abgeleitet werden, nicht 
 
 Für Schwachstellenmanagement, Audits, Reviews, technische Ist-Abgleiche und andere Governance-Abweichungen wird ein generisches steuerbares Objekt benötigt.
 
-Der aktuelle Architekturstand enthält keinen offensichtlichen eigenen `Finding`-Objekttyp. Vor einer Umsetzung ist deshalb fachlich zu entscheiden, ob:
-
-- ein eigener generischer `Finding`-Objekttyp eingeführt wird, oder
-- eine vorhandene Objektart bewusst und generisch für Abweichungen erweitert wird.
+P13 modelliert Review- und Audit-Findings mit demselben Lebenszyklus. Für die unterschiedlichen Leserechte liegen sie in zwei SharePoint-Listen. Die erste Ausbaustufe erfasst eine geprüfte Quelle, Verantwortung, Frist, Maßnahme und Abschlussnachweis.
 
 Mindestens erforderlich sind langfristig:
 
@@ -106,7 +103,7 @@ Mindestens erforderlich sind langfristig:
 - Evidence-Verknüpfung,
 - Review-/Eskalationsfähigkeit.
 
-Das Modell soll nicht NIS2-spezifisch sein, sondern ebenso Auditfeststellungen, Review-Abweichungen, technische Reconciliation-Findings und weitere Compliance-Themen tragen können.
+Das Modell kann später um technische Quellen, zusätzliche Zielobjekte, Priorisierung und Risikoakzeptanz erweitert werden.
 
 ## 4. Architektur-/Netzmodell – spätere Roadmap
 

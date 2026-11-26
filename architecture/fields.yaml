@@ -765,6 +765,99 @@
       "required": false,
       "indexed": false,
       "unique": false
+    },
+    {
+      "key": "FindingStatus",
+      "internalName": "FindingStatus",
+      "displayNameDE": "Finding-Status",
+      "type": "Choice",
+      "required": true,
+      "indexed": true,
+      "scope": "finding",
+      "choiceSet": "FindingStatus"
+    },
+    {
+      "key": "FindingDueDate",
+      "internalName": "FindingDueDate",
+      "displayNameDE": "Frist",
+      "type": "DateTime",
+      "required": true,
+      "indexed": true,
+      "scope": "finding",
+      "dateFormat": "DateOnly"
+    },
+    {
+      "key": "FindingSourceItemID",
+      "internalName": "FindingSourceItemID",
+      "displayNameDE": "Quellen-Listen-ID",
+      "type": "Number",
+      "required": true,
+      "indexed": true,
+      "scope": "finding",
+      "min": 1,
+      "max": 2147483647,
+      "decimals": 0
+    },
+    {
+      "key": "FindingMeasureItemID",
+      "internalName": "FindingMeasureItemID",
+      "displayNameDE": "Maßnahmen-Listen-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "finding",
+      "min": 1,
+      "max": 2147483647,
+      "decimals": 0
+    },
+    {
+      "key": "FindingEvidenceItemID",
+      "internalName": "FindingEvidenceItemID",
+      "displayNameDE": "Nachweis-Listen-ID",
+      "type": "Number",
+      "required": false,
+      "indexed": false,
+      "scope": "finding",
+      "min": 1,
+      "max": 2147483647,
+      "decimals": 0
+    },
+    {
+      "key": "FindingClosureNote",
+      "internalName": "FindingClosureNote",
+      "displayNameDE": "Abschlussbewertung",
+      "type": "Note",
+      "required": false,
+      "indexed": false,
+      "scope": "finding"
+    },
+    {
+      "key": "FindingClosedBy",
+      "internalName": "FindingClosedBy",
+      "displayNameDE": "Abgeschlossen von",
+      "type": "User",
+      "required": false,
+      "indexed": false,
+      "scope": "finding"
+    },
+    {
+      "key": "FindingClosedAt",
+      "internalName": "FindingClosedAt",
+      "displayNameDE": "Abgeschlossen am",
+      "type": "DateTime",
+      "required": false,
+      "indexed": false,
+      "scope": "finding",
+      "dateFormat": "DateTime"
+    },
+    {
+      "key": "FindingEvidenceVersion",
+      "internalName": "FindingEvidenceVersion",
+      "displayNameDE": "Geprüfte Nachweisversion",
+      "type": "Text",
+      "required": false,
+      "indexed": false,
+      "scope": "finding"
     }
   ]
 }

@@ -19,7 +19,7 @@ App:
       Set(gblLoadBusy, false);
       Set(gblSaveBusy, false)
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-beta.5");
+      =Set(gblAppVersion, "1.0.0-beta.6");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -230,6 +230,8 @@ App:
           {NavigationKey: "NavDocuments", ObjectTypeKey: "Knowledge", Title: "Wissen", RelativePath: "/Lists/Knowledge/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavDocuments", ObjectTypeKey: "Evidence", Title: "Nachweise", RelativePath: "/Evidence/Forms/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavReviews", ObjectTypeKey: "Review", Title: "Reviews", RelativePath: "/Lists/Reviews/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReviews", ObjectTypeKey: "Finding", Title: "Review-Findings", RelativePath: "/Lists/Findings/AllItems.aspx", CanvasProvider: ""},
+          {NavigationKey: "NavReviews", ObjectTypeKey: "AuditFinding", Title: "Audit-Findings", RelativePath: "/Lists/AuditFindings/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavReports", ObjectTypeKey: "AssetsOverview", Title: "Asset-Übersicht", RelativePath: "/Lists/Assets/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavReports", ObjectTypeKey: "RisksOverview", Title: "Risikoregister", RelativePath: "/Lists/Risks/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavReports", ObjectTypeKey: "ReviewsOverview", Title: "Reviewhistorie", RelativePath: "/Lists/Reviews/AllItems.aspx", CanvasProvider: ""},
