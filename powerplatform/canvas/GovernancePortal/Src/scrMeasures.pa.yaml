@@ -7,7 +7,7 @@ Screens:
             UpdateContext({measureEnterFresh: false, measureBusy: false, measureMode: "list", measureId: 0,
                 measureRow: Blank(), measureRevision: "", measureCanEdit: false, measureMessage: "",
                 measureReadable: IfError(CountRows(FirstN(Measures, 1)) >= 0, false)});
-            Reset(txtMeasureSearch),
+            Reset(txtMeasureSearch); Reset(drpMeasureBrowseStatus),
             If(measureId > 0 && measureMode = "detail", Select(btnMeasureLoad)))
     Children:
       - btnMeasureBack:
@@ -61,6 +61,24 @@ Screens:
             Y: =txtMeasureSearch.Y
             Width: =104
             Height: =42
+      - drpMeasureBrowseStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Statusfilter für Measures"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Visible: =txtMeasureSearch.Visible
+            X: =16
+            Y: =txtMeasureSearch.Y + txtMeasureSearch.Height + 8
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            TabIndex: =0
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            Items: |-
+              =["Alle Status", "Offen und in Arbeit", "Geplant", "In Umsetzung", "In Prüfung", "Wirksam", "Geschlossen", "Ohne Status"]
+            OnChange: |-
+              =Reset(galMeasures)
       - galMeasures:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -69,12 +87,18 @@ Screens:
             ItemAccessibleLabel: =ThisItem.Title
             Visible: =txtMeasureSearch.Visible
             Items: |-
-              =With({term: Trim(txtMeasureSearch.Text)},
-                  If(IsBlank(term), SortByColumns(Measures, "ID", SortOrder.Descending),
-                      StartsWith(Upper(term), "GP-MEA-REQ-"), Filter(Measures, CorrelationID = Upper(term)),
-                      SortByColumns(Filter(Measures, StartsWith(Title, term)), "ID", SortOrder.Descending)))
+              =If(txtMeasureSearch.Visible,
+                  If(StartsWith(Upper(Trim(txtMeasureSearch.Text)), "GP-MEA-REQ-"),
+                      Filter(Measures, CorrelationID = Upper(Trim(txtMeasureSearch.Text))),
+                      SortByColumns(Filter(Measures,
+                          (Trim(txtMeasureSearch.Text) = "" || StartsWith(Title, Trim(txtMeasureSearch.Text))) &&
+                          (drpMeasureBrowseStatus.Selected.Value = "Alle Status" || MeasureStatus.Value = drpMeasureBrowseStatus.Selected.Value ||
+                          (drpMeasureBrowseStatus.Selected.Value = "Ohne Status" && MeasureStatus.Value = Blank()) ||
+                          (drpMeasureBrowseStatus.Selected.Value = "Offen und in Arbeit" &&
+                              (MeasureStatus.Value = Blank() || MeasureStatus.Value = "Geplant" || MeasureStatus.Value = "In Umsetzung" || MeasureStatus.Value = "In Prüfung")))),
+                          "ID", SortOrder.Descending)))
             X: =16
-            Y: =128
+            Y: =drpMeasureBrowseStatus.Y + drpMeasureBrowseStatus.Height + 8
             Width: =Parent.Width - 32
             Height: =Max(0, Parent.Height - Self.Y - 60)
             TemplateSize: =54

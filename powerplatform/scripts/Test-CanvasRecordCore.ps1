@@ -576,10 +576,17 @@ foreach ($key in @('Asset','System')) {
     $engine.UpdateVariable('gblActiveProvider',(Eval 'Patch(gblActiveProvider, {ObjectTypeKey: "Foreign"})'));Assert-Fx $loadGuard $false "$key stale provider blocked";$engine.UpdateVariable('gblActiveProvider',$provider)
     # The actual gallery query must find a record beyond 2000 locally too; server delegation is a separate host gate.
     $ds=if($key -eq 'Asset'){'Assets'}else{'Systems'}
-    $rows=1..3000 | ForEach-Object { '{ID: '+$_+', Title: '+(FxString $(if($_ -eq 3000){'P1-LAST'}else{'OTHER'}))+'}' }
+    $statusField=if($key -eq 'Asset'){'LifecycleStatus'}else{'GovernanceStatus'}
+    $rows=1..3000 | ForEach-Object {
+        $title=if($_ -eq 3000){'P1-LAST'}else{'OTHER'}
+        $status=if($_ -eq 3000){'Aktiv'}else{'Archiviert'}
+        '{ID: '+$_+', Title: '+(FxString $title)+', '+$statusField+': {Value: '+(FxString $status)+'}}'
+    }
     $engine.UpdateVariable($ds,(Eval ('Table('+($rows -join ',')+')')))
     $engine.UpdateVariable('gblRecordQuery','P1-LAST');$engine.UpdateVariable('gblRecordQueryId',0)
-    $items=Get-Property "gal${key}Records" 'Items'
+    $engine.UpdateVariable('statusTestControl',(Eval '{Visible: true}'))
+    $engine.UpdateVariable('drpRecordBrowseStatus',(Eval '{Selected: {Value:"Alle Status"}}'))
+    $items=(Get-Property "gal${key}Records" 'Items').Replace('Self.Visible','statusTestControl.Visible')
     Assert-Fx ('CountRows('+$items+')') 1 "$key prefix finds final record in 3000-row fixture"
     Assert-Fx ('First('+$items+').ID') 3000 "$key prefix preserves native ID"
     $engine.UpdateVariable('gblRecordQuery','NO-MATCH');$engine.UpdateVariable('gblRecordQueryId',3000)
@@ -588,6 +595,10 @@ foreach ($key in @('Asset','System')) {
     Assert-Fx ('CountRows('+$items+')') 0 "$key invalid ID never falls back to unfiltered list"
     $engine.UpdateVariable('gblRecordQueryId',0)
     Assert-Fx ('CountRows('+$items+')') 0 "$key empty search result distinct from error"
+    $engine.UpdateVariable('gblRecordQuery','')
+    $engine.UpdateVariable('drpRecordBrowseStatus',(Eval '{Selected: {Value:"Aktiv"}}'))
+    Assert-Fx ('CountRows('+$items+')') 1 "$key status query finds final record without a title"
+    Assert-Fx ('First('+$items+').ID') 3000 "$key status preserves native ID"
 }
 # Run the actual App.OnError behavior, including late errors after the button has
 # cleared gblSaveBusy. This uses the real interpreter and synthetic error data.

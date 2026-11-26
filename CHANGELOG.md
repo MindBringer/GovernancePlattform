@@ -13,6 +13,12 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.5
+
+- Durchsuchbare Statusansichten für Incidents, Problems, Changes, Risiken, Kontrollen, Maßnahmen, Assets, Systeme, Policies, Procedures und Runbooks.
+- Sammelfilter für Fälle mit Handlungsbedarf, genaue Statuswerte und Einträge ohne Status. Direkte ID- und Anlagecode-Suchen bleiben verfügbar.
+- Am 26. November 2026 als Solution `1.0.0.30518` veröffentlicht und mit Bearbeiter- und Leserrolle im Live-Player geprüft.
+
 ## Canvas 1.0.0-beta.4
 
 - Problems unter „Betrieb“ erfassen, Ursachenanalyse, Workaround und bekannte Fehler pflegen und Incidents sowie Changes zuordnen.

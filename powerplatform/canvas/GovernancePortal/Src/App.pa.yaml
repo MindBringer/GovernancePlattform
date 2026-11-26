@@ -19,7 +19,7 @@ App:
       Set(gblLoadBusy, false);
       Set(gblSaveBusy, false)
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-beta.4");
+      =Set(gblAppVersion, "1.0.0-beta.5");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
