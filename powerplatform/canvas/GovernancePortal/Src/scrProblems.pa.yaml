@@ -8,7 +8,7 @@ Screens:
             problemReadable: IfError(CountRows(FirstN(Problems, 1)) >= 0, false),
             problemCanCreate: Coalesce(gblAssetPilotCanWrite, false) &&
                 IfError(DataSourceInfo(Problems, DataSourceInfo.CreatePermission), false)});
-        Reset(txtProblemSearch)
+        Reset(txtProblemSearch); Reset(drpProblemBrowseStatus)
     Children:
       - btnProblemBack:
           Control: Classic/Button@2.2.0
@@ -61,6 +61,24 @@ Screens:
             Y: =txtProblemSearch.Y
             Width: =104
             Height: =42
+      - drpProblemBrowseStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Statusfilter für Problems"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Visible: =txtProblemSearch.Visible
+            X: =16
+            Y: =txtProblemSearch.Y + txtProblemSearch.Height + 8
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            TabIndex: =0
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            Items: |-
+              =["Alle Status", "Entwurf", "Aktiv", "In Review", "Außer Betrieb", "Archiviert", "Ohne Status"]
+            OnChange: |-
+              =Reset(galProblems)
       - galProblems:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -69,12 +87,16 @@ Screens:
             ItemAccessibleLabel: =ThisItem.Title
             Visible: =txtProblemSearch.Visible
             Items: |-
-              =If(problemReadable && problemMode = "list", With({term: Trim(txtProblemSearch.Text)},
-                  If(IsBlank(term), SortByColumns(Problems, "ID", SortOrder.Descending),
-                      StartsWith(Upper(term), "GP-PRB-REQ-"), Filter(Problems, CorrelationID = Upper(term)),
-                      SortByColumns(Filter(Problems, StartsWith(Title, term)), "ID", SortOrder.Descending))))
+              =If(txtProblemSearch.Visible,
+                  If(StartsWith(Upper(Trim(txtProblemSearch.Text)), "GP-PRB-REQ-"),
+                      Filter(Problems, CorrelationID = Upper(Trim(txtProblemSearch.Text))),
+                      SortByColumns(Filter(Problems,
+                          (Trim(txtProblemSearch.Text) = "" || StartsWith(Title, Trim(txtProblemSearch.Text))) &&
+                          (drpProblemBrowseStatus.Selected.Value = "Alle Status" || GovernanceStatus.Value = drpProblemBrowseStatus.Selected.Value ||
+                          (drpProblemBrowseStatus.Selected.Value = "Ohne Status" && GovernanceStatus.Value = Blank()))),
+                          "ID", SortOrder.Descending)))
             X: =16
-            Y: =128
+            Y: =drpProblemBrowseStatus.Y + drpProblemBrowseStatus.Height + 8
             Width: =Parent.Width - 32
             Height: =Max(0, Parent.Height - Self.Y - 60)
             TemplateSize: =54
@@ -83,7 +105,7 @@ Screens:
             - btnProblemOpen:
                 Control: Classic/Button@2.2.0
                 Properties:
-                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID) & " · " & Coalesce(ThisItem.GovernanceStatus.Value, "Ohne Status")
                   OnSelect: |-
                     =If(problemReadable && !problemBusy,
                         UpdateContext({problemId: ThisItem.ID, problemMode: "detail", problemMessage: ""});
@@ -365,6 +387,16 @@ Screens:
             X: =16
             Y: =If(problemMode = "analysis", txtProblemKnownError.Y + txtProblemKnownError.Height + 8, lblProblemSelected.Y + lblProblemSelected.Height + 4)
             Width: =196
+            Height: =42
+      - lblProblemBrowseEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Keine Einträge für die aktuelle Auswahl."
+            Visible: =txtProblemSearch.Visible && IsEmpty(galProblems.AllItems)
+            Color: =gblTheme.ColorTextMuted
+            X: =16
+            Y: =galProblems.Y
+            Width: =Parent.Width - 32
             Height: =42
       - lblProblemMessage:
           Control: Label@2.5.1

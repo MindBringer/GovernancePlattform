@@ -250,6 +250,18 @@ Der freigegebene Einzelimport `1.0.0.30514` veröffentlichte die Betriebs-App am
 
 Im Live-Player bestätigten beide Pilotrollen Beta 4. Die Bearbeiterrolle erreichte „Betrieb → Problems“ mit Suche und Anlageaktion. Die Leserrolle sah den Sperrhinweis. Beide Live-Prüfungen erfolgten lesend.
 
+### Statusansichten · Beta 5
+
+Die App-Listen öffnen mit „Alle Status“. Einträge lassen sich direkt aus der Liste öffnen. Titelpräfixe bleiben als optionale Suche erhalten. Die genaue Listen-ID und vorhandene Anlagecodes führen unabhängig vom Statusfilter zum gesuchten Datensatz.
+
+Incidents lassen sich auf „Offen und in Arbeit“, „Nur offen“, „In Bearbeitung“, „Gelöst“ oder „Geschlossen“ eingrenzen. „Nur offen“ umfasst neue und historische Einträge ohne Portalstatus. Bei Changes umfasst „Offen und in Arbeit“ Entwürfe sowie eingereichte, genehmigte und geplante Einträge. Bei Risiken umfasst diese Auswahl identifizierte, bewertete und in Bearbeitung befindliche Risiken. Bei Maßnahmen umfasst sie geplante, laufende und in Prüfung befindliche Maßnahmen. In diesen drei Listen berücksichtigt die Sammelauswahl auch Einträge ohne Status.
+
+Problems, Assets und Systeme lassen sich nach ihrem bestehenden Lebenszyklus filtern. Problems verwendet dafür den Governance-Status. Kontrollen verwenden ihren Kontrollstatus. Policies, Procedures und Runbooks zeigen und filtern den Dokumentstatus. Unter „Alle Status“ bleiben Ordner erreichbar. „Ohne Status“ umfasst bei Dokumenten auch Ordner. Fällige Prüfungen und Reviewhistorie bleiben eigene Sichten.
+
+Die 49 lokalen Prüfungen waren grün. In der Abnahme-App bestätigte `1.0.0.30517` die deutschen Statusbezeichnungen und Treffer ohne Titel oder ID. Die Bearbeiterrolle prüfte die Incident-Auswahl „Nur offen“ und „In Bearbeitung“ sowie den Lebenszyklusfilter für Problems. Die Leserrolle prüfte genehmigte und geschlossene Changes, die drei Dokumentbibliotheken und die Zugriffssperre für Incidents und Problems. Die Runbooks-Prüfung beschränkte sich auf Metadaten. Der App Checker meldete null Formelfehler und zwölf bestehende Delegierungswarnungen in der Kontrollverknüpfung und beim Speichern im generischen Editor. Die neuen Filter waren ohne Warnungen.
+
+Der Einzelimport `1.0.0.30518` veröffentlichte Beta 5 am 26. November 2026 in IT-Steinicke. Der Rückexport bestätigte denselben Canvas wie in der Abnahme-App und acht unveränderte Flows. Im Live-Player prüfte die Bearbeiterrolle offene Incidents. Die Leserrolle prüfte genehmigte Changes, Runbooks ohne Status und die Problems-Zugriffssperre. Die Live-Tests waren lesend. Paket-SHA-256 `6267e37b25bbc0ac52a3102e372d874dc4f753dacaeddf2b1dc977c021ed2589`.
+
 ## Abschluss und Veröffentlichung je Paket
 
 1. Ausgangscommit, fachlichen Umfang, Ziel und Abnahmekriterien festhalten. Bei App-Paketen zusätzlich Solution-Version und Paket-Hash erfassen.

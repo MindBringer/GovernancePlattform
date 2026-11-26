@@ -132,6 +132,7 @@ Screens:
                             Set(gblRecordQuery, "");
                             Set(gblRecordQueryId, 0);
                             Set(gblRecordError, "");
+                            Reset(drpRecordBrowseStatus);
                             Navigate(scrShell, ScreenTransition.None),
                             Launch(
                                 If(EndsWith(gblWorkspaceSiteUrl, "/"), Left(gblWorkspaceSiteUrl, Len(gblWorkspaceSiteUrl) - 1), gblWorkspaceSiteUrl) &

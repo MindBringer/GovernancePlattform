@@ -395,13 +395,24 @@ $engine.UpdateVariable('gblChangeOriginalStatusKey','ChangeStatus:Draft');$engin
 Assert-Fx ('CountRows(Filter('+$dropdownItems+',ChoiceKey="ChangeStatus:Submitted"))') 0 'New row offers only Draft'
 $engine.UpdateVariable('gblEditorMode','Edit')
 Assert-Fx ('CountRows(Filter('+$dropdownItems+',ChoiceKey="ChangeStatus:Submitted"))') 1 'Saved draft offers Submit'
-$rows=1..3000|ForEach-Object {'{ID:'+$_+',Title:'+(FxString $(if($_ -eq 3000){'FINAL'}else{'OTHER'}))+'}'}
+$rows=1..3000|ForEach-Object {
+    $title=if($_ -eq 3000){'FINAL'}else{'OTHER'}
+    $status=if($_ -eq 3000){'Eingereicht'}else{'Geschlossen'}
+    '{ID:'+$_+',Title:'+(FxString $title)+',ChangeStatus:{Value:'+(FxString $status)+'}}'
+}
 $engine.UpdateVariable('Changes',(Eval ('Table('+($rows -join ',')+')')))
 $engine.UpdateVariable('gblCurrentPage','ObjectList');$engine.UpdateVariable('gblActiveProvider',(Eval '{SupportsList:true}'))
 $engine.UpdateVariable('gblRecordQuery','FINAL');$engine.UpdateVariable('gblRecordQueryId',0)
+$engine.UpdateVariable('statusTestControl',(Eval '{Visible: true}'))
+$engine.UpdateVariable('drpRecordBrowseStatus',(Eval '{Selected:{Value:"Alle Status"}}'))
+$items=$items.Replace('Self.Visible','statusTestControl.Visible')
 Assert-Fx ('First('+$items+').ID') 3000 'Actual prefix query finds row beyond 2000'
 $engine.UpdateVariable('gblRecordQueryId',3000);$engine.UpdateVariable('gblRecordQuery','NO MATCH')
 Assert-Fx ('First('+$items+').ID') 3000 'Actual ID query ignores title filter'
 $engine.UpdateVariable('gblRecordQueryId',-1)
 Assert-Fx ('CountRows('+$items+')') 0 'Invalid ID cannot fall back to unfiltered query'
+$engine.UpdateVariable('gblRecordQueryId',0);$engine.UpdateVariable('gblRecordQuery','')
+$engine.UpdateVariable('drpRecordBrowseStatus',(Eval '{Selected:{Value:"Offen und in Arbeit"}}'))
+Assert-Fx ('CountRows('+$items+')') 1 'Unfinished Changes can be found without title or ID'
+Assert-Fx ('First('+$items+').ID') 3000 'Unfinished Change at final row preserves native ID'
 Write-Host "Actual Change Power Fx passed: $checks assertions. Native roles, delegation and approval actor require separate DEV acceptance."

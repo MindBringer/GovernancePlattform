@@ -6,7 +6,7 @@ Screens:
         =If(Coalesce(controlEnterFresh, true),
             UpdateContext({controlEnterFresh: false, controlBusy: false, controlMode: "list", controlId: 0,
                 controlItem: Blank(), controlRevision: "", controlCanEdit: false, controlFeedback: "",
-                controlReadable: IfError(CountRows(FirstN(Controls, 1)) >= 0, false)}),
+                controlReadable: IfError(CountRows(FirstN(Controls, 1)) >= 0, false)}); Reset(drpControlBrowseStatus),
             If(controlId > 0, Select(btnControlLoad)))
     Children:
       - btnControlBack:
@@ -61,6 +61,24 @@ Screens:
             Y: =txtControlSearch.Y
             Width: =104
             Height: =42
+      - drpControlBrowseStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Statusfilter für Controls"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Visible: =txtControlSearch.Visible
+            X: =16
+            Y: =txtControlSearch.Y + txtControlSearch.Height + 8
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            TabIndex: =0
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            Items: |-
+              =["Alle Status", "Konzipiert", "Implementiert", "Wirksam", "Unwirksam", "Ohne Status"]
+            OnChange: |-
+              =Reset(galControls)
       - galControls:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -69,13 +87,16 @@ Screens:
             ItemAccessibleLabel: =ThisItem.Title
             Visible: =txtControlSearch.Visible
             Items: |-
-              =With({term: Trim(txtControlSearch.Text)},
-                  If(IsBlank(term), SortByColumns(Controls, "ID", SortOrder.Descending),
-                      StartsWith(Upper(term), "GP-CTL-REQ-"), Filter(Controls, CorrelationID = Upper(term)),
-                      StartsWith(Upper(term), "CTL-"), Filter(Controls, GovernanceID = Upper(term)),
-                      SortByColumns(Filter(Controls, StartsWith(Title, term)), "ID", SortOrder.Descending)))
+              =If(txtControlSearch.Visible,
+                  If(StartsWith(Upper(Trim(txtControlSearch.Text)), "GP-CTL-REQ-"),
+                      Filter(Controls, CorrelationID = Upper(Trim(txtControlSearch.Text))),
+                      SortByColumns(Filter(Controls,
+                          (Trim(txtControlSearch.Text) = "" || StartsWith(Title, Trim(txtControlSearch.Text))) &&
+                          (drpControlBrowseStatus.Selected.Value = "Alle Status" || ControlStatus.Value = drpControlBrowseStatus.Selected.Value ||
+                          (drpControlBrowseStatus.Selected.Value = "Ohne Status" && ControlStatus.Value = Blank()))),
+                          "ID", SortOrder.Descending)))
             X: =16
-            Y: =128
+            Y: =drpControlBrowseStatus.Y + drpControlBrowseStatus.Height + 8
             Width: =Parent.Width - 32
             Height: =Max(0, Parent.Height - Self.Y - 60)
             TemplateSize: =54

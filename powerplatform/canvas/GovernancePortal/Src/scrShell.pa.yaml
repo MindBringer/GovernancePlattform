@@ -327,7 +327,7 @@ Screens:
                                       );
                                       Set(gblSelectedRecordId, 0);
                                       Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, "");
-                                      Reset(txtRecordSearch); Reset(txtRecordId); Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords)
+                                      Reset(txtRecordSearch); Reset(txtRecordId); Reset(drpRecordBrowseStatus); Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords)
                                       )
                                     TemplateFill: |-
                                       =If(
@@ -911,7 +911,7 @@ Screens:
                                     Height: =Parent.Height - Self.Y - 12
                                     Width: =Parent.Width - Self.X
                                     X: =If(Parent.Width >= 760, 280, 0)
-                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    Y: =lblRecordStatus.Y + lblRecordStatus.Height + 6
                                     TemplateSize: =76
                                     TemplatePadding: =4
                                     ShowNavigation: =true
@@ -920,13 +920,13 @@ Screens:
                                     LoadingSpinner: =LoadingSpinner.Data
                                     Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && Coalesce(gblActiveProvider.SupportsList, false)
                                     Items: |-
-                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && Coalesce(gblActiveProvider.SupportsList, false),
-                                          If(gblRecordQueryId <> 0,
-                                              SortByColumns(Filter(Assets, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
-                                              SortByColumns(Filter(Assets, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
-                                          ),
-                                          Blank()
-                                      )
+                                      =If(Self.Visible,
+                                          If(gblRecordQueryId <> 0, SortByColumns(Filter(Assets, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              If(drpRecordBrowseStatus.Selected.Value = "Alle Status", SortByColumns(Filter(Assets, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending),
+                                                  SortByColumns(Filter(Assets, StartsWith(Title, gblRecordQuery) &&
+                                                      (LifecycleStatus.Value = drpRecordBrowseStatus.Selected.Value ||
+                                                      (drpRecordBrowseStatus.Selected.Value = "Ohne Status" && LifecycleStatus.Value = Blank()))), "ID", SortOrder.Ascending))),
+                                          Blank())
                                     OnSelect: |-
                                       =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "Asset" && gblActiveProvider.ObjectTypeKey = "Asset" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
                                           Set(gblSelectedRecordId, ThisItem.ID);
@@ -937,7 +937,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: |-
-                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · " & Coalesce(ThisItem.LifecycleStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
@@ -996,7 +996,7 @@ Screens:
                                     Height: =Parent.Height - Self.Y - 12
                                     Width: =Parent.Width - Self.X
                                     X: =If(Parent.Width >= 760, 280, 0)
-                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    Y: =lblRecordStatus.Y + lblRecordStatus.Height + 6
                                     TemplateSize: =76
                                     TemplatePadding: =4
                                     ShowNavigation: =true
@@ -1005,13 +1005,13 @@ Screens:
                                     LoadingSpinner: =LoadingSpinner.Data
                                     Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "System" && Coalesce(gblActiveProvider.SupportsList, false)
                                     Items: |-
-                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "System" && Coalesce(gblActiveProvider.SupportsList, false),
-                                          If(gblRecordQueryId <> 0,
-                                              SortByColumns(Filter(Systems, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
-                                              SortByColumns(Filter(Systems, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
-                                          ),
-                                          Blank()
-                                      )
+                                      =If(Self.Visible,
+                                          If(gblRecordQueryId <> 0, SortByColumns(Filter(Systems, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              If(drpRecordBrowseStatus.Selected.Value = "Alle Status", SortByColumns(Filter(Systems, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending),
+                                                  SortByColumns(Filter(Systems, StartsWith(Title, gblRecordQuery) &&
+                                                      (GovernanceStatus.Value = drpRecordBrowseStatus.Selected.Value ||
+                                                      (drpRecordBrowseStatus.Selected.Value = "Ohne Status" && GovernanceStatus.Value = Blank()))), "ID", SortOrder.Ascending))),
+                                          Blank())
                                     OnSelect: |-
                                       =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "System" && gblActiveProvider.ObjectTypeKey = "System" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
                                           Set(gblSelectedRecordId, ThisItem.ID);
@@ -1022,7 +1022,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: |-
-                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · " & Coalesce(ThisItem.GovernanceStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
@@ -1055,7 +1055,7 @@ Screens:
                                     Height: =Parent.Height - Self.Y - 12
                                     Width: =Parent.Width - Self.X
                                     X: =If(Parent.Width >= 760, 280, 0)
-                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    Y: =lblRecordStatus.Y + lblRecordStatus.Height + 6
                                     TemplateSize: =76
                                     TemplatePadding: =4
                                     ShowNavigation: =true
@@ -1064,13 +1064,15 @@ Screens:
                                     LoadingSpinner: =LoadingSpinner.Data
                                     Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "Change" && Coalesce(gblActiveProvider.SupportsList, false)
                                     Items: |-
-                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "Change" && Coalesce(gblActiveProvider.SupportsList, false),
-                                          If(gblRecordQueryId <> 0,
-                                              SortByColumns(Filter(Changes, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
-                                              SortByColumns(Filter(Changes, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
-                                          ),
-                                          Blank()
-                                      )
+                                      =If(Self.Visible,
+                                          If(gblRecordQueryId <> 0, SortByColumns(Filter(Changes, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              If(drpRecordBrowseStatus.Selected.Value = "Alle Status", SortByColumns(Filter(Changes, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending),
+                                                  SortByColumns(Filter(Changes, StartsWith(Title, gblRecordQuery) &&
+                                                      (ChangeStatus.Value = drpRecordBrowseStatus.Selected.Value ||
+                                                      (drpRecordBrowseStatus.Selected.Value = "Ohne Status" && ChangeStatus.Value = Blank()) ||
+                                                          (drpRecordBrowseStatus.Selected.Value = "Offen und in Arbeit" &&
+                                                              (ChangeStatus.Value = Blank() || ChangeStatus.Value = "Entwurf" || ChangeStatus.Value = "Eingereicht" || ChangeStatus.Value = "Genehmigt" || ChangeStatus.Value = "Geplant")))), "ID", SortOrder.Ascending))),
+                                          Blank())
                                     OnSelect: |-
                                       =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "Change" && gblActiveProvider.ObjectTypeKey = "Change" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
                                           Set(gblSelectedRecordId, ThisItem.ID);
@@ -1081,7 +1083,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: |-
-                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · " & Coalesce(ThisItem.ChangeStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
@@ -1140,7 +1142,7 @@ Screens:
                                     Height: =Parent.Height - Self.Y - 12
                                     Width: =Parent.Width - Self.X
                                     X: =If(Parent.Width >= 760, 280, 0)
-                                    Y: =If(Parent.Width >= 760, 180, 350)
+                                    Y: =lblRecordStatus.Y + lblRecordStatus.Height + 6
                                     TemplateSize: =76
                                     TemplatePadding: =4
                                     ShowNavigation: =true
@@ -1149,13 +1151,15 @@ Screens:
                                     LoadingSpinner: =LoadingSpinner.Data
                                     Visible: =gblCurrentPage = "ObjectList" && gblObjectType = "Risk" && Coalesce(gblActiveProvider.SupportsList, false)
                                     Items: |-
-                                      =If(gblCurrentPage = "ObjectList" && gblObjectType = "Risk" && Coalesce(gblActiveProvider.SupportsList, false),
-                                          If(gblRecordQueryId <> 0,
-                                              SortByColumns(Filter(Risks, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
-                                              SortByColumns(Filter(Risks, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending)
-                                          ),
-                                          Blank()
-                                      )
+                                      =If(Self.Visible,
+                                          If(gblRecordQueryId <> 0, SortByColumns(Filter(Risks, ID = gblRecordQueryId), "ID", SortOrder.Ascending),
+                                              If(drpRecordBrowseStatus.Selected.Value = "Alle Status", SortByColumns(Filter(Risks, StartsWith(Title, gblRecordQuery)), "ID", SortOrder.Ascending),
+                                                  SortByColumns(Filter(Risks, StartsWith(Title, gblRecordQuery) &&
+                                                      (RiskStatus.Value = drpRecordBrowseStatus.Selected.Value ||
+                                                      (drpRecordBrowseStatus.Selected.Value = "Ohne Status" && RiskStatus.Value = Blank()) ||
+                                                          (drpRecordBrowseStatus.Selected.Value = "Offen und in Arbeit" &&
+                                                              (RiskStatus.Value = Blank() || RiskStatus.Value = "Identifiziert" || RiskStatus.Value = "Bewertet" || RiskStatus.Value = "In Bearbeitung")))), "ID", SortOrder.Ascending))),
+                                          Blank())
                                     OnSelect: |-
                                       =If(!gblSaveBusy && !gblLoadBusy && !gblShowDiscardDialog && !gblEditorDirty && gblCurrentPage = "ObjectList" && gblObjectType = "Risk" && gblActiveProvider.ObjectTypeKey = "Risk" && Coalesce(gblActiveProvider.SupportsList, false) && Coalesce(gblActiveProvider.SupportsEdit, false),
                                           Set(gblSelectedRecordId, ThisItem.ID);
@@ -1166,7 +1170,7 @@ Screens:
                                         Control: Classic/Button@2.2.0
                                         Properties:
                                           Text: |-
-                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · ID " & Text(ThisItem.ID)
+                                            ="Öffnen: " & Coalesce(ThisItem.Title, "Ohne Titel") & " · " & Coalesce(ThisItem.RiskStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
                                           OnSelect: =Select(Parent)
                                           DisplayMode: =If(gblSaveBusy || gblLoadBusy || gblShowDiscardDialog, DisplayMode.Disabled, DisplayMode.Edit)
                                           Font: =Font.'Open Sans'
@@ -1261,27 +1265,48 @@ Screens:
                                     TabIndex: =0
                                     FocusedBorderColor: =gblTheme.ColorText
                                     FocusedBorderThickness: =3
+                              - drpRecordBrowseStatus:
+                                  Control: Classic/DropDown@2.3.1
+                                  Properties:
+                                    AccessibleLabel: ="Datensätze nach Status filtern"
+                                    Value: ="Value"
+                                    Default: ="Alle Status"
+                                    Visible: =txtRecordSearch.Visible
+                                    X: =txtRecordSearch.X
+                                    Y: =txtRecordSearch.Y + txtRecordSearch.Height + 6
+                                    Width: =Min(280, Parent.Width - Self.X - 12)
+                                    Height: =38
+                                    TabIndex: =0
+                                    FocusedBorderColor: =gblTheme.ColorText
+                                    FocusedBorderThickness: =3
+                                    Items: |-
+                                      =Switch(gblObjectType,
+                                          "Change", ["Alle Status", "Offen und in Arbeit", "Entwurf", "Eingereicht", "Genehmigt", "Geplant", "Umgesetzt", "Abgelehnt", "Geschlossen", "Ohne Status"],
+                                          "Risk", ["Alle Status", "Offen und in Arbeit", "Identifiziert", "Bewertet", "In Bearbeitung", "Akzeptiert", "Geschlossen", "Ohne Status"],
+                                          ["Alle Status", "Entwurf", "Aktiv", "In Review", "Außer Betrieb", "Archiviert", "Ohne Status"])
+                                    OnChange: |-
+                                      =Reset(galAssetRecords); Reset(galSystemRecords); Reset(galChangeRecords); Reset(galRiskRecords)
+                                    DisplayMode: =If(gblRecordQueryId <> 0, DisplayMode.Disabled, txtRecordSearch.DisplayMode)
                               - lblRecordStatus:
                                   Control: Label@2.5.1
                                   Properties:
                                     Text: |-
                                       =If(gblLoadBusy, "Datensatz wird geladen …", !IsBlank(gblRecordError), gblRecordError,
-                                          IsBlank(gblSelectedObjectTypeKey), "Wählen Sie einen Objekttyp.",
-                                          !Coalesce(gblActiveProvider.SupportsList, false), "Datensatzliste und Bearbeitung für diesen Objekttyp folgen im weiteren Ausbau.",
-                                          "Titelanfang oder genaue ID suchen. Mit den Pfeilen oder der Bildlaufleiste blättern."
-                                      )
+                                         IsBlank(gblSelectedObjectTypeKey), "Wählen Sie einen Objekttyp.",
+                                         !Coalesce(gblActiveProvider.SupportsList, false), "Datensatzliste und Bearbeitung für diesen Objekttyp folgen im weiteren Ausbau.",
+                                         gblRecordQueryId > 0, "Direkt geöffnet über Listen-ID " & Text(gblRecordQueryId), "")
                                     Color: =If(IsBlank(gblRecordError), gblTheme.ColorTextMuted, gblTheme.ColorError)
                                     Font: =Font.'Open Sans'
                                     Size: =11
-                                    Height: =60
+                                    Height: =40
                                     Width: =Parent.Width - Self.X
                                     X: =If(Parent.Width >= 760, 280, 0)
-                                    Y: =If(Parent.Width >= 760, 110, 276)
+                                    Y: =drpRecordBrowseStatus.Y + drpRecordBrowseStatus.Height + 2
                                     Visible: =gblCurrentPage = "ObjectList"
                               - lblRecordEmpty:
                                   Control: Label@2.5.1
                                   Properties:
-                                    Text: ="Keine passenden Datensätze gefunden. Suche ändern oder Daten aktualisieren."
+                                    Text: ="Keine passenden Datensätze gefunden. Statusfilter oder Suche ändern."
                                     Font: =Font.'Open Sans'
                                     Color: =gblTheme.ColorTextMuted
                                     Height: =44
@@ -2953,7 +2978,7 @@ Screens:
                                 Set(gblObjectType, "");
                                 Set(gblSelectedObjectTypeKey, "");
                                 Set(gblSelectedRecordId, 0); Set(gblLoadedRecordId, 0); Set(gblEditorLoadComplete, false); Set(gblEditorConflict, false); Set(gblSaveError, ""); Clear(colRecordValues);
-                                        Set(gblRecordError, ""); Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0);
+                                        Set(gblRecordError, ""); Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Reset(drpRecordBrowseStatus);
                                         If(gblWorkspaceEnabled && ThisItem.NavKey <> "NavHome",
                                             Navigate(scrWorkspace, ScreenTransition.None, {workspaceNavigationKey: ThisItem.NavKey})
                                         )
@@ -3136,7 +3161,7 @@ Screens:
                                 If(!IsBlank(gblPendingNavigationKey),
                                     Set(gblCurrentNavigationKey, gblPendingNavigationKey); Set(gblCurrentPage, gblPendingNavigationPage);
                                     Set(gblSelectedObjectTypeKey, ""); Set(gblObjectType, ""); Set(gblActiveProvider, Blank());
-                                    Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, "");
+                                    Set(gblRecordQuery, ""); Set(gblRecordQueryId, 0); Set(gblRecordError, ""); Reset(drpRecordBrowseStatus);
                                     If(gblWorkspaceEnabled && gblPendingNavigationKey <> "NavHome",
                                         Navigate(scrWorkspace, ScreenTransition.None, {workspaceNavigationKey: gblPendingNavigationKey}),
                                         SetFocus(lblRefresh)

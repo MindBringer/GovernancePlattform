@@ -4,7 +4,7 @@ Screens:
       Fill: =gblTheme.ColorWorkspace
       LoadingSpinner: =LoadingSpinner.Data
       LoadingSpinnerColor: =gblTheme.ColorPrimary
-      OnVisible: =Reset(txtDocumentId)
+      OnVisible: =Reset(txtDocumentId); Reset(drpDocumentBrowseStatus)
     Children:
       - btnDocumentBack:
           Control: Classic/Button@2.2.0
@@ -65,12 +65,29 @@ Screens:
             Width: =Min(146, (Parent.Width - 40) / 2)
             X: =txtDocumentId.X + txtDocumentId.Width + 8
             Y: =txtDocumentId.Y
+      - drpDocumentBrowseStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Dokumente nach Freigabestatus filtern"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Visible: =true
+            X: =16
+            Y: =txtDocumentId.Y + txtDocumentId.Height + 8
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            TabIndex: =0
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            Items: |-
+              =["Alle Status", "Entwurf", "In Prüfung", "Veröffentlicht", "Außer Kraft", "Ohne Status (inkl. Ordner)"]
+            DisplayMode: =If(documentItemId > 0, DisplayMode.Disabled, DisplayMode.Edit)
       - lblDocumentQuery:
           Control: Label@2.5.1
           Properties:
             Text: |-
               =If(btnDocumentFind.DisplayMode = DisplayMode.Disabled, "Gib eine positive Listen-ID ein.",
-                  documentItemId > 0, "Gefiltert nach Listen-ID " & Text(documentItemId),
+                  documentItemId > 0, "Direkt geöffnet über Listen-ID " & Text(documentItemId),
                   "Zuletzt geändert")
             Live: =Live.Polite
             Font: =Font.'Open Sans'
@@ -78,7 +95,7 @@ Screens:
             Height: =34
             Width: =Parent.Width - 32
             X: =16
-            Y: =txtDocumentId.Y + txtDocumentId.Height + 4
+            Y: =drpDocumentBrowseStatus.Y + drpDocumentBrowseStatus.Height + 4
       - btnDocumentLibraryOpen:
           Control: Classic/Button@2.2.0
           Properties:
@@ -103,7 +120,7 @@ Screens:
       - lblDocumentsEmpty:
           Control: Label@2.5.1
           Properties:
-            Text: =If(documentItemId > 0, "Für diese ID ist kein Eintrag sichtbar.", "Keine Einträge geladen.")
+            Text: =If(documentItemId > 0, "Für diese ID ist kein Eintrag sichtbar.", "Keine Einträge für den gewählten Dokumentstatus.")
             Visible: |-
               =Switch(documentType,
                   "Policy", galPolicies.AllItemsCount = 0,
@@ -128,11 +145,11 @@ Screens:
             Visible: =documentType = "Policy"
             Items: |-
               =If(Self.Visible,
-                  If(documentItemId > 0,
-                      Filter(Policies, ID = documentItemId),
-                      SortByColumns(Policies, "Modified", SortOrder.Descending)
-                  )
-              )
+                  If(documentItemId > 0, Filter(Policies, ID = documentItemId),
+                      SortByColumns(Filter(Policies,
+                          drpDocumentBrowseStatus.Selected.Value = "Alle Status" || DocumentStatus.Value = drpDocumentBrowseStatus.Selected.Value ||
+                          (drpDocumentBrowseStatus.Selected.Value = "Ohne Status (inkl. Ordner)" && DocumentStatus.Value = Blank())),
+                          "Modified", SortOrder.Descending)))
             X: =16
             Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
             Width: =Parent.Width - 32
@@ -181,7 +198,8 @@ Screens:
                 Control: Label@2.5.1
                 Properties:
                   Text: |-
-                    ="ID " & Text(ThisItem.ID) &
+                    =If(ThisItem.'{IsFolder}', "Ordner", Coalesce(ThisItem.DocumentStatus.Value, "Ohne Status")) &
+                        " · ID " & Text(ThisItem.ID) &
                         If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
                         If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
                   Font: =Font.'Open Sans'
@@ -200,11 +218,11 @@ Screens:
             Visible: =documentType = "Procedure"
             Items: |-
               =If(Self.Visible,
-                  If(documentItemId > 0,
-                      Filter(Procedures, ID = documentItemId),
-                      SortByColumns(Procedures, "Modified", SortOrder.Descending)
-                  )
-              )
+                  If(documentItemId > 0, Filter(Procedures, ID = documentItemId),
+                      SortByColumns(Filter(Procedures,
+                          drpDocumentBrowseStatus.Selected.Value = "Alle Status" || DocumentStatus.Value = drpDocumentBrowseStatus.Selected.Value ||
+                          (drpDocumentBrowseStatus.Selected.Value = "Ohne Status (inkl. Ordner)" && DocumentStatus.Value = Blank())),
+                          "Modified", SortOrder.Descending)))
             X: =16
             Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
             Width: =Parent.Width - 32
@@ -253,7 +271,8 @@ Screens:
                 Control: Label@2.5.1
                 Properties:
                   Text: |-
-                    ="ID " & Text(ThisItem.ID) &
+                    =If(ThisItem.'{IsFolder}', "Ordner", Coalesce(ThisItem.DocumentStatus.Value, "Ohne Status")) &
+                        " · ID " & Text(ThisItem.ID) &
                         If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
                         If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
                   Font: =Font.'Open Sans'
@@ -272,11 +291,11 @@ Screens:
             Visible: =documentType = "Runbook"
             Items: |-
               =If(Self.Visible,
-                  If(documentItemId > 0,
-                      Filter(Runbooks, ID = documentItemId),
-                      SortByColumns(Runbooks, "Modified", SortOrder.Descending)
-                  )
-              )
+                  If(documentItemId > 0, Filter(Runbooks, ID = documentItemId),
+                      SortByColumns(Filter(Runbooks,
+                          drpDocumentBrowseStatus.Selected.Value = "Alle Status" || DocumentStatus.Value = drpDocumentBrowseStatus.Selected.Value ||
+                          (drpDocumentBrowseStatus.Selected.Value = "Ohne Status (inkl. Ordner)" && DocumentStatus.Value = Blank())),
+                          "Modified", SortOrder.Descending)))
             X: =16
             Y: =lblDocumentQuery.Y + lblDocumentQuery.Height
             Width: =Parent.Width - 32
@@ -325,7 +344,8 @@ Screens:
                 Control: Label@2.5.1
                 Properties:
                   Text: |-
-                    ="ID " & Text(ThisItem.ID) &
+                    =If(ThisItem.'{IsFolder}', "Ordner", Coalesce(ThisItem.DocumentStatus.Value, "Ohne Status")) &
+                        " · ID " & Text(ThisItem.ID) &
                         If(!ThisItem.'{IsFolder}' && !IsBlank(ThisItem.'{VersionNumber}'), " · Version " & ThisItem.'{VersionNumber}', "") &
                         If(!IsBlank(ThisItem.Modified), " · " & Text(ThisItem.Modified, "[$-de-DE]dd.mm.yyyy HH:mm"), "")
                   Font: =Font.'Open Sans'

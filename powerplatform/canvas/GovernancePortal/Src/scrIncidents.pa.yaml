@@ -9,7 +9,8 @@ Screens:
             incidentStates: Table({Key: "New", Label: "Neu"}, {Key: "InProgress", Label: "In Bearbeitung"},
                 {Key: "Resolved", Label: "Gelöst"}, {Key: "Closed", Label: "Geschlossen"})});
         UpdateContext({incidentReadReady: IfError(CountRows(FirstN(Incidents, 1)) >= 0, false)});
-        If(!incidentReadReady, UpdateContext({incidentMessage: "Die Incident-Liste ist für dieses Konto nicht verfügbar."}))
+        If(!incidentReadReady, UpdateContext({incidentMessage: "Die Incident-Liste ist für dieses Konto nicht verfügbar."}));
+        Reset(drpIncidentBrowseStatus)
     Children:
       - btnIncidentBack:
           Control: Classic/Button@2.2.0
@@ -62,6 +63,24 @@ Screens:
             Width: =118
             X: =txtIncidentSearch.X + txtIncidentSearch.Width + 10
             Y: =72
+      - drpIncidentBrowseStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Statusfilter für Incidents"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Visible: =txtIncidentSearch.Visible
+            X: =16
+            Y: =txtIncidentSearch.Y + txtIncidentSearch.Height + 8
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            TabIndex: =0
+            FocusedBorderColor: =gblTheme.ColorText
+            FocusedBorderThickness: =3
+            Items: |-
+              =["Alle Status", "Offen und in Arbeit", "Nur offen", "Neu", "In Bearbeitung", "Gelöst", "Geschlossen", "Ohne Status"]
+            OnChange: |-
+              =Reset(galIncidents)
       - galIncidents:
           Control: Gallery@2.15.0
           Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
@@ -70,14 +89,24 @@ Screens:
             ItemAccessibleLabel: =ThisItem.Title
             Visible: =txtIncidentSearch.Visible
             Items: |-
-              =If(IsBlank(Trim(txtIncidentSearch.Text)), SortByColumns(Incidents, "ID", SortOrder.Descending),
-                  SortByColumns(Filter(Incidents, StartsWith(Title, Trim(txtIncidentSearch.Text))), "ID", SortOrder.Descending))
+              =If(txtIncidentSearch.Visible,
+                  SortByColumns(Filter(Incidents,
+                      (Trim(txtIncidentSearch.Text) = "" || StartsWith(Title, Trim(txtIncidentSearch.Text))) &&
+                      (drpIncidentBrowseStatus.Selected.Value = "Alle Status" ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Neu" && PortalStatus = "New") ||
+                      (drpIncidentBrowseStatus.Selected.Value = "In Bearbeitung" && PortalStatus = "InProgress") ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Gelöst" && PortalStatus = "Resolved") ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Geschlossen" && PortalStatus = "Closed") ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Ohne Status" && (PortalStatus = Blank() || PortalStatus = "")) ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Nur offen" && (PortalStatus = Blank() || PortalStatus = "" || PortalStatus = "New")) ||
+                      (drpIncidentBrowseStatus.Selected.Value = "Offen und in Arbeit" && (PortalStatus = Blank() || PortalStatus = "" || PortalStatus = "New" || PortalStatus = "InProgress")))),
+                      "ID", SortOrder.Descending))
             Height: =Max(0, Parent.Height - Self.Y - 58)
             Width: =Parent.Width - 32
             TemplateSize: =54
             TemplatePadding: =3
             X: =16
-            Y: =126
+            Y: =drpIncidentBrowseStatus.Y + drpIncidentBrowseStatus.Height + 8
           Children:
             - btnIncidentOpen:
                 Control: Classic/Button@2.2.0
@@ -166,6 +195,16 @@ Screens:
             Width: =120
             X: =If(incidentNew, 246, 336)
             Y: =If(incidentNew, btnIncidentCreate.Y, 226)
+      - lblIncidentBrowseEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Keine Einträge für die aktuelle Auswahl."
+            Visible: =txtIncidentSearch.Visible && IsEmpty(galIncidents.AllItems)
+            Color: =gblTheme.ColorTextMuted
+            X: =16
+            Y: =galIncidents.Y
+            Width: =Parent.Width - 32
+            Height: =42
       - txtIncidentTitle:
           Control: Classic/TextInput@2.3.2
           Properties:
