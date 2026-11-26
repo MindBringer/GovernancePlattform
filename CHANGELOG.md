@@ -13,6 +13,12 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.7
+
+- Kritische Geschäftsprozesse unter „Betrieb → Geschäftsprozesse und BCM“ erfassen. Verantwortung, Ausfallfolgen, Wiederanlaufziele und die primäre Asset- und Systemabhängigkeit dokumentieren.
+- BIA durch die verantwortliche Person bestätigen und Übungen mit Datum, Ergebnis und genauer Nachweisversion festhalten. Der Workflow prüft Ziele, Rechte und SharePoint-Version.
+- Am 26. November 2026 als Solution `1.0.0.30526` in IT-Steinicke veröffentlicht. Schreibablauf, Negativfälle und Lesegrenze wurden mit den beiden Pilotrollen geprüft. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm)
+
 ## Canvas 1.0.0-beta.6
 
 - Findings unter „Prüfungen“ aus abgeschlossenen Reviews oder Auditdateien erfassen, filtern und mit Verantwortung, Frist, Maßnahme und Abschlussnachweis verfolgen.

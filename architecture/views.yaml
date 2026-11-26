@@ -143,6 +143,34 @@
       ],
       "groupBy": "",
       "personalizable": true
+    },
+    {
+      "key": "BusinessContinuityRegister",
+      "objectTypeKey": "BusinessProcess",
+      "displayNameDE": "Geschäftsprozesse und BCM",
+      "isDefault": true,
+      "filter": "",
+      "sort": [
+        [
+          "Title",
+          "asc"
+        ],
+        [
+          "ID",
+          "asc"
+        ]
+      ],
+      "columns": [
+        "Title",
+        "BiaStatus",
+        "Owner",
+        "BiaMtpdMinutes",
+        "BiaRtoMinutes",
+        "BiaRpoMinutes",
+        "BcmExerciseDate"
+      ],
+      "groupBy": "",
+      "personalizable": true
     }
   ]
 }

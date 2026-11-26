@@ -124,7 +124,7 @@ Vor einer Implementierung ist ein eigener Architektur-Slice erforderlich, der en
 3. welche Details im Portal und welche in technischen Fachsystemen verbleiben,
 4. wie sensible Netz-/Flow-Daten geschützt werden.
 
-## 5. BIA / Business Service – spätere Roadmap
+## 5. BIA / Business Service
 
 Für NIS2/BCM wird perspektivisch ein belastbarer Bezug zwischen:
 
@@ -140,7 +140,7 @@ Risk / Control / Evidence
 
 benötigt.
 
-Ein dediziertes Business-Service-/BIA-Modell wird erst eingeführt, wenn der generische Nutzen für Governance Portal geklärt ist. RTO/RPO sollen nicht redundant als Freitext in mehreren Objekten gepflegt werden.
+P14 ist seit dem 26. November 2026 in IT-Steinicke als Beta 7 veröffentlicht und mit beiden Pilotrollen abgenommen. Die erste BIA je Geschäftsprozess umfasst Prozessverantwortung, primäre Asset- und Systemreferenzen, strukturierte Wiederanlaufziele und einen versionierten Übungsnachweis. Die Wiederanlaufziele werden am Prozessdatensatz gepflegt. Der nächste Schritt ist die fachliche Freigabe eines realen BIA-Referenzfalls. [P14 im Lieferplan](GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm)
 
 ## 6. Priorisierung
 
@@ -153,7 +153,7 @@ NIS2-relevante Änderungen werden in dieser Reihenfolge eingeplant:
 5. Qualitätsmetriken für Assets/Systeme,
 6. generisches Finding-/Abweichungsmodell,
 7. danach Architektur-/Netz-/Flow-Modell,
-8. danach Business-Service-/BIA-Modell.
+8. Business-Service-/BIA-Modell auf Basis des in P14 veröffentlichten Prozessregisters weiterentwickeln.
 
 Die konkrete Reihenfolge der Punkte 2–6 darf im Governance-Portal-Projekt neu priorisiert werden, wenn Abhängigkeiten oder der generische Plattformnutzen dies sinnvoll machen.
 

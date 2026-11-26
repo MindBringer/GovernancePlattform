@@ -19,7 +19,7 @@ App:
       Set(gblLoadBusy, false);
       Set(gblSaveBusy, false)
     OnStart: |-
-      =Set(gblAppVersion, "1.0.0-beta.6");
+      =Set(gblAppVersion, "1.0.0-beta.7");
       Set(gblInitialized, false);
       Set(gblBusy, true);
       Set(gblBusyMessage, "Governance Framework wird initialisiert …");
@@ -220,6 +220,7 @@ App:
           {NavigationKey: "NavOperations", ObjectTypeKey: "Incident", Title: "Incidents", RelativePath: "/Lists/Incidents/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavOperations", ObjectTypeKey: "Problem", Title: "Problems", RelativePath: "/Lists/Problems/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavOperations", ObjectTypeKey: "Change", Title: "Changes", RelativePath: "/Lists/Changes/AllItems.aspx", CanvasProvider: "Change"},
+          {NavigationKey: "NavOperations", ObjectTypeKey: "BusinessProcess", Title: "Geschäftsprozesse und BCM", RelativePath: "/Lists/BusinessProcesses/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavRisk", ObjectTypeKey: "Risk", Title: "Risiken", RelativePath: "/Lists/Risks/AllItems.aspx", CanvasProvider: "Risk"},
           {NavigationKey: "NavRisk", ObjectTypeKey: "Control", Title: "Kontrollen", RelativePath: "/Lists/Controls/AllItems.aspx", CanvasProvider: ""},
           {NavigationKey: "NavRisk", ObjectTypeKey: "Measure", Title: "Maßnahmen", RelativePath: "/Lists/Measures/AllItems.aspx", CanvasProvider: ""},

@@ -1,0 +1,676 @@
+Screens:
+  scrBusinessContinuity:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =UpdateContext({biaMode: "list", biaId: 0, biaRow: Blank(), biaBusy: false,
+            biaReadable: IfError(CountRows(FirstN(BusinessProcesses, 1)) >= 0, false),
+            biaRevision: "", biaCanEdit: false, biaMayCreate: false, biaMayEdit: false, biaMessage: "", biaKey: "", biaPick: ""});
+        Reset(txtBiaSearch); Reset(drpBiaStatus);
+        If(biaReadable,
+            IfError(With({rights: GPBusinessContinuityWrite.Run("capabilities", 0, "-", "{}")},
+                If(rights.status = "capabilities", UpdateContext({biaMayCreate: rights.cancreate, biaMayEdit: rights.canedit}))),
+                Blank()))
+    Children:
+      - btnBiaBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            OnSelect: |-
+              =If(biaMode = "pick", UpdateContext({biaMode: biaReturn}),
+                  biaMode = "list", Back(),
+                  UpdateContext({biaMode: If(biaMode = "detail" || biaId = 0, "list", "detail"), biaMessage: ""}))
+            X: =16
+            Y: =16
+            Width: =104
+            Height: =41
+            Visible: =true
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - lblBiaHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =Switch(biaMode, "edit", If(biaId = 0, "Geschäftsprozess erfassen", "BIA bearbeiten"),
+                  "exercise", "BCM-Übung dokumentieren", "pick", Switch(biaPick, "owner", "Verantwortliche Person wählen",
+                      "asset", "Geschäftskritisches Asset wählen", "system", "Abhängiges System wählen", "Übungsnachweis wählen"),
+                  "Geschäftsprozesse und BCM")
+            X: =131
+            Y: =14
+            Width: =Parent.Width - 147
+            Height: =45
+            Visible: =true
+            Size: =21
+      - txtBiaSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Prozessname suchen"
+            HintText: ="Prozessname suchen"
+            Default: =""
+            X: =16
+            Y: =73
+            Width: =Max(96, Min(500, Parent.Width - 170))
+            Height: =41
+            Visible: =biaReadable && biaMode = "list"
+            MaxLength: =255
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnBiaNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            OnSelect: |-
+              =UpdateContext({biaMode: "edit", biaId: 0, biaRow: Blank(), biaRevision: "",
+                  biaCanEdit: true, biaMessage: "", biaKey: "BIA-" & Upper(Substitute(Text(GUID()), "-", "")),
+                  biaTitle: "", biaImpact: "", biaMinimum: "", biaOwner: "", biaOwnerName: "",
+                  biaAsset: Blank(), biaSystem: Blank(), biaAssetName: "", biaSystemName: "",
+                  biaMtpd: "", biaRto: "", biaRpo: ""});
+              Select(btnBiaResetForm)
+            X: =txtBiaSearch.X + txtBiaSearch.Width + 8
+            Y: =73
+            Width: =100
+            Height: =41
+            Visible: =biaReadable && biaMode = "list" && biaMayCreate
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - drpBiaStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="BIA-Status filtern"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Items: =["Alle Status", "Entwurf", "Bewertet"]
+            X: =16
+            Y: =123
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            Visible: =biaReadable && biaMode = "list"
+      - galBiaProcesses:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =171
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =biaReadable && biaMode = "list"
+            AccessibleLabel: ="Geschäftsprozesse"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            Items: |-
+              =If(biaReadable && biaMode = "list", SortByColumns(Filter(BusinessProcesses, IsActive = true &&
+                  (IsBlank(Trim(txtBiaSearch.Text)) || StartsWith(Title, Trim(txtBiaSearch.Text))) &&
+                  (drpBiaStatus.Selected.Value = "Alle Status" || BiaStatus.Value = drpBiaStatus.Selected.Value)),
+                  "Title", SortOrder.Ascending, "ID", SortOrder.Ascending))
+            ItemAccessibleLabel: =ThisItem.Title & " · " & ThisItem.BiaStatus.Value
+          Children:
+            - btnBiaRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · " & ThisItem.BiaStatus.Value & " · " & Coalesce(ThisItem.Owner.DisplayName, "–")
+                  OnSelect: |-
+                    =UpdateContext({biaId: ThisItem.ID, biaRow: ThisItem, biaMode: "detail", biaMessage: ""})
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 3
+                  Height: =Parent.TemplateHeight - 3
+                  Align: =Align.Left
+      - lblBiaEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(biaReadable, "Keine Prozesse für diese Auswahl.", "Die BCM-Liste ist für dieses Konto nicht verfügbar.")
+            X: =16
+            Y: =171
+            Width: =Parent.Width - 32
+            Height: =38
+            Visible: =biaMode = "list" && (!biaReadable || IsEmpty(galBiaProcesses.AllItems))
+            Size: =13
+      - lblBiaDetails:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =biaRow.Title & " · " & biaRow.GovernanceID & Char(10) &
+                  "BIA-Status: " & biaRow.BiaStatus.Value & "  ·  Verantwortlich: " & Coalesce(biaRow.Owner.DisplayName, "–") & Char(10) &
+                  "Asset: " & If(IsBlank(biaRow.BiaAssetItemID), "–",
+                      Coalesce(IfError(LookUp(Assets, ID = biaRow.BiaAssetItemID, Title), Blank()), "Listen-ID " & Text(biaRow.BiaAssetItemID))) & Char(10) &
+                  "System: " & If(IsBlank(biaRow.BiaSystemItemID), "–",
+                      Coalesce(IfError(LookUp(Systems, ID = biaRow.BiaSystemItemID, Title), Blank()), "Listen-ID " & Text(biaRow.BiaSystemItemID))) & Char(10) &
+                  "Maximal tolerierbare Ausfallzeit: " & Coalesce(Text(biaRow.BiaMtpdMinutes), "–") & " min" & Char(10) &
+                  "Geforderte Wiederanlaufzeit: " & Coalesce(Text(biaRow.BiaRtoMinutes), "–") & " min" & Char(10) &
+                  "Maximal tolerierbarer Datenverlust: " & Coalesce(Text(biaRow.BiaRpoMinutes), "–") & " min" & Char(10) &
+                  "Auswirkungen und Zeitbezug: " & Coalesce(biaRow.Description, "–") & Char(10) &
+                  "Mindestniveau im Notbetrieb: " & Coalesce(biaRow.BiaMinimumService, "–") & Char(10) &
+                  "Bewertung bestätigt: " & If(IsBlank(biaRow.BiaAssessedAt), "–",
+                      Text(biaRow.BiaAssessedAt, "dd.mm.yyyy", "de-DE") & " · " & Coalesce(biaRow.BiaAssessedBy.DisplayName, "–")) &
+                  Char(10) & Char(10) &
+                  If(IsBlank(biaRow.BcmExerciseDate), "Übung bisher nicht dokumentiert.",
+                      "Letzte Übung: " & Text(biaRow.BcmExerciseDate, "dd.mm.yyyy", "de-DE") &
+                      If(!IsBlank(biaRow.BiaAssessedAt) && Date(Year(biaRow.BiaAssessedAt), Month(biaRow.BiaAssessedAt), Day(biaRow.BiaAssessedAt)) > biaRow.BcmExerciseDate,
+                          " · vor der aktuellen BIA", "") & Char(10) &
+                      Coalesce(biaRow.BcmExerciseResult, "–") & Char(10) & "Geprüfter Nachweis: " &
+                      Coalesce(IfError(LookUp(Evidence, ID = biaRow.BcmEvidenceItemID, Coalesce(Title, '{FilenameWithExtension}')), Blank()),
+                               "Listen-ID " & Text(biaRow.BcmEvidenceItemID)) & " · Version " & biaRow.BcmEvidenceVersion)
+            X: =16
+            Y: =73
+            Width: =Parent.Width - 32
+            Height: =Max(126, Parent.Height - 276)
+            Visible: =biaMode = "detail" && !IsBlank(biaRow.ID)
+            Overflow: =Overflow.Scroll
+            VerticalAlign: =VerticalAlign.Top
+            Wrap: =true
+            Size: =13
+      - btnBiaReload:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            OnSelect: =Select(btnBiaLoad)
+            X: =16
+            Y: =lblBiaDetails.Y + lblBiaDetails.Height + 8
+            Width: =160
+            Height: =41
+            Visible: =biaMode = "detail"
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBiaEdit:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="BIA bearbeiten"
+            OnSelect: |-
+              =UpdateContext({biaEditTarget: "edit"}); Select(btnBiaPrepare)
+            X: =16
+            Y: =btnBiaReload.Y + 49
+            Width: =236
+            Height: =41
+            Visible: =biaMode = "detail" && biaMayEdit
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBcmExercise:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Übung dokumentieren"
+            OnSelect: |-
+              =UpdateContext({biaEditTarget: "exercise"}); Select(btnBiaPrepare)
+            X: =16
+            Y: =btnBiaEdit.Y + 49
+            Width: =236
+            Height: =41
+            Visible: |-
+              =biaMode = "detail" && biaMayEdit &&
+                  biaRow.BiaStatus.Value = "Bewertet" && Lower(biaRow.Owner.Email) = Lower(User().Email)
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - txtBiaTitle:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Name des Geschäftsprozesses"
+            HintText: ="Name des Geschäftsprozesses"
+            Default: =biaTitle
+            X: =16
+            Y: =73
+            Width: =Parent.Width - 32
+            Height: =41
+            Visible: =biaMode = "edit"
+            MaxLength: =255
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - txtBiaImpact:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Auswirkungen bei Ausfall und zeitlicher Verlauf"
+            HintText: ="Auswirkungen bei Ausfall und zeitlicher Verlauf"
+            Default: =biaImpact
+            X: =16
+            Y: =122
+            Width: =Parent.Width - 32
+            Height: =61
+            Visible: =biaMode = "edit"
+            MaxLength: =4000
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Mode: =TextMode.MultiLine
+      - txtBiaMinimum:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Mindestniveau im Notbetrieb"
+            HintText: ="Mindestniveau im Notbetrieb"
+            Default: =biaMinimum
+            X: =16
+            Y: =191
+            Width: =Parent.Width - 32
+            Height: =61
+            Visible: =biaMode = "edit"
+            MaxLength: =4000
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Mode: =TextMode.MultiLine
+      - btnBiaOwner:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(IsBlank(biaOwner), "Verantwortliche Person wählen", Coalesce(biaOwnerName, Text(biaOwner)))
+            OnSelect: |-
+              =UpdateContext({biaPick: "owner", biaReturn: biaMode, biaMode: "pick"}); Reset(txtBiaPicker)
+            X: =16
+            Y: =260
+            Width: =Parent.Width - 32
+            Height: =41
+            Visible: =biaMode = "edit"
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBiaAsset:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(IsBlank(biaAsset), "Geschäftskritisches Asset wählen", Coalesce(biaAssetName, Text(biaAsset)))
+            OnSelect: |-
+              =UpdateContext({biaPick: "asset", biaReturn: biaMode, biaMode: "pick"}); Reset(txtBiaPicker)
+            X: =16
+            Y: =309
+            Width: =Parent.Width - 32
+            Height: =41
+            Visible: =biaMode = "edit"
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBiaSystem:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(IsBlank(biaSystem), "Abhängiges System wählen", Coalesce(biaSystemName, Text(biaSystem)))
+            OnSelect: |-
+              =UpdateContext({biaPick: "system", biaReturn: biaMode, biaMode: "pick"}); Reset(txtBiaPicker)
+            X: =16
+            Y: =358
+            Width: =Parent.Width - 32
+            Height: =41
+            Visible: =biaMode = "edit"
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBcmProof:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(IsBlank(biaEvidence), "Übungsnachweis wählen", Coalesce(biaEvidenceName, Text(biaEvidence)))
+            OnSelect: |-
+              =UpdateContext({biaPick: "evidence", biaReturn: biaMode, biaMode: "pick"}); Reset(txtBiaPicker)
+            X: =16
+            Y: =213
+            Width: =Parent.Width - 32
+            Height: =41
+            Visible: =biaMode = "exercise"
+            DisplayMode: =If(!biaBusy, DisplayMode.Edit, DisplayMode.Disabled)
+      - lblBiaMtpd:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Ausfallgrenze MTPD (min)"
+            X: =16
+            Y: =406
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =34
+            Visible: =biaMode = "edit"
+            Size: =13
+      - txtBiaMtpd:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Ausfallgrenze MTPD (min)"
+            HintText: ="Ausfallgrenze MTPD (min)"
+            Default: =biaMtpd
+            X: =16
+            Y: =440
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =41
+            Visible: =biaMode = "edit"
+            MaxLength: =10
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - lblBiaRto:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Wiederanlauf RTO (min)"
+            X: =(Parent.Width - 32) / 3 + 16
+            Y: =406
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =34
+            Visible: =biaMode = "edit"
+            Size: =13
+      - txtBiaRto:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Wiederanlauf RTO (min)"
+            HintText: ="Wiederanlauf RTO (min)"
+            Default: =biaRto
+            X: =(Parent.Width - 32) / 3 + 16
+            Y: =440
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =41
+            Visible: =biaMode = "edit"
+            MaxLength: =10
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - lblBiaRpo:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Datenverlust RPO (min)"
+            X: =(Parent.Width - 32) * 2 / 3 + 16
+            Y: =406
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =34
+            Visible: =biaMode = "edit"
+            Size: =13
+      - txtBiaRpo:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Datenverlust RPO (min)"
+            HintText: ="Datenverlust RPO (min)"
+            Default: =biaRpo
+            X: =(Parent.Width - 32) * 2 / 3 + 16
+            Y: =440
+            Width: =(Parent.Width - 32) / 3 - 8
+            Height: =41
+            Visible: =biaMode = "edit"
+            MaxLength: =10
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnBiaDraft:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Als Entwurf speichern"
+            OnSelect: |-
+              =UpdateContext({biaAction: If(biaId = 0, "create", "save")}); Select(btnBiaSubmit)
+            X: =16
+            Y: =493
+            Width: =Min(245, (Parent.Width - 40) / 2)
+            Height: =41
+            Visible: =biaMode = "edit"
+            DisplayMode: =If(!biaBusy && biaCanEdit && !IsBlank(Trim(txtBiaTitle.Text)) && !IsBlank(biaOwner), DisplayMode.Edit, DisplayMode.Disabled)
+      - btnBiaAssess:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Bewertung bestätigen"
+            OnSelect: |-
+              =UpdateContext({biaAction: "assess"}); Select(btnBiaSubmit)
+            X: =btnBiaDraft.X + btnBiaDraft.Width + 8
+            Y: =493
+            Width: =Min(225, (Parent.Width - 40) / 2)
+            Height: =41
+            Visible: =biaMode = "edit" && biaId > 0 && Lower(biaOriginalOwner) = Lower(User().Email)
+            DisplayMode: =If(!biaBusy && biaCanEdit && !IsBlank(Trim(txtBiaTitle.Text)) && Lower(biaOwner) = Lower(User().Email), DisplayMode.Edit, DisplayMode.Disabled)
+      - lblBcmExerciseDay:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Übung am"
+            X: =16
+            Y: =72
+            Width: =100
+            Height: =38
+            Visible: =biaMode = "exercise"
+            Size: =13
+      - datBcmExercise:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            AccessibleLabel: ="Übungsdatum"
+            DefaultDate: =Blank()
+            Format: =DateTimeFormat.ShortDate
+            Language: ="de-DE"
+            X: =114
+            Y: =72
+            Width: =Min(260, Parent.Width - 130)
+            Height: =42
+            Visible: =biaMode = "exercise"
+      - txtBcmResult:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Szenario und Ergebnis der Übung"
+            HintText: ="Szenario und Ergebnis der Übung"
+            Default: =""
+            X: =16
+            Y: =123
+            Width: =Parent.Width - 32
+            Height: =61
+            Visible: =biaMode = "exercise"
+            MaxLength: =4000
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            Mode: =TextMode.MultiLine
+      - btnBcmSubmit:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Übung speichern"
+            OnSelect: |-
+              =UpdateContext({biaAction: "exercise"}); Select(btnBiaSubmit)
+            X: =16
+            Y: =268
+            Width: =215
+            Height: =41
+            Visible: =biaMode = "exercise"
+            DisplayMode: |-
+              =If(!biaBusy && biaCanEdit && !IsBlank(datBcmExercise.SelectedDate) &&
+                  !IsBlank(Trim(txtBcmResult.Text)) && !IsBlank(biaEvidence), DisplayMode.Edit, DisplayMode.Disabled)
+      - txtBiaPicker:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            AccessibleLabel: ="Titelanfang oder Name suchen"
+            HintText: ="Titelanfang oder Name suchen"
+            Default: =""
+            X: =16
+            Y: =73
+            Width: =If(biaPick in ["asset", "system"], Max(96, Parent.Width - 216), Parent.Width - 32)
+            Height: =41
+            Visible: =biaMode = "pick"
+            MaxLength: =255
+            DisplayMode: =If(biaBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnBiaClearDependency:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Auswahl entfernen"
+            OnSelect: |-
+              =If(biaPick = "asset", UpdateContext({biaAsset: Blank(), biaAssetName: ""}),
+                  UpdateContext({biaSystem: Blank(), biaSystemName: ""}));
+              UpdateContext({biaMode: biaReturn})
+            X: =txtBiaPicker.X + txtBiaPicker.Width + 8
+            Y: =73
+            Width: =176
+            Height: =41
+            Visible: =biaMode = "pick" && If(biaPick = "asset", !IsBlank(biaAsset), biaPick = "system" && !IsBlank(biaSystem))
+      - galBiaOwners:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =123
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 58)
+            Visible: =biaMode = "pick" && biaPick = "owner"
+            Items: |-
+              =If(biaMode = "pick" && biaPick = "owner" && Len(Trim(txtBiaPicker.Text)) >= 2, ForAll('Office365-Benutzer'.SearchUserV2({searchTerm: Trim(txtBiaPicker.Text), top: 20,
+                      isSearchTermRequired: true}).value As person,
+                      {Email: person.UserPrincipalName, Name: Coalesce(person.DisplayName, person.UserPrincipalName)}))
+            AccessibleLabel: ="Auswahl Owners"
+            ItemAccessibleLabel: =ThisItem.Name
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+          Children:
+            - btnBiaPickOwners:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Name
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({biaOwner: ThisItem.Email, biaOwnerName: ThisItem.Name, biaMode: biaReturn})
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 3
+                  Height: =Parent.TemplateHeight - 3
+      - galBiaAssets:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =123
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 58)
+            Visible: =biaMode = "pick" && biaPick = "asset"
+            Items: |-
+              =If(biaMode = "pick" && biaPick = "asset", SortByColumns(Filter(Assets, IsActive = true && BusinessCritical = true &&
+                      (IsBlank(Trim(txtBiaPicker.Text)) || StartsWith(Title, Trim(txtBiaPicker.Text)))), "Title", SortOrder.Ascending))
+            AccessibleLabel: ="Auswahl Assets"
+            ItemAccessibleLabel: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+          Children:
+            - btnBiaPickAssets:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({biaAsset: ThisItem.ID, biaAssetName: ThisItem.Title, biaMode: biaReturn})
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 3
+                  Height: =Parent.TemplateHeight - 3
+      - galBiaSystems:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =123
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 58)
+            Visible: =biaMode = "pick" && biaPick = "system"
+            Items: |-
+              =If(biaMode = "pick" && biaPick = "system", SortByColumns(Filter(Systems, IsActive = true &&
+                      (IsBlank(Trim(txtBiaPicker.Text)) || StartsWith(Title, Trim(txtBiaPicker.Text)))), "Title", SortOrder.Ascending))
+            AccessibleLabel: ="Auswahl Systems"
+            ItemAccessibleLabel: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+          Children:
+            - btnBiaPickSystems:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({biaSystem: ThisItem.ID, biaSystemName: ThisItem.Title, biaMode: biaReturn})
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 3
+                  Height: =Parent.TemplateHeight - 3
+      - galBiaProof:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =123
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 58)
+            Visible: =biaMode = "pick" && biaPick = "evidence"
+            Items: |-
+              =If(biaMode = "pick" && biaPick = "evidence", SortByColumns(Filter(Evidence, IsActive = true &&
+                      (IsBlank(Trim(txtBiaPicker.Text)) || StartsWith(Title, Trim(txtBiaPicker.Text)))),
+                      "ID", SortOrder.Descending))
+            AccessibleLabel: ="Auswahl Proof"
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', "Nachweis") & " · ID " & Text(ThisItem.ID)
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+          Children:
+            - btnBiaPickProof:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', "Nachweis") & " · ID " & Text(ThisItem.ID)
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({biaEvidence: ThisItem.ID, biaEvidenceName: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', "Nachweis"), biaMode: biaReturn})
+                  X: =0
+                  Y: =0
+                  Width: =Parent.TemplateWidth - 3
+                  Height: =Parent.TemplateHeight - 3
+      - lblBiaNoMatches:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =Switch(biaPick, "owner", If(Len(Trim(txtBiaPicker.Text)) < 2, "Mindestens zwei Zeichen eingeben.", "Keine Person gefunden."),
+                  "asset", "Kein aktives geschäftskritisches Asset gefunden.", "system", "Kein aktives System gefunden.", "Kein aktiver Nachweis gefunden.")
+            X: =16
+            Y: =125
+            Width: =Parent.Width - 32
+            Height: =38
+            Visible: |-
+              =biaMode = "pick" && Switch(biaPick, "owner", IsEmpty(galBiaOwners.AllItems),
+                  "asset", IsEmpty(galBiaAssets.AllItems), "system", IsEmpty(galBiaSystems.AllItems), IsEmpty(galBiaProof.AllItems))
+            Size: =13
+      - lblBiaMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(biaBusy, "Bitte warten …", biaMessage)
+            X: =16
+            Y: =Parent.Height - 42
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =true
+            Size: =13
+      - btnBiaResetForm:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Visible: =false
+            OnSelect: =Reset(txtBiaTitle); Reset(txtBiaImpact); Reset(txtBiaMinimum); Reset(txtBiaMtpd); Reset(txtBiaRto); Reset(txtBiaRpo)
+      - btnBiaLoad:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Visible: =false
+            OnSelect: |-
+              =If(biaId > 0 && !biaBusy,
+                  UpdateContext({biaBusy: true, biaMessage: ""});
+                  IfError(Refresh(BusinessProcesses);
+                      UpdateContext({biaRow: LookUp(BusinessProcesses, ID = biaId), biaMode: "detail"}),
+                      UpdateContext({biaMessage: "Der aktuelle Prozessstand konnte nicht geladen werden."}));
+                  If(IsBlank(biaRow.ID) && IsBlank(biaMessage), UpdateContext({biaMessage: "Der Prozess ist nicht mehr verfügbar."}));
+                  UpdateContext({biaBusy: false}))
+      - btnBiaPrepare:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Visible: =false
+            OnSelect: |-
+              =If(biaId > 0 && !biaBusy && biaMayEdit,
+                  UpdateContext({biaBusy: true, biaMessage: "", biaRevision: "", biaCanEdit: false});
+                  IfError(With({res: GPBusinessContinuityWrite.Run("prepare", biaId, "-", "{}")},
+                      If(res.status = "ready_to_edit" && res.itemid = biaId && res.canedit && !IsBlank(res.revision),
+                          With({snapshot: ParseJSON(res.snapshot)},
+                              If(biaEditTarget = "exercise" &&
+                                      (Text(snapshot.status) <> "Bewertet" || Lower(Text(snapshot.owner)) <> Lower(User().Email)),
+                                  UpdateContext({biaMessage: "Übungen können nur Verantwortliche einer bestätigten BIA dokumentieren."}),
+                                  UpdateContext({biaMode: biaEditTarget, biaRevision: res.revision, biaCanEdit: true,
+                                      biaTitle: Text(snapshot.title), biaImpact: Text(snapshot.impact), biaMinimum: Text(snapshot.minimumService),
+                                      biaOwner: Text(snapshot.owner), biaOriginalOwner: Text(snapshot.owner), biaOwnerName: Text(snapshot.ownerName),
+                                      biaAsset: If(IsBlank(snapshot.BiaAssetItemID), Blank(), Value(snapshot.BiaAssetItemID)),
+                                      biaSystem: If(IsBlank(snapshot.BiaSystemItemID), Blank(), Value(snapshot.BiaSystemItemID)),
+                                      biaMtpd: If(IsBlank(snapshot.BiaMtpdMinutes), "", Text(snapshot.BiaMtpdMinutes)),
+                                      biaRto: If(IsBlank(snapshot.BiaRtoMinutes), "", Text(snapshot.BiaRtoMinutes)),
+                                      biaRpo: If(IsBlank(snapshot.BiaRpoMinutes), "", Text(snapshot.BiaRpoMinutes)),
+                                      biaEvidence: Blank(), biaEvidenceName: "",
+                                      biaAssetName: IfError(LookUp(Assets, ID = Value(snapshot.BiaAssetItemID), Title), Blank()),
+                                      biaSystemName: IfError(LookUp(Systems, ID = Value(snapshot.BiaSystemItemID), Title), Blank())});
+                                  Select(btnBiaResetForm); Reset(datBcmExercise); Reset(txtBcmResult))),
+                          UpdateContext({biaMessage: "Der Prozessstand steht nicht zur Bearbeitung bereit."}))),
+                      UpdateContext({biaMessage: "Der Bearbeitungsstand konnte nicht bestätigt werden."}));
+                  UpdateContext({biaBusy: false}))
+      - btnBiaSubmit:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Visible: =false
+            OnSelect: |-
+              =If(!biaBusy && biaCanEdit &&
+                  If(biaAction = "create", biaId = 0 && biaMayCreate,
+                     biaId > 0 && !IsBlank(biaRevision) && biaMayEdit),
+                  UpdateContext({biaBusy: true, biaMessage: ""});
+                  IfError(With({res: GPBusinessContinuityWrite.Run(biaAction, biaId, Coalesce(biaRevision, "-"),
+                      If(biaAction = "exercise",
+                          JSON({day: Text(datBcmExercise.SelectedDate, "[$-en-US]yyyy-mm-dd", "en-US"),
+                                result: Trim(txtBcmResult.Text), evidence: Text(biaEvidence, "0", "en-US")}, JSONFormat.Compact),
+                          JSON({key: biaKey, title: Trim(txtBiaTitle.Text), impact: Trim(txtBiaImpact.Text),
+                                minimumService: Trim(txtBiaMinimum.Text), owner: biaOwner,
+                                asset: If(IsBlank(biaAsset), "", Text(biaAsset, "0", "en-US")),
+                                system: If(IsBlank(biaSystem), "", Text(biaSystem, "0", "en-US")),
+                                mtpd: Trim(txtBiaMtpd.Text), rto: Trim(txtBiaRto.Text), rpo: Trim(txtBiaRpo.Text)}, JSONFormat.Compact)))},
+                      If(res.status = "saved" && res.itemid > 0,
+                          UpdateContext({biaId: res.itemid, biaRow: Blank(), biaMode: "detail", biaBusy: false,
+                              biaRevision: "", biaCanEdit: false}); Select(btnBiaLoad),
+                          UpdateContext({biaMessage: Switch(res.status,
+                              "invalid", "Prüfe Pflichtangaben und Minutenwerte. Die Wiederanlaufzeit muss unter der Ausfallgrenze liegen.",
+                              "conflict", "Der Prozess wurde inzwischen geändert. Lade den aktuellen Stand.",
+                              "invalid_exercise_date", "Das Übungsdatum muss gültig sein und heute oder früher liegen.",
+                              "assessment_denied", "Nur die bereits hinterlegte verantwortliche Person kann die BIA bestätigen.",
+                              "exercise_not_allowed", "Für die Übung brauchst du die bestätigte BIA und Verantwortung für den Prozess.",
+                              "owner_unavailable", "Die Person ist auf der SharePoint-Site nicht verfügbar.",
+                              "source_unavailable", "Das Asset, System oder der versionierte Übungsnachweis ist nicht verfügbar.",
+                              "denied", "Für diese Aktion fehlen die Berechtigungen.",
+                              "request_conflict", "Die Anlagekennung gehört bereits zu anderen Prozessdaten.",
+                              "uncertain", "Speichern ist nicht bestätigt. Lade den aktuellen Stand.",
+                              "Speichern konnte nicht bestätigt werden.")}))),
+                      UpdateContext({biaMessage: "Der Workflow konnte das Speichern nicht bestätigen."}));
+                  UpdateContext({biaBusy: false}))

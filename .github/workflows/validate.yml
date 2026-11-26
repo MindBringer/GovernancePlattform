@@ -26,3 +26,6 @@ jobs:
         run: python3 tests/test_measure_write_flow.py
       - name: Test Problem analysis, protected links and revision conflicts
         run: python3 tests/test_problem_write_flow.py
+
+      - name: Test BIA lifecycle, evidence and revision conflicts
+        run: python3 tests/test_business_continuity_write_flow.py

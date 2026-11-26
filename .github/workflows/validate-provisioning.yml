@@ -51,3 +51,7 @@ jobs:
       - name: Validate Problems schema and typed multi-value lookups
         shell: pwsh
         run: ./provisioning/Scripts/Test-ProblemContract.ps1
+
+      - name: Validate business continuity register
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-BusinessContinuityContract.ps1
