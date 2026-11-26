@@ -1,0 +1,377 @@
+Screens:
+  scrProblems:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =UpdateContext({problemBusy: false, problemMode: "list", problemId: 0, problemRow: Blank(),
+            problemRevision: "", problemCanEdit: false, problemMessage: "",
+            problemReadable: IfError(CountRows(FirstN(Problems, 1)) >= 0, false),
+            problemCanCreate: Coalesce(gblAssetPilotCanWrite, false) &&
+                IfError(DataSourceInfo(Problems, DataSourceInfo.CreatePermission), false)});
+        Reset(txtProblemSearch)
+    Children:
+      - btnProblemBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            DisplayMode: =If(problemBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =Switch(problemMode,
+                  "list", Back(),
+                  "new", UpdateContext({problemMode: "list", problemNewKey: "", problemMessage: ""}),
+                  "detail", UpdateContext({problemMode: "list", problemId: 0, problemRow: Blank(), problemMessage: ""}),
+                  UpdateContext({problemMode: "detail", problemMessage: ""}))
+            X: =16
+            Y: =16
+            Width: =100
+            Height: =42
+      - lblProblemHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Switch(problemMode, "new", "Problem erfassen", "analysis", "Ursachenanalyse bearbeiten", "incident", "Verknüpfte Incidents", "change", "Verknüpfte Changes", "Problems")
+            Size: =22
+            FontWeight: =FontWeight.Semibold
+            X: =128
+            Y: =16
+            Width: =Parent.Width - Self.X - 16
+            Height: =42
+      - txtProblemSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Problems nach Titel oder Anlagecode suchen"
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            Visible: =problemReadable && problemMode = "list"
+            X: =16
+            Y: =74
+            Width: =Min(500, Parent.Width - 144)
+            Height: =42
+      - btnProblemNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            Visible: =txtProblemSearch.Visible && problemCanCreate
+            DisplayMode: =If(problemBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({problemMode: "new", problemNewKey: "GP-PRB-REQ-" & Upper(Substitute(Text(GUID()), "-", "")), problemMessage: ""});
+                  Reset(txtProblemTitle))
+            X: =txtProblemSearch.X + txtProblemSearch.Width + 8
+            Y: =txtProblemSearch.Y
+            Width: =104
+            Height: =42
+      - galProblems:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Problems"
+            ItemAccessibleLabel: =ThisItem.Title
+            Visible: =txtProblemSearch.Visible
+            Items: |-
+              =If(problemReadable && problemMode = "list", With({term: Trim(txtProblemSearch.Text)},
+                  If(IsBlank(term), SortByColumns(Problems, "ID", SortOrder.Descending),
+                      StartsWith(Upper(term), "GP-PRB-REQ-"), Filter(Problems, CorrelationID = Upper(term)),
+                      SortByColumns(Filter(Problems, StartsWith(Title, term)), "ID", SortOrder.Descending))))
+            X: =16
+            Y: =128
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            TemplateSize: =54
+            TemplatePadding: =2
+          Children:
+            - btnProblemOpen:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID)
+                  OnSelect: |-
+                    =If(problemReadable && !problemBusy,
+                        UpdateContext({problemId: ThisItem.ID, problemMode: "detail", problemMessage: ""});
+                        Select(btnProblemLoad))
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =48
+      - txtProblemTitle:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Titel des Problems"
+            AccessibleLabel: =Self.HintText
+            MaxLength: =255
+            Visible: =problemReadable && problemCanCreate && problemMode = "new"
+            X: =16
+            Y: =74
+            Width: =Parent.Width - 32
+            Height: =42
+      - btnProblemCreate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Problem anlegen"
+            Visible: =txtProblemTitle.Visible
+            DisplayMode: =If(!problemBusy && !IsBlank(problemNewKey) && !IsBlank(Trim(txtProblemTitle.Text)), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({problemBusy: true, problemMessage: ""});
+                  With({requestKey: problemNewKey, title: Trim(txtProblemTitle.Text)},
+                      UpdateContext({problemMode: "list", problemNewKey: ""});
+                      IfError(Patch(Problems, Defaults(Problems), {Title: title, CorrelationID: requestKey, IsActive: true}); true, false);
+                      IfError(Refresh(Problems);
+                          With({persisted: LookUp(Problems, CorrelationID = requestKey)},
+                              If(!IsBlank(persisted.ID) && persisted.Title = title && persisted.IsActive,
+                                  UpdateContext({problemId: persisted.ID, problemMode: "detail", problemMessage: "Problem angelegt."}),
+                                  UpdateContext({problemMessage: "Anlage nicht bestätigt. Nach Anlagecode " & requestKey & " suchen."}))),
+                          UpdateContext({problemMessage: "Anlage nicht bestätigt. Nach Anlagecode " & requestKey & " suchen."})));
+                  UpdateContext({problemBusy: false});
+                  If(problemMode = "detail", Select(btnProblemLoad)))
+            X: =16
+            Y: =128
+            Width: =184
+            Height: =42
+      - lblProblemTitle:
+          Control: Label@2.5.1
+          Properties:
+            Text: =problemRow.Title & " · ID " & Text(problemRow.ID)
+            FontWeight: =FontWeight.Semibold
+            Visible: =problemReadable && !IsBlank(problemRow.ID) && !(problemMode exactin ["list", "new"])
+            X: =16
+            Y: =64
+            Width: =Parent.Width - 32
+            Height: =42
+      - btnProblemLoad:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            Visible: =problemReadable && problemMode = "detail" && problemId > 0
+            DisplayMode: =If(problemBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({problemBusy: true, problemRow: Blank(), problemRevision: "", problemCanEdit: false});
+                  IfError(Refresh(Problems); UpdateContext({problemRow: LookUp(Problems, ID = problemId)}),
+                      UpdateContext({problemMessage: "Der aktuelle Stand konnte nicht geladen werden."}));
+                  If(IsBlank(problemRow.ID),
+                      UpdateContext({problemMessage: "Dieses Problem ist für dieses Konto nicht verfügbar."}),
+                      If(Coalesce(gblAssetPilotCanWrite, false),
+                          IfError(With({snapshot: GPProblemWrite.Run(problemId, "prepare", "-", 0,
+                                  JSON({RootCause: Coalesce(problemRow.RootCause, ""), Workaround: Coalesce(problemRow.Workaround, ""),
+                                      KnownError: Coalesce(problemRow.KnownError, "")}))},
+                              If(snapshot.status = "ready" && snapshot.itemid = problemId && !IsBlank(snapshot.revision),
+                                  UpdateContext({problemCanEdit: snapshot.canedit, problemRevision: snapshot.revision}),
+                                  UpdateContext({problemMessage: "Der Bearbeitungsstand konnte nicht bestätigt werden."}))),
+                              UpdateContext({problemMessage: "Die Bearbeitungsrechte konnten nicht geprüft werden."}))));
+                  Reset(txtProblemRootCause); Reset(txtProblemWorkaround); Reset(txtProblemKnownError);
+                  UpdateContext({problemBusy: false}))
+            X: =16
+            Y: =112
+            Width: =136
+            Height: =42
+      - btnProblemAnalysis:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Analyse bearbeiten"
+            Visible: =btnProblemLoad.Visible && problemCanEdit
+            DisplayMode: =btnProblemLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({problemMode: "analysis", problemMessage: ""});
+                  Reset(txtProblemRootCause); Reset(txtProblemWorkaround); Reset(txtProblemKnownError))
+            X: =160
+            Y: =112
+            Width: =174
+            Height: =42
+      - btnProblemIncidents:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Incidents anzeigen"
+            Visible: =btnProblemLoad.Visible && lblProblemTitle.Visible
+            DisplayMode: =btnProblemLoad.DisplayMode
+            OnSelect: |-
+              =UpdateContext({problemMode: "incident", problemMessage: "", problemLinkId: 0, problemLinkTitle: ""});
+              Reset(txtProblemSource)
+            X: =16
+            Y: =162
+            Width: =158
+            Height: =42
+      - btnProblemChanges:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Changes anzeigen"
+            Visible: =btnProblemIncidents.Visible
+            DisplayMode: =btnProblemLoad.DisplayMode
+            OnSelect: |-
+              =UpdateContext({problemMode: "change", problemMessage: "", problemLinkId: 0, problemLinkTitle: ""});
+              Reset(txtProblemSource)
+            X: =182
+            Y: =162
+            Width: =158
+            Height: =42
+      - lblProblemRootCause:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Ursachenanalyse"
+            Visible: =lblProblemTitle.Visible && problemMode exactin ["detail", "analysis"]
+            X: =16
+            Y: =If(problemMode = "analysis", 112, 210)
+            Width: =Parent.Width - 32
+            Height: =28
+      - txtProblemRootCause:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =Coalesce(problemRow.RootCause, "")
+            AccessibleLabel: =lblProblemRootCause.Text
+            Mode: =TextMode.MultiLine
+            MaxLength: =4000
+            DisplayMode: =If(problemMode = "analysis" && problemCanEdit && !problemBusy, DisplayMode.Edit, DisplayMode.View)
+            Visible: =lblProblemRootCause.Visible
+            X: =16
+            Y: =lblProblemRootCause.Y + lblProblemRootCause.Height
+            Width: =Parent.Width - 32
+            Height: =Max(44, Min(118, (Parent.Height - Self.Y - 196) / 3))
+      - lblProblemWorkaround:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Workaround"
+            Visible: =lblProblemRootCause.Visible
+            X: =16
+            Y: =txtProblemRootCause.Y + txtProblemRootCause.Height + 4
+            Width: =Parent.Width - 32
+            Height: =28
+      - txtProblemWorkaround:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =Coalesce(problemRow.Workaround, "")
+            AccessibleLabel: =lblProblemWorkaround.Text
+            Mode: =TextMode.MultiLine
+            MaxLength: =4000
+            DisplayMode: =txtProblemRootCause.DisplayMode
+            Visible: =lblProblemWorkaround.Visible
+            X: =16
+            Y: =lblProblemWorkaround.Y + lblProblemWorkaround.Height
+            Width: =Parent.Width - 32
+            Height: =txtProblemRootCause.Height
+      - lblProblemKnownError:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Bekannter Fehler"
+            Visible: =lblProblemRootCause.Visible
+            X: =16
+            Y: =txtProblemWorkaround.Y + txtProblemWorkaround.Height + 4
+            Width: =Parent.Width - 32
+            Height: =28
+      - txtProblemKnownError:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =Coalesce(problemRow.KnownError, "")
+            AccessibleLabel: =lblProblemKnownError.Text
+            Mode: =TextMode.MultiLine
+            MaxLength: =4000
+            DisplayMode: =txtProblemRootCause.DisplayMode
+            Visible: =lblProblemKnownError.Visible
+            X: =16
+            Y: =lblProblemKnownError.Y + lblProblemKnownError.Height
+            Width: =Parent.Width - 32
+            Height: =txtProblemRootCause.Height
+      - galProblemLinks:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: =lblProblemHeading.Text
+            ItemAccessibleLabel: =lblProblemLinkTitle.Text
+            Visible: =lblProblemTitle.Visible && problemMode exactin ["incident", "change"]
+            Items: =If(Self.Visible, If(problemMode = "incident", problemRow.RelatedIncidents, problemRow.ResolvingChanges))
+            X: =16
+            Y: =112
+            Width: =Parent.Width - 32
+            Height: =Max(80, Min(264, Parent.Height - Self.Y - 222))
+            TemplateSize: =42
+            TemplatePadding: =2
+          Children:
+            - lblProblemLinkTitle:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With({sourceId: ThisItem.Id},
+                        With({sourceTitle: IfError(If(problemMode = "incident", LookUp(Incidents, ID = sourceId, Title),
+                                LookUp(Changes, ID = sourceId, Title)), Blank())},
+                            If(IsBlank(sourceTitle), "Verknüpfter Eintrag nicht verfügbar", sourceTitle & " · ID " & Text(sourceId))))
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =40
+      - txtProblemSource:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: =If(problemMode = "incident", "Incident-Listen-ID", "Change-Listen-ID")
+            AccessibleLabel: =Self.HintText
+            MaxLength: =10
+            Visible: =galProblemLinks.Visible && problemCanEdit
+            DisplayMode: =If(problemBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnChange: |-
+              =UpdateContext({problemLinkId: 0, problemLinkTitle: ""})
+            X: =16
+            Y: =galProblemLinks.Y + galProblemLinks.Height + 8
+            Width: =Min(360, Parent.Width - 156)
+            Height: =42
+      - btnProblemFind:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="ID anzeigen"
+            Visible: =txtProblemSource.Visible
+            DisplayMode: =If(!problemBusy && IsMatch(Trim(txtProblemSource.Text), "[1-9][0-9]{0,9}"), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  With({sourceId: Value(Trim(txtProblemSource.Text))},
+                      With({sourceTitle: IfError(If(problemMode = "incident", LookUp(Incidents, ID = sourceId && IsActive, Title),
+                              LookUp(Changes, ID = sourceId && IsActive, Title)), Blank())},
+                          UpdateContext({problemLinkId: If(IsBlank(sourceTitle), 0, sourceId), problemLinkTitle: sourceTitle,
+                              problemMessage: If(IsBlank(sourceTitle), "Kein aktiver Eintrag für diese ID verfügbar.", "")}))))
+            X: =txtProblemSource.X + txtProblemSource.Width + 8
+            Y: =txtProblemSource.Y
+            Width: =116
+            Height: =42
+      - lblProblemSelected:
+          Control: Label@2.5.1
+          Properties:
+            Text: =problemLinkTitle & " · ID " & Text(problemLinkId)
+            Visible: =txtProblemSource.Visible && problemLinkId > 0
+            X: =16
+            Y: =txtProblemSource.Y + 46
+            Width: =Parent.Width - 32
+            Height: =42
+      - btnProblemSave:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(problemMode = "analysis", "Analyse speichern", "Zuordnung speichern")
+            Visible: =problemCanEdit && (txtProblemRootCause.Visible && problemMode = "analysis" || lblProblemSelected.Visible)
+            DisplayMode: |-
+              =If(!problemBusy && !IsBlank(problemRevision) && If(problemMode = "analysis", true,
+                  Trim(txtProblemSource.Text) = Text(problemLinkId)), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({problemBusy: true, problemCanEdit: false});
+                  With({action: problemMode, revision: problemRevision, sourceId: If(problemMode = "analysis", 0, problemLinkId),
+                      payload: If(problemMode = "analysis", JSON({RootCause: Coalesce(txtProblemRootCause.Text, ""),
+                          Workaround: Coalesce(txtProblemWorkaround.Text, ""), KnownError: Coalesce(txtProblemKnownError.Text, "")}), "{}")},
+                      UpdateContext({problemRevision: "", problemMode: "detail"});
+                      IfError(With({result: GPProblemWrite.Run(problemId, action, revision, sourceId, payload)},
+                          UpdateContext({problemMessage: If(result.itemid = problemId && result.status = "saved", "Gespeichert.",
+                              result.itemid = problemId && result.status = "unchanged", "Bereits gespeichert.",
+                              result.status = "conflict", "Der Datensatz wurde zwischenzeitlich geändert. Aktuellen Stand prüfen.",
+                              result.status = "source_unavailable", "Die Quelle ist nicht mehr verfügbar. Aktuellen Stand prüfen.",
+                              "Speichern nicht bestätigt. Aktuellen Stand prüfen.")})),
+                          UpdateContext({problemMessage: "Speichern nicht bestätigt. Aktuellen Stand prüfen."})));
+                  UpdateContext({problemBusy: false});
+                  Select(btnProblemLoad))
+            X: =16
+            Y: =If(problemMode = "analysis", txtProblemKnownError.Y + txtProblemKnownError.Height + 8, lblProblemSelected.Y + lblProblemSelected.Height + 4)
+            Width: =196
+            Height: =42
+      - lblProblemMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(problemReadable, problemMessage, "Die Problems-Liste ist für dieses Konto nicht verfügbar.")
+            Live: =Live.Polite
+            X: =16
+            Y: =If(problemReadable, Parent.Height - Self.Height - 4, 74)
+            Width: =Parent.Width - 32
+            Height: =52

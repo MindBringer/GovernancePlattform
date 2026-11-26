@@ -47,3 +47,7 @@ jobs:
       - name: Validate Measures schema and lifecycle choices
         shell: pwsh
         run: ./provisioning/Scripts/Test-MeasureContract.ps1
+
+      - name: Validate Problems schema and typed multi-value lookups
+        shell: pwsh
+        run: ./provisioning/Scripts/Test-ProblemContract.ps1
