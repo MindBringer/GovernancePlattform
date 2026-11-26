@@ -115,6 +115,34 @@
       ],
       "groupBy": "DocumentCategory",
       "personalizable": true
+    },
+    {
+      "key": "FindingsRegister",
+      "objectTypeKey": "FindingObject",
+      "displayNameDE": "Findings",
+      "isDefault": true,
+      "filter": "",
+      "sort": [
+        [
+          "FindingDueDate",
+          "asc"
+        ],
+        [
+          "ID",
+          "asc"
+        ]
+      ],
+      "columns": [
+        "Title",
+        "FindingStatus",
+        "Owner",
+        "FindingDueDate",
+        "FindingSourceItemID",
+        "FindingMeasureItemID",
+        "FindingEvidenceItemID"
+      ],
+      "groupBy": "",
+      "personalizable": true
     }
   ]
 }

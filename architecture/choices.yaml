@@ -781,6 +781,26 @@
           60
         ]
       ]
+    },
+    {
+      "key": "FindingStatus",
+      "values": [
+        [
+          "Open",
+          "Offen",
+          10
+        ],
+        [
+          "InProgress",
+          "In Bearbeitung",
+          20
+        ],
+        [
+          "Closed",
+          "Abgeschlossen",
+          30
+        ]
+      ]
     }
   ]
 }

@@ -322,6 +322,36 @@
           []
         ]
       ]
+    },
+    {
+      "key": "Finding",
+      "states": [
+        [
+          "Open",
+          "Offen",
+          true,
+          false,
+          [
+            "InProgress"
+          ]
+        ],
+        [
+          "InProgress",
+          "In Bearbeitung",
+          false,
+          false,
+          [
+            "Closed"
+          ]
+        ],
+        [
+          "Closed",
+          "Abgeschlossen",
+          false,
+          true,
+          []
+        ]
+      ]
     }
   ]
 }

@@ -13,6 +13,13 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.6
+
+- Findings unter „Prüfungen“ aus abgeschlossenen Reviews oder Auditdateien erfassen, filtern und mit Verantwortung, Frist, Maßnahme und Abschlussnachweis verfolgen.
+- Beim Abschluss die geprüfte Nachweisversion speichern. Veraltete Schreibversuche und Abschlüsse ohne wirksame Maßnahme abweisen.
+- Review-Findings für die Leserrolle öffnen und Audit-Findings auf IT und die nötigen Administratoren beschränken.
+- Am 26. November 2026 als Solution `1.0.0.30521` in IT-Steinicke veröffentlicht und mit beiden Rollen geprüft. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p13--findings-und-abweichungen)
+
 ## Canvas 1.0.0-beta.5
 
 - Durchsuchbare Statusansichten für Incidents, Problems, Changes, Risiken, Kontrollen, Maßnahmen, Assets, Systeme, Policies, Procedures und Runbooks.

@@ -25,8 +25,14 @@ $lookup = @($fields | Where-Object InternalName -eq 'LinkedAsset')[0]
 $status = @($fields | Where-Object InternalName -eq 'ChangeStatus')[0]
 $approvedDate = @($change.Fields | Where-Object InternalName -eq 'ApprovedDate')[0]
 $explicitDates = @(@($model.Fields)+@($model.ObjectFields) | Where-Object { $_.ContainsKey('dateFormat') })
-if ($explicitDates.Count -ne 1 -or $explicitDates[0].objectTypeKey -ne 'Change' -or $explicitDates[0].internalName -ne 'ApprovedDate' -or $approvedDate.Type -cne 'DateTime' -or $approvedDate.DateFormat -cne 'DateTime' -or $approvedDate.Required -or $approvedDate.Indexed) {
-    throw 'Only Change.ApprovedDate must explicitly retain time; all other date fields keep their DateOnly default.'
+$declaredFormats = @($explicitDates | ForEach-Object {
+    $objectOrScope = if ($_.ContainsKey('objectTypeKey')) { $_.objectTypeKey } else { $_.scope }
+    "$objectOrScope.$($_.internalName)=$($_.dateFormat)"
+} | Sort-Object)
+$expectedFormats = @('Change.ApprovedDate=DateTime', 'finding.FindingClosedAt=DateTime', 'finding.FindingDueDate=DateOnly') | Sort-Object
+if (($declaredFormats -join '|') -cne ($expectedFormats -join '|') -or $approvedDate.Type -cne 'DateTime' -or
+    $approvedDate.DateFormat -cne 'DateTime' -or $approvedDate.Required -or $approvedDate.Indexed) {
+    throw 'Approval and Finding closure must retain time. The Finding deadline and remaining date fields are DateOnly.'
 }
 function Test-NativeApprovalDate($NativeFields) {
     $actual = @($NativeFields | Where-Object InternalName -eq 'ApprovedDate')
@@ -183,6 +189,10 @@ try {
         foreach ($date in @($list.Fields | Where-Object Type -eq 'DateTime')) {
             if ($list.ObjectKey -eq 'Change' -and $date.InternalName -eq 'ApprovedDate') { continue }
             [xml]$dx = & $schemaModule { param($Field) New-GPFieldXml -F $Field } $date
+            if ($list.ObjectKey -cin @('Finding', 'AuditFinding') -and $date.InternalName -ceq 'FindingClosedAt') {
+                if ($dx.Field.Format -cne 'DateTime') { throw "Finding closure timestamp missing: $($list.Title)." }
+                continue
+            }
             if ($dx.Field.Format -cne 'DateOnly') { throw "Unplanned timestamp format change: $($list.Title).$($date.InternalName)" }
             $otherDateCount++
         }

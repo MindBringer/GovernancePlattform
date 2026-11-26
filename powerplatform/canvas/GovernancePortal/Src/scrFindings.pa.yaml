@@ -1,0 +1,655 @@
+Screens:
+  scrFindings:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =UpdateContext({findingMode: "list", findingId: 0, findingRow: Blank(), findingRevision: "",
+            findingBusy: false, findingCanEdit: false, findingMessage: "", findingAction: "",
+            findingSourceId: 0, findingMeasureId: 0, findingEvidenceId: 0, findingNewKey: "", findingOwnerEmail: ""});
+        UpdateContext({findingReadable: If(findingScope = "audit",
+            IfError(CountRows(FirstN(AuditFindings, 1)) >= 0, false),
+            IfError(CountRows(FirstN(Findings, 1)) >= 0, false))});
+        Reset(txtFindingSearch); Reset(drpFindingStatus)
+    Children:
+      - btnFindingBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            OnSelect: |-
+              =If(findingMode = "pick",
+                  UpdateContext({findingMode: findingReturnMode}),
+                  findingMode = "list", Back(),
+                  findingMode = "new" || findingMode = "detail", UpdateContext({findingMode: "list", findingMessage: ""}),
+                  UpdateContext({findingMode: "detail", findingMessage: ""}))
+            X: =16
+            Y: =16
+            Width: =104
+            Height: =42
+            Visible: =true
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - lblFindingHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =Switch(findingMode,
+                  "new", "Finding erfassen", "plan", "Planung bearbeiten", "close", "Finding abschließen",
+                  "pick", Switch(findingPick, "owner", "Verantwortliche Person wählen", "measure", "Maßnahme wählen",
+                      "evidence", "Abschlussnachweis wählen", If(findingScope = "audit", "Auditdatei wählen", "Review wählen")),
+                  If(findingScope = "audit", "Audit-Findings", "Review-Findings"))
+            X: =132
+            Y: =14
+            Width: =Parent.Width - 148
+            Height: =46
+            Visible: =true
+            Size: =21
+            FontWeight: =FontWeight.Semibold
+      - txtFindingSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Nach Titel suchen"
+            AccessibleLabel: ="Nach Titel suchen"
+            Default: =""
+            X: =16
+            Y: =73
+            Width: =Max(96, Min(500, Parent.Width - 160))
+            Height: =42
+            Visible: =findingReadable && findingMode = "list"
+            DelayOutput: =true
+      - btnFindingNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            OnSelect: |-
+              =UpdateContext({
+                  findingMode: "new", findingMessage: "", findingId: 0, findingRow: Blank(),
+                  findingOwnerEmail: "", findingOwnerLabel: "", findingSourceId: 0, findingSourceLabel: "",
+                  findingMeasureId: 0, findingMeasureLabel: "", findingEvidenceId: 0, findingEvidenceLabel: "",
+                  findingNewKey: If(findingScope = "audit", "FNA-", "FND-") & Upper(Substitute(Text(GUID()), "-", ""))
+              });
+              Reset(txtFindingTitle); Reset(txtFindingDescription); Reset(datFindingDue)
+            X: =txtFindingSearch.X + txtFindingSearch.Width + 8
+            Y: =73
+            Width: =100
+            Height: =42
+            Visible: =findingReadable && findingMode = "list" && Coalesce(gblAssetPilotCanWrite, false) && If(findingScope = "audit", DataSourceInfo(AuditFindings, DataSourceInfo.CreatePermission), DataSourceInfo(Findings, DataSourceInfo.CreatePermission))
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - drpFindingStatus:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Findings nach Status filtern"
+            Value: ="Value"
+            Default: ="Alle Status"
+            Items: =["Alle Status", "Offen und in Arbeit", "Offen", "In Bearbeitung", "Abgeschlossen"]
+            X: =16
+            Y: =123
+            Width: =Min(260, Parent.Width - 32)
+            Height: =38
+            Visible: =findingReadable && findingMode = "list"
+      - galFindings:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =169
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingReadable && findingMode = "list" && findingScope = "review"
+            Items: |-
+              =If(findingReadable && findingMode = "list" && findingScope = "review",
+                  SortByColumns(Filter(Findings,
+                      IsActive = true && (Trim(txtFindingSearch.Text) = "" || StartsWith(Title, Trim(txtFindingSearch.Text))) &&
+                      (drpFindingStatus.Selected.Value = "Alle Status" || FindingStatus.Value = drpFindingStatus.Selected.Value ||
+                          (drpFindingStatus.Selected.Value = "Offen und in Arbeit" &&
+                              (FindingStatus.Value = "Offen" || FindingStatus.Value = "In Bearbeitung")))),
+                      "FindingDueDate", SortOrder.Ascending, "ID", SortOrder.Ascending))
+            AccessibleLabel: ="Findings"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: |-
+              =ThisItem.Title & " · " & Coalesce(ThisItem.FindingStatus.Value, "Ohne Status") &
+                  " · " & Coalesce(ThisItem.Owner.DisplayName, "Ohne Verantwortlichen") &
+                  If(IsBlank(ThisItem.FindingDueDate), "", " · fällig " & Text(ThisItem.FindingDueDate, "dd.mm.yyyy", "de-DE"))
+          Children:
+            - btnFindingsRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Title & " · " & Coalesce(ThisItem.FindingStatus.Value, "Ohne Status") &
+                        " · " & Coalesce(ThisItem.Owner.DisplayName, "Ohne Verantwortlichen") &
+                        If(IsBlank(ThisItem.FindingDueDate), "", " · fällig " & Text(ThisItem.FindingDueDate, "dd.mm.yyyy", "de-DE"))
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingId: ThisItem.ID, findingMode: "detail", findingMessage: "", findingRow: Blank()});
+                    Select(btnFindingLoad)
+                  DisplayMode: =DisplayMode.Edit
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - galAuditFindings:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =169
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingReadable && findingMode = "list" && findingScope = "audit"
+            Items: |-
+              =If(findingReadable && findingMode = "list" && findingScope = "audit",
+                  SortByColumns(Filter(AuditFindings,
+                      IsActive = true && (Trim(txtFindingSearch.Text) = "" || StartsWith(Title, Trim(txtFindingSearch.Text))) &&
+                      (drpFindingStatus.Selected.Value = "Alle Status" || FindingStatus.Value = drpFindingStatus.Selected.Value ||
+                          (drpFindingStatus.Selected.Value = "Offen und in Arbeit" &&
+                              (FindingStatus.Value = "Offen" || FindingStatus.Value = "In Bearbeitung")))),
+                      "FindingDueDate", SortOrder.Ascending, "ID", SortOrder.Ascending))
+            AccessibleLabel: ="Findings"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: |-
+              =ThisItem.Title & " · " & Coalesce(ThisItem.FindingStatus.Value, "Ohne Status") &
+                  " · " & Coalesce(ThisItem.Owner.DisplayName, "Ohne Verantwortlichen") &
+                  If(IsBlank(ThisItem.FindingDueDate), "", " · fällig " & Text(ThisItem.FindingDueDate, "dd.mm.yyyy", "de-DE"))
+          Children:
+            - btnAuditFindingsRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: |-
+                    =ThisItem.Title & " · " & Coalesce(ThisItem.FindingStatus.Value, "Ohne Status") &
+                        " · " & Coalesce(ThisItem.Owner.DisplayName, "Ohne Verantwortlichen") &
+                        If(IsBlank(ThisItem.FindingDueDate), "", " · fällig " & Text(ThisItem.FindingDueDate, "dd.mm.yyyy", "de-DE"))
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingId: ThisItem.ID, findingMode: "detail", findingMessage: "", findingRow: Blank()});
+                    Select(btnFindingLoad)
+                  DisplayMode: =DisplayMode.Edit
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - lblFindingEmpty:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Keine Findings für diese Auswahl."
+            X: =16
+            Y: =177
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingReadable && findingMode = "list" && If(findingScope = "audit", IsEmpty(galAuditFindings.AllItems), IsEmpty(galFindings.AllItems))
+      - btnFindingLoad:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            OnSelect: |-
+              =If(findingMode = "detail" && findingId > 0 && !findingBusy,
+                  UpdateContext({findingBusy: true, findingRow: Blank(), findingCanEdit: false, findingRevision: "", findingMessage: ""});
+                  IfError(
+                      If(findingScope = "audit",
+                          Refresh(AuditFindings); UpdateContext({findingRow: LookUp(AuditFindings, ID = findingId)}),
+                          Refresh(Findings); UpdateContext({findingRow: LookUp(Findings, ID = findingId)})),
+                      UpdateContext({findingMessage: "Das Finding konnte nicht geladen werden."}));
+                  If(IsBlank(findingRow.ID),
+                      UpdateContext({findingMessage: "Dieses Finding ist für dieses Konto nicht verfügbar."}),
+                      If(Coalesce(gblAssetPilotCanWrite, false),
+                          IfError(
+                              With({snapshot: GPFindingWrite.Run(findingScope, "prepare", findingId, "-", "{}")},
+                                  If(snapshot.status = "ready_to_edit" && snapshot.itemid = findingId &&
+                                      !IsBlank(snapshot.revision) && snapshot.nativeversion = findingRow.'{VersionNumber}',
+                                      UpdateContext({findingCanEdit: snapshot.canedit, findingRevision: snapshot.revision}),
+                                      UpdateContext({findingMessage: "Der Bearbeitungsstand konnte nicht bestätigt werden."}))),
+                              UpdateContext({findingMessage: "Die Bearbeitungsrechte konnten nicht bestätigt werden."}))));
+                  UpdateContext({findingBusy: false}))
+            X: =16
+            Y: =290
+            Width: =138
+            Height: =42
+            Visible: =findingMode = "detail" && findingId > 0
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - lblFindingDetail:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =findingRow.Title & " · " & findingRow.GovernanceID & Char(10) &
+                  Coalesce(findingRow.Description, "") & Char(10) &
+                  "Status: " & findingRow.FindingStatus.Value & Char(10) &
+                  "Verantwortlich: " & Coalesce(findingRow.Owner.DisplayName, findingRow.Owner.Email, "–") &
+                  " · Frist: " & Text(findingRow.FindingDueDate, "dd.mm.yyyy", "de-DE") & Char(10) &
+                  If(findingScope = "audit", "Auditdatei: ", "Review: ") &
+                  Coalesce(IfError(
+                      If(findingScope = "audit",
+                          LookUp(Audit, ID = findingRow.FindingSourceItemID, Coalesce(Title, '{FilenameWithExtension}')),
+                          LookUp(Reviews, ID = findingRow.FindingSourceItemID, Coalesce(ReviewedTitle, Title))),
+                      Blank()), "ID " & Text(findingRow.FindingSourceItemID)) & Char(10) &
+                  "Maßnahme: " & If(IsBlank(findingRow.FindingMeasureItemID), "–",
+                      Coalesce(IfError(LookUp(Measures, ID = findingRow.FindingMeasureItemID, Title), Blank()),
+                          "ID " & Text(findingRow.FindingMeasureItemID))) & Char(10) &
+                  "Abschlussnachweis: " & If(IsBlank(findingRow.FindingEvidenceItemID), "–",
+                      Coalesce(IfError(LookUp(Evidence, ID = findingRow.FindingEvidenceItemID,
+                          Coalesce(Title, '{FilenameWithExtension}')), Blank()),
+                          "ID " & Text(findingRow.FindingEvidenceItemID))) &
+                  If(IsBlank(findingRow.FindingClosedAt), "",
+                      Char(10) & "Geprüfte Nachweisversion: " & findingRow.FindingEvidenceVersion &
+                      " · Abschluss am " & Text(findingRow.FindingClosedAt, "dd.mm.yyyy", "de-DE") &
+                      " · " & Coalesce(findingRow.FindingClosedBy.DisplayName, "–") & Char(10) & Coalesce(findingRow.FindingClosureNote, ""))
+            X: =16
+            Y: =70
+            Width: =Parent.Width - 32
+            Height: =208
+            Visible: =findingReadable && findingMode = "detail" && !IsBlank(findingRow.ID)
+            VerticalAlign: =VerticalAlign.Top
+      - btnFindingPlan:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Planung bearbeiten"
+            OnSelect: |-
+              =UpdateContext({
+                  findingMode: "plan", findingMessage: "",
+                  findingOwnerEmail: Substitute(Coalesce(findingRow.Owner.Claims, findingRow.Owner.Email, ""), "i:0#.f|membership|", ""),
+                  findingOwnerLabel: Coalesce(findingRow.Owner.DisplayName, findingRow.Owner.Email, ""),
+                  findingMeasureId: Coalesce(findingRow.FindingMeasureItemID, 0), findingMeasureLabel: "",
+                  findingEvidenceId: Coalesce(findingRow.FindingEvidenceItemID, 0), findingEvidenceLabel: ""
+              });
+              Reset(txtFindingTitle); Reset(txtFindingDescription); Reset(datFindingDue)
+            X: =16
+            Y: =342
+            Width: =Min(220, Parent.Width - 32)
+            Height: =42
+            Visible: =findingReadable && findingMode = "detail" && !IsBlank(findingRow.ID) && findingCanEdit && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingStart:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="In Arbeit nehmen"
+            OnSelect: |-
+              =UpdateContext({findingAction: "start"}); Select(btnFindingSubmit)
+            X: =16
+            Y: =394
+            Width: =Min(220, Parent.Width - 32)
+            Height: =42
+            Visible: =findingReadable && findingMode = "detail" && !IsBlank(findingRow.ID) && findingCanEdit && Coalesce(gblAssetPilotCanWrite, false) && findingRow.FindingStatus.Value = "Offen"
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingClose:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Abschluss erfassen"
+            OnSelect: |-
+              =UpdateContext({findingMode: "close", findingMessage: ""}); Reset(txtFindingClosure)
+            X: =16
+            Y: =394
+            Width: =Min(220, Parent.Width - 32)
+            Height: =42
+            Visible: =findingReadable && findingMode = "detail" && !IsBlank(findingRow.ID) && findingCanEdit && Coalesce(gblAssetPilotCanWrite, false) && findingRow.FindingStatus.Value = "In Bearbeitung"
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - txtFindingTitle:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Titel"
+            AccessibleLabel: ="Titel"
+            Default: =""
+            X: =16
+            Y: =74
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode = "new"
+            MaxLength: =255
+      - txtFindingDescription:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Feststellung beschreiben"
+            AccessibleLabel: ="Feststellung beschreiben"
+            Default: =""
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =53
+            Visible: =findingMode = "new"
+            Mode: =TextMode.MultiLine
+            MaxLength: =4000
+      - btnFindingSelectSource:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =If(findingSourceId > 0, "Quelle: " & If(IsBlank(findingSourceLabel), "ID " & Text(findingSourceId), findingSourceLabel), "Quelle wählen")
+            OnSelect: |-
+              =UpdateContext({findingPick: "source", findingReturnMode: findingMode, findingMode: "pick", findingMessage: ""});
+              Reset(txtFindingPickSearch)
+            X: =16
+            Y: =187
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode = "new"
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingSelectOwner:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =If(IsBlank(findingOwnerLabel), "Verantwortlich wählen", "Verantwortlich: " & findingOwnerLabel)
+            OnSelect: |-
+              =UpdateContext({findingPick: "owner", findingReturnMode: findingMode, findingMode: "pick", findingMessage: ""});
+              Reset(txtFindingPickSearch)
+            X: =16
+            Y: =239
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - lblFindingDue:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Frist"
+            X: =16
+            Y: =290
+            Width: =80
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+      - datFindingDue:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            AccessibleLabel: ="Frist"
+            DefaultDate: =If(findingMode = "plan", findingRow.FindingDueDate, Blank())
+            Format: =DateTimeFormat.ShortDate
+            Language: ="de-DE"
+            X: =99
+            Y: =290
+            Width: =Min(260, Parent.Width - 115)
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+      - btnFindingSelectMeasure:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =If(findingMeasureId > 0, "Maßnahme: " & If(IsBlank(findingMeasureLabel), "ID " & Text(findingMeasureId), findingMeasureLabel), "Maßnahme wählen")
+            OnSelect: |-
+              =UpdateContext({findingPick: "measure", findingReturnMode: findingMode, findingMode: "pick", findingMessage: ""});
+              Reset(txtFindingPickSearch)
+            X: =16
+            Y: =342
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingSelectEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: |-
+              =If(findingEvidenceId > 0, "Nachweis: " & If(IsBlank(findingEvidenceLabel), "ID " & Text(findingEvidenceId), findingEvidenceLabel), "Nachweis wählen")
+            OnSelect: |-
+              =UpdateContext({findingPick: "evidence", findingReturnMode: findingMode, findingMode: "pick", findingMessage: ""});
+              Reset(txtFindingPickSearch)
+            X: =16
+            Y: =394
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+            DisplayMode: =If(findingBusy, DisplayMode.Disabled, DisplayMode.Edit)
+      - txtFindingClosure:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Ergebnis der Abschlussprüfung"
+            AccessibleLabel: ="Ergebnis der Abschlussprüfung"
+            Default: =""
+            X: =16
+            Y: =120
+            Width: =Parent.Width - 32
+            Height: =97
+            Visible: =findingMode = "close"
+            Mode: =TextMode.MultiLine
+            MaxLength: =2000
+      - lblFindingClosure:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Zum Abschluss braucht das Finding eine wirksame Maßnahme und einen geprüften Nachweis."
+            X: =16
+            Y: =71
+            Width: =Parent.Width - 32
+            Height: =44
+            Visible: =findingMode = "close"
+      - btnFindingSavePlan:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Speichern"
+            OnSelect: |-
+              =UpdateContext({findingAction: If(findingMode = "new", "create", "plan")}); Select(btnFindingSubmit)
+            X: =16
+            Y: =449
+            Width: =154
+            Height: =42
+            Visible: =findingMode in ["new", "plan"]
+            DisplayMode: |-
+              =If(findingBusy || !Coalesce(gblAssetPilotCanWrite, false) || IsBlank(findingOwnerEmail) ||
+                  IsBlank(datFindingDue.SelectedDate) || (findingMode = "new" &&
+                      (IsBlank(Trim(txtFindingTitle.Text)) || IsBlank(Trim(txtFindingDescription.Text)) || findingSourceId <= 0)) ||
+                  (findingMode = "plan" && !findingCanEdit), DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingConfirmClose:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Abschließen"
+            OnSelect: |-
+              =UpdateContext({findingAction: "close"}); Select(btnFindingSubmit)
+            X: =16
+            Y: =229
+            Width: =170
+            Height: =42
+            Visible: =findingMode = "close"
+            DisplayMode: =If(findingBusy || !findingCanEdit || IsBlank(Trim(txtFindingClosure.Text)), DisplayMode.Disabled, DisplayMode.Edit)
+      - btnFindingSubmit:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Visible: =false
+            Text: ="Finding speichern"
+            OnSelect: |-
+              =If(!findingBusy && Coalesce(gblAssetPilotCanWrite, false) &&
+                  ((findingAction = "create" && findingMode = "new") ||
+                      (findingCanEdit && !IsBlank(findingRevision) && findingAction in ["plan", "start", "close"])),
+                  UpdateContext({findingBusy: true, findingMessage: ""});
+                  IfError(
+                      With({result: GPFindingWrite.Run(findingScope, findingAction, If(findingAction = "create", 0, findingId),
+                          If(findingAction = "create", "-", findingRevision),
+                          JSON({
+                              key: Coalesce(findingNewKey, ""), title: Trim(txtFindingTitle.Text), description: Trim(txtFindingDescription.Text),
+                              source: Coalesce(findingSourceId, 0), owner: Coalesce(findingOwnerEmail, ""),
+                              due: If(IsBlank(datFindingDue.SelectedDate), "", Text(datFindingDue.SelectedDate, "[$-en-US]yyyy-mm-dd", "en-US")),
+                              measure: Coalesce(findingMeasureId, 0), evidence: Coalesce(findingEvidenceId, 0),
+                              note: Trim(txtFindingClosure.Text)
+                          }, JSONFormat.Compact))},
+                          If(result.status = "saved" && result.itemid > 0,
+                              UpdateContext({findingId: result.itemid, findingMode: "detail", findingCanEdit: false, findingRevision: ""});
+                              UpdateContext({findingBusy: false}); Select(btnFindingLoad),
+                              UpdateContext({findingMessage: Switch(result.status,
+                                  "conflict", "Das Finding wurde inzwischen geändert. Lade den aktuellen Stand.",
+                                  "source_unavailable", "Die gewählte Quelle ist für diese Zuordnung nicht verfügbar.",
+                                  "owner_unavailable", "Diese Person ist auf der SharePoint-Site nicht verfügbar.",
+                                  "measure_unavailable", "Die Maßnahme fehlt, ist nicht lesbar oder noch nicht wirksam.",
+                                  "evidence_unavailable", "Der Nachweis fehlt, ist nicht lesbar oder ohne geprüfte Dateiversion.",
+                                  "invalid_transition", "Für den Abschluss müssen Maßnahme und Nachweis zugeordnet sein. Nur die verantwortliche Person kann abschließen.",
+                                  "uncertain", "Der Speichervorgang konnte nicht bestätigt werden. Prüfe den aktuellen Stand.",
+                            "request_conflict", "Diese Anlagekennung ist bereits für andere Daten vergeben.",
+                            "request_key_unavailable", "Die eindeutige Anlagekennung ist in SharePoint nicht verfügbar.",
+                                  "denied", "Für diese Aktion fehlen die Berechtigungen.",
+                                  "Das Finding konnte nicht gespeichert werden.")}))),
+                      UpdateContext({findingMessage: "Der Workflow hat den Speichervorgang nicht bestätigt."}));
+                  UpdateContext({findingBusy: false}))
+      - txtFindingPickSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            HintText: ="Titelanfang oder Name suchen"
+            AccessibleLabel: ="Titelanfang oder Name suchen"
+            Default: =""
+            X: =16
+            Y: =74
+            Width: =Parent.Width - 32
+            Height: =42
+            Visible: =findingMode = "pick"
+            DelayOutput: =true
+      - galFindingReview:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingMode = "pick" && findingPick = "source" && findingScope = "review"
+            Items: |-
+              =If(findingMode = "pick" && findingPick = "source" && findingScope = "review",
+                  SortByColumns(Filter(Reviews,
+                      (Trim(txtFindingPickSearch.Text) = "" || StartsWith(Title, Trim(txtFindingPickSearch.Text))) && ManualReviewState.Value = "Abgeschlossen"),
+                      "ID", SortOrder.Descending))
+            AccessibleLabel: ="Auswahl"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: =Coalesce(ThisItem.ReviewedTitle, ThisItem.Title, "Review") & " · ID " & Text(ThisItem.ID)
+          Children:
+            - btnFindingReviewRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Coalesce(ThisItem.ReviewedTitle, ThisItem.Title, "Review") & " · ID " & Text(ThisItem.ID)
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingSourceId: ThisItem.ID, findingSourceLabel: Coalesce(ThisItem.ReviewedTitle, ThisItem.Title, "Review"), findingMode: findingReturnMode})
+                  DisplayMode: =DisplayMode.Edit
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - galFindingAudit:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingMode = "pick" && findingPick = "source" && findingScope = "audit"
+            Items: |-
+              =If(findingMode = "pick" && findingPick = "source" && findingScope = "audit",
+                  SortByColumns(Filter(Audit,
+                      (Trim(txtFindingPickSearch.Text) = "" || StartsWith(Title, Trim(txtFindingPickSearch.Text)))),
+                      "ID", SortOrder.Descending))
+            AccessibleLabel: ="Auswahl"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Auditdatei") & " · ID " & Text(ThisItem.ID)
+          Children:
+            - btnFindingAuditRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Auditdatei") & " · ID " & Text(ThisItem.ID)
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingSourceId: ThisItem.ID, findingSourceLabel: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Auditdatei"), findingMode: findingReturnMode})
+                  DisplayMode: =If(ThisItem.'{IsFolder}', DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - galFindingMeasure:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingMode = "pick" && findingPick = "measure"
+            Items: |-
+              =If(findingMode = "pick" && findingPick = "measure",
+                  SortByColumns(Filter(Measures,
+                      (Trim(txtFindingPickSearch.Text) = "" || StartsWith(Title, Trim(txtFindingPickSearch.Text))) && IsActive = true),
+                      "ID", SortOrder.Descending))
+            AccessibleLabel: ="Auswahl"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: =ThisItem.Title & " · " & Coalesce(ThisItem.MeasureStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
+          Children:
+            - btnFindingMeasureRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · " & Coalesce(ThisItem.MeasureStatus.Value, "Ohne Status") & " · ID " & Text(ThisItem.ID)
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingMeasureId: ThisItem.ID, findingMeasureLabel: ThisItem.Title & " · " & Coalesce(ThisItem.MeasureStatus.Value, "Ohne Status"), findingMode: findingReturnMode})
+                  DisplayMode: =DisplayMode.Edit
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - galFindingEvidence:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingMode = "pick" && findingPick = "evidence"
+            Items: |-
+              =If(findingMode = "pick" && findingPick = "evidence",
+                  SortByColumns(Filter(Evidence,
+                      (Trim(txtFindingPickSearch.Text) = "" || StartsWith(Title, Trim(txtFindingPickSearch.Text))) && IsActive = true),
+                      "ID", SortOrder.Descending))
+            AccessibleLabel: ="Auswahl"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Nachweis") & " · ID " & Text(ThisItem.ID)
+          Children:
+            - btnFindingEvidenceRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Nachweis") & " · ID " & Text(ThisItem.ID)
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingEvidenceId: ThisItem.ID, findingEvidenceLabel: Coalesce(ThisItem.Title, ThisItem.'{FilenameWithExtension}', ThisItem.'{Name}', "Nachweis"), findingMode: findingReturnMode})
+                  DisplayMode: =If(ThisItem.'{IsFolder}', DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - galFindingOwner:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            X: =16
+            Y: =124
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            Visible: =findingMode = "pick" && findingPick = "owner"
+            Items: |-
+              =If(findingMode = "pick" && findingPick = "owner" && Len(Trim(txtFindingPickSearch.Text)) >= 2,
+                  ForAll('Office365-Benutzer'.SearchUserV2({searchTerm: Trim(txtFindingPickSearch.Text), top: 20, isSearchTermRequired: true}).value As person,
+                      {DisplayName: person.DisplayName, UserPrincipalName: person.UserPrincipalName}))
+            AccessibleLabel: ="Verantwortliche Person"
+            TemplateSize: =56
+            TemplatePadding: =2
+            ShowScrollbar: =true
+            ItemAccessibleLabel: =Coalesce(ThisItem.DisplayName, ThisItem.UserPrincipalName)
+          Children:
+            - btnFindingOwnerRow:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =Coalesce(ThisItem.DisplayName, ThisItem.UserPrincipalName)
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =50
+                  Align: =Align.Left
+                  OnSelect: |-
+                    =UpdateContext({findingOwnerEmail: ThisItem.UserPrincipalName,
+                        findingOwnerLabel: Coalesce(ThisItem.DisplayName, ThisItem.UserPrincipalName), findingMode: findingReturnMode})
+                  DisplayMode: =If(IsBlank(ThisItem.UserPrincipalName), DisplayMode.Disabled, DisplayMode.Edit)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+      - lblFindingMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: =If(findingBusy, "Bitte warten …", If(!findingReadable, "Die Finding-Liste ist für dieses Konto nicht verfügbar.", findingMessage))
+            X: =16
+            Y: =Parent.Height - 58
+            Width: =Parent.Width - 32
+            Height: =56
+            Visible: =true
+            Color: =gblTheme.ColorText

@@ -653,7 +653,9 @@
       {
         "navigationKey": "NavReviews",
         "sources": [
-          "Review"
+          "Review",
+          "Finding",
+          "AuditFinding"
         ]
       },
       {
