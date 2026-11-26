@@ -28,7 +28,10 @@ function New-GPFieldXml {
   'User' {"<Field Type='User' $attrs UserSelectionMode='PeopleOnly' />"}
   'Choice' {"<Field Type='Choice' $attrs Format='Dropdown'><CHOICES>$(($F.Choices|ForEach-Object{"<CHOICE>$(ConvertTo-GPXmlEncoded $_)</CHOICE>"}) -join '')</CHOICES></Field>"}
   'MultiChoice' {"<Field Type='MultiChoice' $attrs><CHOICES>$(($F.Choices|ForEach-Object{"<CHOICE>$(ConvertTo-GPXmlEncoded $_)</CHOICE>"}) -join '')</CHOICES></Field>"}
-  'Lookup' {"<Field Type='Lookup' $attrs List='{$LookupListId}' ShowField='Title' />"}
+  'Lookup' {
+   $lookupType=if($F['allowMultiple']){"Type='LookupMulti' Mult='TRUE'"}else{"Type='Lookup'"}
+   "<Field $lookupType $attrs List='{$LookupListId}' ShowField='Title' />"
+  }
   default {throw "Unsupported field type '$($F.Type)' for '$($F.InternalName)'."}
  }
 }
@@ -65,8 +68,9 @@ function Ensure-GPField {
    }
    return
  }
- if(-not(Test-GPFieldTypeCompatible $existing.TypeAsString $F.Type)){
-   Write-GPLog "Retain incompatible field $List.$($F.InternalName): existing=$($existing.TypeAsString), model=$($F.Type). Use an explicit migration rule." WARN
+ $expectedType=if($F.Type -eq 'Lookup' -and $F['allowMultiple']){'LookupMulti'}else{$F.Type}
+ if(-not(Test-GPFieldTypeCompatible $existing.TypeAsString $expectedType)){
+   Write-GPLog "Retain incompatible field $List.$($F.InternalName): existing=$($existing.TypeAsString), model=$expectedType. Use an explicit migration rule." WARN
    return
  }
  if($global:GPContext.DryRun){return}

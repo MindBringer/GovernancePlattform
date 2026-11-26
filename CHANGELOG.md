@@ -13,6 +13,12 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.4
+
+- Problems unter „Betrieb“ erfassen, Ursachenanalyse, Workaround und bekannte Fehler pflegen und Incidents sowie Changes zuordnen.
+- Zuordnungen im geschützten Problem-Datensatz speichern und Änderungen gegen die native SharePoint-Version prüfen. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p12--problems-mit-incident--und-change-bezug)
+- Die Betriebsfreigabe für Solution `1.0.0.30514` und die Live-Prüfung beider Rollen sind dokumentiert. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p12--problems-mit-incident--und-change-bezug)
+
 ## Canvas 1.0.0-beta.3
 
 - Maßnahmen unter „Risiko & Compliance“ erfassen. Verantwortlichkeit und Frist pflegen sowie Kontrollen und vorhandene Nachweisdateien zuordnen.
