@@ -2,6 +2,8 @@
 
 Stand 26. November 2026. **P14 ist als Canvas 1.0.0-beta.7 mit Solution 1.0.0.30526 in IT-Steinicke live.** Unter „Betrieb → Geschäftsprozesse und BCM“ stehen Prozessregister, BIA und Übungsdokumentation bereit. Die beiden Pilotrollen sind geprüft. Für den ersten begrenzten Echtbetrieb steht die fachliche Freigabe eines realen Pilotfalls aus.
 
+Die fachlichen Listen, Bibliotheken und Beziehungen des veröffentlichten Stands sind im [ER-Diagramm](ER-DIAGRAMM.md) dokumentiert.
+
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 
 Entwicklung, Tests und Abnahme laufen in derselben Power-Platform-Umgebung und in der bestehenden Lösung Governance Portal. Die Umgebung übernimmt nach der jeweiligen Freigabe den produktiven Betrieb. Abnahme und Produktivnutzung sind Freigabestufen derselben App-Version. Getestet wird bis zur Freigabe mit synthetischen Datensätzen und den vorgesehenen Rollen.
