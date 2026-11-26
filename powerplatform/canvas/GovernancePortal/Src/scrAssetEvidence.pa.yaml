@@ -75,7 +75,7 @@ Screens:
       - lblAssetEvidenceTitle:
           Control: Label@2.5.1
           Properties:
-            Text: ="Nachweise · " & Switch(evidenceTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Control", "Kontrolle", "Objekt") & " · " & evidenceTargetTitle & " · ID " & Text(evidenceTargetId)
+            Text: ="Nachweise · " & Switch(evidenceTargetType, "Asset", "Asset", "Change", "Change", "Risk", "Risiko", "Control", "Kontrolle", "Measure", "Maßnahme", "Objekt") & " · " & evidenceTargetTitle & " · ID " & Text(evidenceTargetId)
             Font: =Font.'Open Sans'
             FontWeight: =FontWeight.Semibold
             Color: =gblTheme.ColorText
@@ -99,7 +99,7 @@ Screens:
             TabIndex: =-1
             Items: |-
               =If(
-                  evidenceTargetId > 0 && evidenceTargetType exactin ["Asset", "Change", "Risk", "Control"],
+                  evidenceTargetId > 0 && evidenceTargetType exactin ["Asset", "Change", "Risk", "Control", "Measure"],
                   Filter(
                       GovernanceRelations,
                       TargetItemID = evidenceTargetId &&

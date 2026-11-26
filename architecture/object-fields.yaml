@@ -452,6 +452,18 @@
     },
     {
       "objectTypeKey": "Measure",
+      "internalName": "MeasureStatus",
+      "displayNameDE": "Maßnahmenstatus",
+      "type": "Choice",
+      "required": false,
+      "indexed": true,
+      "visible": true,
+      "section": "General",
+      "sortOrder": 45,
+      "choiceSet": "MeasureStatus"
+    },
+    {
+      "objectTypeKey": "Measure",
       "internalName": "Priority",
       "displayNameDE": "Priorität",
       "type": "Choice",

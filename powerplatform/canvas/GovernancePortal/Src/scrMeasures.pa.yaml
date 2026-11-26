@@ -1,0 +1,496 @@
+Screens:
+  scrMeasures:
+    Properties:
+      Fill: =gblTheme.ColorWorkspace
+      OnVisible: |-
+        =If(Coalesce(measureEnterFresh, true),
+            UpdateContext({measureEnterFresh: false, measureBusy: false, measureMode: "list", measureId: 0,
+                measureRow: Blank(), measureRevision: "", measureCanEdit: false, measureMessage: "",
+                measureReadable: IfError(CountRows(FirstN(Measures, 1)) >= 0, false)});
+            Reset(txtMeasureSearch),
+            If(measureId > 0 && measureMode = "detail", Select(btnMeasureLoad)))
+    Children:
+      - btnMeasureBack:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Zurück"
+            DisplayMode: =If(measureBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =Switch(measureMode,
+                  "list", Back(),
+                  "detail", UpdateContext({measureMode: "list", measureId: 0, measureRow: Blank(), measureMessage: ""}),
+                  "new", UpdateContext({measureMode: "list", measureNewKey: "", measureMessage: ""}),
+                  UpdateContext({measureMode: "detail", measureMessage: ""}))
+            X: =16
+            Y: =16
+            Width: =100
+            Height: =42
+      - lblMeasureHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: =Switch(measureMode, "new", "Maßnahme erfassen", "plan", "Verantwortung und Frist", "control", "Kontrolle zuordnen", "evidence", "Nachweis zuordnen", "advance", "Status ändern", "Maßnahmen")
+            Size: =22
+            FontWeight: =FontWeight.Semibold
+            X: =128
+            Y: =16
+            Width: =Parent.Width - Self.X - 16
+            Height: =42
+      - txtMeasureSearch:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Maßnahmen nach Titel oder Anlagecode suchen"
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            Visible: =measureReadable && measureMode = "list"
+            X: =16
+            Y: =74
+            Width: =Min(500, Parent.Width - 144)
+            Height: =42
+      - btnMeasureNew:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Neu"
+            Visible: =txtMeasureSearch.Visible && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =If(measureBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureMode: "new", measureNewKey: "GP-MEA-REQ-" & Upper(Substitute(Text(GUID()), "-", "")), measureMessage: ""});
+                  Reset(txtMeasureTitle); Reset(txtMeasurePerson); Reset(drpMeasurePerson); Reset(dpMeasureDue))
+            X: =txtMeasureSearch.X + txtMeasureSearch.Width + 8
+            Y: =txtMeasureSearch.Y
+            Width: =104
+            Height: =42
+      - galMeasures:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: ="Maßnahmen"
+            ItemAccessibleLabel: =ThisItem.Title
+            Visible: =txtMeasureSearch.Visible
+            Items: |-
+              =With({term: Trim(txtMeasureSearch.Text)},
+                  If(IsBlank(term), SortByColumns(Measures, "ID", SortOrder.Descending),
+                      StartsWith(Upper(term), "GP-MEA-REQ-"), Filter(Measures, CorrelationID = Upper(term)),
+                      SortByColumns(Filter(Measures, StartsWith(Title, term)), "ID", SortOrder.Descending)))
+            X: =16
+            Y: =128
+            Width: =Parent.Width - 32
+            Height: =Max(0, Parent.Height - Self.Y - 60)
+            TemplateSize: =54
+            TemplatePadding: =2
+          Children:
+            - btnMeasureOpen:
+                Control: Classic/Button@2.2.0
+                Properties:
+                  Text: =ThisItem.Title & " · ID " & Text(ThisItem.ID) & " · " & Coalesce(ThisItem.MeasureStatus.Value, "Status offen")
+                  OnSelect: |-
+                    =UpdateContext({measureId: ThisItem.ID, measureMode: "detail", measureMessage: ""});
+                    Select(btnMeasureLoad)
+                  Fill: =gblTheme.ColorSurface
+                  Color: =gblTheme.ColorText
+                  Align: =Align.Left
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =48
+      - btnMeasureLoad:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Stand laden"
+            Visible: =measureMode = "detail" && measureId > 0
+            DisplayMode: =If(measureBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(measureMode = "detail" && measureId > 0 && !measureBusy,
+                  UpdateContext({measureBusy: true, measureCanEdit: false, measureRevision: "", measureRow: Blank()});
+                  IfError(Refresh(Measures); Refresh(GovernanceRelations);
+                      UpdateContext({measureRow: LookUp(Measures, ID = measureId)}),
+                      UpdateContext({measureMessage: "Der aktuelle Stand konnte nicht geladen werden."}));
+                  If(IsBlank(measureRow.ID),
+                      UpdateContext({measureMessage: "Diese Maßnahme ist für dieses Konto nicht verfügbar."}),
+                      If(Coalesce(gblAssetPilotCanWrite, false),
+                          IfError(With({snapshot: GPMeasureWrite.Run(measureId, "prepare", "-", 0, "-", "-")},
+                              If(snapshot.status = "ready" && snapshot.itemid = measureId &&
+                                  snapshot.measurestatus = Coalesce(measureRow.MeasureStatus.Value, "") &&
+                                  Lower(snapshot.ownerclaim) = Lower(Coalesce(measureRow.Owner.Claims, "")) &&
+                                  snapshot.dueday = If(IsBlank(measureRow.DueDate), "", Text(measureRow.DueDate, "[$-en-US]yyyy-mm-dd", "en-US")),
+                                  UpdateContext({measureCanEdit: snapshot.canedit, measureRevision: snapshot.revision}),
+                                  UpdateContext({measureMessage: "Der Bearbeitungsstand konnte nicht bestätigt werden."}))),
+                              UpdateContext({measureMessage: "Die Bearbeitungsrechte konnten nicht geprüft werden."}))));
+                  UpdateContext({measureBusy: false}))
+            X: =16
+            Y: =184
+            Width: =135
+            Height: =42
+      - lblMeasureDetails:
+          Control: Label@2.5.1
+          Properties:
+            Visible: =measureId > 0 && !IsBlank(measureRow.ID) && !(measureMode exactin ["list", "new"])
+            Text: |-
+              =measureRow.Title & " · ID " & Text(measureRow.ID) & Char(10) &
+               "Status: " & Coalesce(measureRow.MeasureStatus.Value, "offen") & Char(10) &
+               "Verantwortlich: " & Coalesce(measureRow.Owner.DisplayName, measureRow.Owner.Email, "offen") & Char(10) &
+               "Frist: " & If(IsBlank(measureRow.DueDate), "offen", Text(measureRow.DueDate, "dd.mm.yyyy", "de-DE")) &
+               If(IsBlank(measureRow.EffectivenessValidationDate), "",
+                   Char(10) & "Wirksamkeit bestätigt am " & Text(measureRow.EffectivenessValidationDate, "dd.mm.yyyy", "de-DE"))
+            X: =16
+            Y: =66
+            Width: =Parent.Width - 32
+            Height: =112
+      - btnMeasurePlan:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Plan bearbeiten"
+            Visible: =btnMeasureLoad.Visible && measureCanEdit && measureRow.MeasureStatus.Value <> "Wirksam" && Coalesce(gblAssetPilotCanWrite, false)
+            DisplayMode: =btnMeasureLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureMode: "plan", measureMessage: ""}); Reset(txtMeasurePerson); Reset(drpMeasurePerson); Reset(dpMeasureDue))
+            X: =btnMeasureLoad.X + btnMeasureLoad.Width + 8
+            Y: =btnMeasureLoad.Y
+            Width: =156
+            Height: =42
+      - btnMeasureControl:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Kontrolle zuordnen"
+            Visible: =btnMeasurePlan.Visible
+            DisplayMode: =btnMeasureLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureMode: "control", measureMessage: "", measureLinkId: 0, measureLinkTitle: ""}); Reset(txtMeasureLinkId))
+            X: =16
+            Y: =236
+            Width: =178
+            Height: =42
+      - btnMeasureEvidenceLink:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Nachweis zuordnen"
+            Visible: =btnMeasurePlan.Visible
+            DisplayMode: =btnMeasureLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureMode: "evidence", measureMessage: "", measureLinkId: 0, measureLinkTitle: ""}); Reset(txtMeasureLinkId))
+            X: =btnMeasureControl.X + btnMeasureControl.Width + 8
+            Y: =btnMeasureControl.Y
+            Width: =178
+            Height: =42
+      - btnMeasureEvidence:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Nachweise anzeigen"
+            Visible: =btnMeasureLoad.Visible && !IsBlank(measureRow.ID)
+            DisplayMode: =btnMeasureLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  Navigate(scrAssetEvidence, ScreenTransition.None,
+                      {evidenceTargetId: measureId, evidenceTargetType: "Measure", evidenceTargetTitle: measureRow.Title}))
+            X: =16
+            Y: =If(btnMeasureControl.Visible, 288, 236)
+            Width: =178
+            Height: =42
+      - btnMeasureStatus:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Status ändern"
+            Visible: =btnMeasureLoad.Visible && measureCanEdit && Coalesce(gblAssetPilotCanWrite, false) && measureRow.MeasureStatus.Value exactin ["Geplant", "In Umsetzung", "In Prüfung", "Wirksam"]
+            DisplayMode: =btnMeasureLoad.DisplayMode
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureMode: "advance", measureMessage: "", measureNext: Switch(measureRow.MeasureStatus.Value,
+                      "Geplant", "In Umsetzung", "In Umsetzung", "In Prüfung", "In Prüfung", "Wirksam", "Wirksam", "Geschlossen", "")});
+                  Reset(txtMeasureProofId); Reset(txtMeasureReview))
+            X: =btnMeasureEvidence.X + btnMeasureEvidence.Width + 8
+            Y: =btnMeasureEvidence.Y
+            Width: =156
+            Height: =42
+      - lblMeasureControlHeading:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Zugeordnete Kontrollen"
+            FontWeight: =FontWeight.Semibold
+            Visible: =btnMeasureEvidence.Visible
+            X: =16
+            Y: =btnMeasureEvidence.Y + 48
+            Width: =Parent.Width - 32
+            Height: =30
+      - galMeasureControls:
+          Control: Gallery@2.15.0
+          Variant: BrowseLayout_Vertical_TwoTextOneImageVariant_ver5.0
+          Properties:
+            AccessibleLabel: =lblMeasureControlHeading.Text
+            ItemAccessibleLabel: ="Kontroll-ID " & Text(ThisItem.SourceItemID)
+            Visible: =lblMeasureControlHeading.Visible
+            Items: |-
+              =Filter(GovernanceRelations, TargetItemID = measureId && TargetObjectTypeKey = "Measure" &&
+                  RelationTypeKey = "ControlImplementedByMeasure" && SourceObjectTypeKey = "Control" && IsActive = true)
+            X: =16
+            Y: =lblMeasureControlHeading.Y + lblMeasureControlHeading.Height
+            Width: =Parent.Width - 32
+            Height: =Min(132, Max(0, Parent.Height - Self.Y - 138))
+            TemplateSize: =38
+            TemplatePadding: =2
+          Children:
+            - lblMeasureControl:
+                Control: Label@2.5.1
+                Properties:
+                  Text: |-
+                    =With({sourceId: ThisItem.SourceItemID},
+                        Coalesce(IfError(LookUp(Controls, ID = sourceId, Title), Blank()), "Kontrolle nicht verfügbar") & " · ID " & Text(sourceId))
+                  Width: =Parent.TemplateWidth - 8
+                  Height: =36
+      - lblMeasureResult:
+          Control: Label@2.5.1
+          Properties:
+            Visible: =btnMeasureEvidence.Visible && !IsBlank(measureRow.EffectivenessValidationResult)
+            Text: |-
+              ="Prüfergebnis: " & measureRow.EffectivenessValidationResult
+            X: =16
+            Y: =galMeasureControls.Y + galMeasureControls.Height + 4
+            Width: =Parent.Width - 32
+            Height: =72
+      - txtMeasureTitle:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Titel der Maßnahme"
+            AccessibleLabel: =Self.HintText
+            MaxLength: =255
+            Visible: =measureMode = "new" && Coalesce(gblAssetPilotCanWrite, false)
+            X: =16
+            Y: =74
+            Width: =Parent.Width - 32
+            Height: =42
+      - txtMeasurePerson:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: =If(measureMode = "plan", "Andere verantwortliche Person suchen", "Verantwortliche Person suchen")
+            AccessibleLabel: =Self.HintText
+            DelayOutput: =true
+            OnChange: =Reset(drpMeasurePerson)
+            Visible: =txtMeasureTitle.Visible || (measureMode = "plan" && measureCanEdit && Coalesce(gblAssetPilotCanWrite, false))
+            X: =16
+            Y: =If(measureMode = "new", 128, 184)
+            Width: =Min(620, Parent.Width - 32)
+            Height: =42
+      - drpMeasurePerson:
+          Control: Classic/DropDown@2.3.1
+          Properties:
+            AccessibleLabel: ="Verantwortliche Person auswählen"
+            AllowEmptySelection: =true
+            Default: =""
+            Value: ="ChoiceLabel"
+            Items: |-
+              =If(Len(Trim(txtMeasurePerson.Text)) >= 2,
+                  ForAll('Office365-Benutzer'.SearchUserV2(
+                      {searchTerm: Trim(txtMeasurePerson.Text), top: 20, isSearchTermRequired: true}).value As person,
+                      {DisplayName: person.DisplayName, UserPrincipalName: person.UserPrincipalName,
+                       ChoiceLabel: Coalesce(person.DisplayName, person.UserPrincipalName) & " · " & person.UserPrincipalName}),
+                  FirstN(Table({DisplayName: "", UserPrincipalName: "", ChoiceLabel: ""}), 0))
+            Visible: =txtMeasurePerson.Visible
+            X: =16
+            Y: =txtMeasurePerson.Y + 50
+            Width: =txtMeasurePerson.Width
+            Height: =42
+      - lblMeasureDue:
+          Control: Label@2.5.1
+          Properties:
+            Text: ="Frist"
+            Visible: =txtMeasurePerson.Visible
+            X: =16
+            Y: =drpMeasurePerson.Y + 50
+            Width: =240
+            Height: =26
+      - dpMeasureDue:
+          Control: Classic/DatePicker@2.6.0
+          Properties:
+            DefaultDate: =If(measureMode = "plan", measureRow.DueDate, Blank())
+            Format: =DateTimeFormat.ShortDate
+            AccessibleLabel: ="Frist"
+            Visible: =lblMeasureDue.Visible
+            X: =16
+            Y: =lblMeasureDue.Y + lblMeasureDue.Height
+            Width: =Min(250, Parent.Width - 32)
+            Height: =42
+      - btnMeasureCreate:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="Maßnahme anlegen"
+            Visible: =txtMeasureTitle.Visible
+            DisplayMode: |-
+              =If(!measureBusy && !IsBlank(Trim(txtMeasureTitle.Text)) && !IsBlank(drpMeasurePerson.Selected.UserPrincipalName) &&
+                  !IsBlank(dpMeasureDue.SelectedDate) && !IsBlank(measureNewKey), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureBusy: true, measureMessage: ""});
+                  With({requestKey: measureNewKey, enteredTitle: Trim(txtMeasureTitle.Text), person: drpMeasurePerson.Selected,
+                      due: dpMeasureDue.SelectedDate, claim: "i:0#.f|membership|" & Lower(drpMeasurePerson.Selected.UserPrincipalName)},
+                      UpdateContext({measureNewKey: "", measureMode: "list"});
+                      IfError(Patch(Measures, Defaults(Measures), {Title: enteredTitle, CorrelationID: requestKey, IsActive: true,
+                          DueDate: due, MeasureStatus: {Value: "Geplant"}, Owner: {Claims: claim, DisplayName: person.DisplayName,
+                              Email: person.UserPrincipalName, Department: "", JobTitle: "", Picture: ""}}); true, false);
+                      IfError(Refresh(Measures);
+                          With({persisted: LookUp(Measures, CorrelationID = requestKey)},
+                              If(!IsBlank(persisted.ID) && persisted.Title = enteredTitle && persisted.IsActive &&
+                                  persisted.MeasureStatus.Value = "Geplant" && Lower(persisted.Owner.Claims) = claim &&
+                                  Text(persisted.DueDate, "yyyy-mm-dd") = Text(due, "yyyy-mm-dd"),
+                                  UpdateContext({measureId: persisted.ID, measureMode: "detail",
+                                      measureMessage: "Maßnahme angelegt. Jetzt eine Kontrolle zuordnen."}),
+                                  UpdateContext({measureMessage: "Anlage nicht bestätigt. Nach Anlagecode " & requestKey & " suchen."}))),
+                          UpdateContext({measureMessage: "Anlage nicht bestätigt. Nach Anlagecode " & requestKey & " suchen."})));
+                  UpdateContext({measureBusy: false});
+                  If(measureMode = "detail", Select(btnMeasureLoad)))
+            X: =16
+            Y: =dpMeasureDue.Y + dpMeasureDue.Height + 12
+            Width: =210
+            Height: =42
+      - txtMeasureLinkId:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: =If(measureMode = "control", "Listen-ID der Kontrolle", "Listen-ID des Nachweises")
+            AccessibleLabel: =Self.HintText
+            MaxLength: =10
+            OnChange: |-
+              =UpdateContext({measureLinkId: 0, measureLinkTitle: "", measureMessage: ""})
+            Visible: =measureCanEdit && Coalesce(gblAssetPilotCanWrite, false) && measureMode exactin ["control", "evidence"]
+            X: =16
+            Y: =184
+            Width: =Min(360, Parent.Width - 170)
+            Height: =42
+      - btnMeasureLookup:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: ="ID anzeigen"
+            Visible: =txtMeasureLinkId.Visible
+            DisplayMode: |-
+              =If(!measureBusy && IsMatch(Trim(txtMeasureLinkId.Text), "[0-9]{1,10}") &&
+                  Value(Trim(txtMeasureLinkId.Text)) > 0 && Value(Trim(txtMeasureLinkId.Text)) <= 2147483647, DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureBusy: true, measureLinkId: 0, measureLinkTitle: "", measureMessage: ""});
+                  With({sourceId: Value(Trim(txtMeasureLinkId.Text))},
+                      IfError(
+                          If(measureMode = "control",
+                              With({source: LookUp(Controls, ID = sourceId && IsActive = true)},
+                                  If(!IsBlank(source.ID), UpdateContext({measureLinkId: source.ID, measureLinkTitle: source.Title}))),
+                              With({source: LookUp(Evidence, ID = sourceId)},
+                                  If(!IsBlank(source.ID) && !Coalesce(source.'{IsFolder}', true),
+                                      UpdateContext({measureLinkId: source.ID, measureLinkTitle: Coalesce(source.'{FilenameWithExtension}', source.Title)})))),
+                          UpdateContext({measureMessage: "Die Quelle konnte nicht gelesen werden."}));
+                      If(measureLinkId = 0 && IsBlank(measureMessage), UpdateContext({measureMessage: "Für diese ID ist keine Quelle verfügbar."})));
+                  UpdateContext({measureBusy: false}))
+            X: =txtMeasureLinkId.X + txtMeasureLinkId.Width + 8
+            Y: =txtMeasureLinkId.Y
+            Width: =130
+            Height: =42
+      - lblMeasureLinkPick:
+          Control: Label@2.5.1
+          Properties:
+            Text: =measureLinkTitle & " · ID " & Text(measureLinkId)
+            Visible: =txtMeasureLinkId.Visible && measureLinkId > 0 && IfError(Value(txtMeasureLinkId.Text) = measureLinkId, false)
+            X: =16
+            Y: =240
+            Width: =Parent.Width - 32
+            Height: =36
+      - lblMeasureNext:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              ="Nächster Status: " & measureNext
+            Visible: =measureMode = "advance"
+            X: =16
+            Y: =184
+            Width: =Parent.Width - 32
+            Height: =32
+      - txtMeasureProofId:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="ID eines zugeordneten Wirksamkeitsnachweises"
+            AccessibleLabel: =Self.HintText
+            Visible: =lblMeasureNext.Visible && measureNext = "Wirksam"
+            MaxLength: =10
+            X: =16
+            Y: =224
+            Width: =Min(560, Parent.Width - 32)
+            Height: =42
+      - txtMeasureReview:
+          Control: Classic/TextInput@2.3.2
+          Properties:
+            Default: =""
+            HintText: ="Prüfergebnis festhalten"
+            AccessibleLabel: =Self.HintText
+            MaxLength: =2000
+            Mode: =TextMode.MultiLine
+            Visible: =txtMeasureProofId.Visible
+            X: =16
+            Y: =276
+            Width: =Min(720, Parent.Width - 32)
+            Height: =92
+      - btnMeasureReturn:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =If(measureNext = "Wirksam", "Zurück in Umsetzung", "Wirksamkeit bestätigen")
+            Visible: =lblMeasureNext.Visible && measureRow.MeasureStatus.Value = "In Prüfung" && measureCanEdit
+            DisplayMode: =If(measureBusy, DisplayMode.Disabled, DisplayMode.Edit)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureNext: If(measureNext = "Wirksam", "In Umsetzung", "Wirksam"), measureMessage: ""}))
+            X: =16
+            Y: =If(txtMeasureReview.Visible, 440, 282)
+            Width: =215
+            Height: =42
+      - btnMeasureSave:
+          Control: Classic/Button@2.2.0
+          Properties:
+            Text: =Switch(measureMode, "plan", "Plan speichern", "advance", "Status speichern", "Zuordnung speichern")
+            Visible: =measureCanEdit && Coalesce(gblAssetPilotCanWrite, false) && measureMode exactin ["plan", "advance", "control", "evidence"]
+            DisplayMode: |-
+              =If(!measureBusy && !IsBlank(measureRevision) && Switch(measureMode,
+                  "plan", !IsBlank(dpMeasureDue.SelectedDate) && (!IsBlank(drpMeasurePerson.Selected.UserPrincipalName) ||
+                      (IsBlank(Trim(txtMeasurePerson.Text)) && !IsBlank(measureRow.Owner.Email))),
+                  "advance", !IsBlank(measureNext) && If(measureNext = "Wirksam",
+                      IsMatch(Trim(txtMeasureProofId.Text), "[0-9]{1,10}") && Value(Trim(txtMeasureProofId.Text)) > 0 &&
+                          Value(Trim(txtMeasureProofId.Text)) <= 2147483647 && !IsBlank(Trim(txtMeasureReview.Text)), true),
+                  lblMeasureLinkPick.Visible), DisplayMode.Edit, DisplayMode.Disabled)
+            OnSelect: |-
+              =If(Self.Visible && Self.DisplayMode = DisplayMode.Edit,
+                  UpdateContext({measureBusy: true, measureMessage: ""});
+                  With({action: measureMode,
+                        sourceId: If(measureMode = "advance", If(measureNext = "Wirksam", Value(Trim(txtMeasureProofId.Text)), 0), Coalesce(measureLinkId, 0)),
+                        argument: Switch(measureMode, "plan", Coalesce(drpMeasurePerson.Selected.UserPrincipalName, measureRow.Owner.Email),
+                            "advance", measureNext, "-"),
+                        detail: Switch(measureMode, "plan", Text(dpMeasureDue.SelectedDate, "[$-en-US]yyyy-mm-dd", "en-US"),
+                            "advance", If(measureNext = "Wirksam", Trim(txtMeasureReview.Text), "-"), "-")},
+                      IfError(With({answer: GPMeasureWrite.Run(measureId, action, measureRevision, sourceId, argument, detail)},
+                          UpdateContext({measureMessage: Switch(answer.status,
+                              "saved", If(answer.itemid = measureId, "Stand gespeichert.", "Speicherergebnis unklar."),
+                              "unchanged", "Der Plan ist bereits gespeichert.",
+                              "linked", If(answer.itemid = measureId && answer.relationid > 0, "Zuordnung bestätigt.", "Zuordnung nicht bestätigt."),
+                              "conflict", "Die Maßnahme wurde geändert. Der Stand wird neu geladen.",
+                              "control_required", "Zuerst eine Kontrolle zuordnen.",
+                              "proof_required", "Für Wirksamkeit sind ein zugeordneter Nachweis und ein Prüfergebnis erforderlich.",
+                              "source_unavailable", "Die Quelle ist nicht verfügbar.",
+                              "owner_unavailable", "Die Person ist auf der SharePoint-Site nicht verfügbar.",
+                              "blocked", "Die Aktion ist für diesen Stand oder dieses Konto gesperrt.",
+                              "relation_conflict", "Es besteht eine abweichende Zuordnung.",
+                              "Speicherergebnis unklar. Aktuellen Stand prüfen.")})),
+                          UpdateContext({measureMessage: "Speicherergebnis unklar. Aktuellen Stand prüfen."})));
+                  UpdateContext({measureBusy: false, measureMode: "detail"}); Select(btnMeasureLoad))
+            X: =16
+            Y: =Switch(measureMode, "plan", dpMeasureDue.Y + dpMeasureDue.Height + 12, "advance", If(txtMeasureReview.Visible, 386, 232), 285)
+            Width: =215
+            Height: =42
+      - lblMeasureMessage:
+          Control: Label@2.5.1
+          Properties:
+            Text: |-
+              =If(measureBusy, "Maßnahme wird geladen …", !IsBlank(measureMessage), measureMessage,
+                  !measureReadable, "Die Maßnahmenliste ist für dieses Konto nicht verfügbar.",
+                  txtMeasureSearch.Visible && IsEmpty(galMeasures.AllItems), "Keine Maßnahmen gefunden.", "")
+            Live: =Live.Polite
+            X: =16
+            Y: =Parent.Height - 56
+            Width: =Parent.Width - 32
+            Height: =52

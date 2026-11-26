@@ -21,3 +21,6 @@ jobs:
 
       - name: Test Control ownership and relationships
         run: python3 tests/test_control_write_flow.py
+
+      - name: Test Measure lifecycle and effectiveness proof
+        run: python3 tests/test_measure_write_flow.py
