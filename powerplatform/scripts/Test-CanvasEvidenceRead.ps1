@@ -95,7 +95,9 @@ Table(
     {TargetItemID:3001, TargetObjectTypeKey:"Change", SourceItemID:7009, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
     {TargetItemID:3001, TargetObjectTypeKey:"System", SourceItemID:7010, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
     {TargetItemID:3001, TargetObjectTypeKey:"Control", SourceItemID:7011, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
-    {TargetItemID:3001, TargetObjectTypeKey:"Control", SourceItemID:7012, SourceObjectTypeKey:"Risk", RelationTypeKey:"RiskMitigatedByControl", IsActive:true}
+    {TargetItemID:3001, TargetObjectTypeKey:"Control", SourceItemID:7012, SourceObjectTypeKey:"Risk", RelationTypeKey:"RiskMitigatedByControl", IsActive:true},
+    {TargetItemID:3001, TargetObjectTypeKey:"Measure", SourceItemID:7013, SourceObjectTypeKey:"Evidence", RelationTypeKey:"EvidenceSupportsObject", IsActive:true},
+    {TargetItemID:3001, TargetObjectTypeKey:"Measure", SourceItemID:7014, SourceObjectTypeKey:"Control", RelationTypeKey:"ControlImplementedByMeasure", IsActive:true}
 )
 '@))
 $engine.UpdateVariable('evidenceTargetId', 3001)
@@ -105,7 +107,8 @@ Assert-Formula "First($items).SourceItemID" 7001 'Keeps native library ID'
 foreach ($case in @(
     @{Type='Risk'; FileId=7003},
     @{Type='Change'; FileId=7009},
-    @{Type='Control'; FileId=7011}
+    @{Type='Control'; FileId=7011},
+    @{Type='Measure'; FileId=7013}
 )) {
     $engine.UpdateVariable('evidenceTargetType', $case.Type)
     Assert-Formula "CountRows($items)" 1 "$($case.Type) with the same native ID has its own relation"
@@ -130,7 +133,8 @@ foreach ($case in @(
     @{Type='Asset'; Id=3001; Writer=$false; Allowed=$false},
     @{Type='System'; Id=3001; Writer=$true; Allowed=$false},
     @{Type='Risk'; Id=0; Writer=$true; Allowed=$false},
-    @{Type='Control'; Id=3001; Writer=$true; Allowed=$false}
+    @{Type='Control'; Id=3001; Writer=$true; Allowed=$false},
+    @{Type='Measure'; Id=3001; Writer=$true; Allowed=$false}
 )) {
     $engine.UpdateVariable('evidenceTargetType', $case.Type)
     $engine.UpdateVariable('evidenceTargetId', [int]$case.Id)

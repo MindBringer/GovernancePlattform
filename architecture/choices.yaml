@@ -370,6 +370,16 @@
       ]
     },
     {
+      "key": "MeasureStatus",
+      "values": [
+        ["Planned", "Geplant", 10],
+        ["InProgress", "In Umsetzung", 20],
+        ["InReview", "In Prüfung", 30],
+        ["Effective", "Wirksam", 40],
+        ["Closed", "Geschlossen", 50]
+      ]
+    },
+    {
       "key": "Effectiveness",
       "values": [
         [

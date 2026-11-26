@@ -13,6 +13,12 @@ Dieses Changelog enthält sowohl die Provisioning-/Architektur-Baseline als auch
 - historische Iterations- und Migrationsunterlagen archiviert.
 - `DeveloperPlatform.psd1` auf Canvas `1.0.0-alpha.3.4.1` synchronisiert.
 
+## Canvas 1.0.0-beta.3
+
+- Maßnahmen unter „Risiko & Compliance“ erfassen. Verantwortlichkeit und Frist pflegen sowie Kontrollen und vorhandene Nachweisdateien zuordnen.
+- Maßnahmen von „Geplant“ bis „Geschlossen“ führen. Für „Wirksam“ verlangt der Ablauf einen zugeordneten Nachweis und ein Prüfergebnis.
+- Rollenabnahme und Betriebsfreigabe für Solution `1.0.0.30511` dokumentiert. [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md#p11--maßnahmen-kontrollbezug-und-wirksamkeitsnachweis)
+
 ## Canvas 1.0.0-beta.2
 
 - Kontrollen unter „Risiko & Compliance“ erfassen, verantwortlichen Personen zuweisen und mit Risiken und vorhandenen Nachweisen verknüpfen.
