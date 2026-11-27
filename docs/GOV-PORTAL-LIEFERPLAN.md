@@ -1,10 +1,18 @@
 # Lieferplan für das Governance Portal
 
-Stand 26. November 2026. **P14 ist als Canvas 1.0.0-beta.7 mit Solution 1.0.0.30526 in IT-Steinicke live.** Unter „Betrieb → Geschäftsprozesse und BCM“ stehen Prozessregister, BIA und Übungsdokumentation bereit. Die beiden Pilotrollen sind geprüft. Für den ersten begrenzten Echtbetrieb steht die fachliche Freigabe eines realen Pilotfalls aus.
+Stand 27. November 2026. **Beta 7 ist als Canvas 234 der Solution 1.0.0.30529 in IT-Steinicke live.** Unter „Betrieb → Geschäftsprozesse und BCM“ stehen Prozessregister, BIA und Übungsdokumentation bereit. Für den ersten begrenzten Echtbetrieb steht die fachliche Freigabe eines realen Pilotfalls aus.
 
 Die fachlichen Listen, Bibliotheken und Beziehungen des veröffentlichten Stands sind im [ER-Diagramm](ER-DIAGRAMM.md) dokumentiert.
 
 **Nächster Schritt ist der kuratierte Import einer realen Asset-/Prozesskette.** Der [Copilot-Prompt](COPILOT-ERSTBEFUELLUNG.md) erzeugt den Vorschlagsblock. Der [Admin-Ablauf](COPILOT-IMPORT-ADMIN-ABLAUF.md) beschreibt Prüfung, Übernahme und Abnahme in Beta 7.
+
+### IT-Zugriff und Asset-Beschreibung
+
+Die Entra-Gruppe **IT** ist als **Benutzer** für die Betriebs-App und die separate Abnahme-App eingetragen. Die SharePoint-Rechte der angemeldeten Person bleiben für jede Fachliste maßgeblich. Die App leitet die Fachbearbeitung aus dem Lesezugriff auf den Eintrag `GovernanceEditor` in der technischen Liste `PortalEditorAccess` ab. Die eigene Listen-ACL gibt IT **Lesen** und behält die Konfigurationspflege bei der Portalverwaltung. Ein fehlender Eintrag oder ein Zugriffsfehler führt in der App zur Leserrolle. Die bisherige Freigabe der Administrationsnavigation wird separat ausgewertet.
+
+Im selben Stand erscheint `AssetDescription` als optionales, mehrzeiliges Feld **Asset-Beschreibung**. Die SharePoint-Spalte `Description` ist schreibgeschützt. Anlage mit mehrzeiligem Text, Lesen, Änderung, Erhalt bei Titeländerungen und Leeren sind in der Abnahme-App geprüft. [Admin-Ablauf für den Copilot-Import](COPILOT-IMPORT-ADMIN-ABLAUF.md)
+
+Die 55 lokalen Prüfungen bestanden. Abnahme-Canvas 55 und Betriebs-Canvas 234 verwenden denselben geprüften Canvas. Im Betriebs-Player war die mehrzeilige Beschreibung für den Bearbeiter editierbar und für die Leserrolle schreibgeschützt. Die Leserrolle sah weder Anlage noch Speichern. Beide synthetischen Assets wurden anschließend in den SharePoint-Papierkorb verschoben und dort zurückgelesen. Die Abnahme verwendete Tastatureingaben. Für Texte aus Copilot sieht der Admin-Ablauf einen Abgleich nach erneutem Öffnen des Assets vor.
 
 ## Umgebungsmodell bis zur vollständigen Produktivfreigabe
 

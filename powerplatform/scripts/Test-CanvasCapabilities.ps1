@@ -73,7 +73,23 @@ $editorSetting = 'Runtime.AssetPilotEditorEntraObjectId'
 $editorId = '01234567-89ab-4cde-8f01-23456789abcd'
 $otherId = '12345678-9abc-4def-8012-3456789abcde'
 $roleFormula = [regex]::Match($appSource, '(?ms)Set\(\s*gblAssetPilotCanWrite,\s*(?<formula>.*?)\r?\n {6}\);').Groups['formula'].Value
-if (!$roleFormula) { throw 'Missing the Asset pilot editor role formula.' }
+if (!$roleFormula) { throw 'Missing the group-based portal editor formula.' }
+$engine.UpdateVariable('gblAssetPilotEnabled', $true)
+$engine.UpdateVariable('gblDataError', $false)
+$accessRow = '{Title: "GovernanceEditor", ID: 12}'
+$accessTable = $engine.Eval("Table($accessRow)", $null, $options)
+$engine.UpdateVariable('PortalEditorAccess', $accessTable)
+Assert-Formula $roleFormula $true 'The caller can read the protected editor marker'
+$engine.UpdateVariable('PortalEditorAccess', $engine.Eval("FirstN(Table($accessRow), 0)", $null, $options))
+Assert-Formula $roleFormula $false 'A caller who cannot see the editor marker stays read-only'
+$engine.UpdateVariable('PortalEditorAccess', $engine.Eval('Table({Title: "UnrelatedRole", ID: 12})', $null, $options))
+Assert-Formula $roleFormula $false 'An unrelated marker does not authorize editing'
+Assert-Formula ($roleFormula.Replace('LookUp(PortalEditorAccess, Title = "GovernanceEditor", ID)', 'Error({Kind: ErrorKind.ReadPermission})')) $false 'A denied role read stays read-only'
+$engine.UpdateVariable('PortalEditorAccess', $accessTable)
+$engine.UpdateVariable('gblDataError', $true)
+Assert-Formula $roleFormula $false 'Runtime read errors keep the editor disabled'
+$adminFormula = [regex]::Match($appSource, '(?ms)Set\(\s*gblPortalCanAdmin,\s*(?<formula>.*?)\r?\n {6}\);').Groups['formula'].Value
+if (!$adminFormula) { throw 'Missing the separate portal administration formula.' }
 $engine.UpdateVariable('gblAssetPilotEditorSettingKey', $editorSetting)
 $engine.UpdateVariable('gblAssetPilotEnabled', $true)
 $engine.UpdateVariable('gblDataError', $false)
@@ -81,17 +97,17 @@ $editorRow = '{SettingKey: "' + $editorSetting + '", SettingValue: " ' + $editor
 $editorRows = $engine.Eval("Table($editorRow)", $null, $options)
 $engine.UpdateVariable('colAppSettings', $editorRows)
 $engine.UpdateVariable('gblUser', $engine.Eval('{EntraObjectId: GUID("' + $editorId + '")}', $null, $options))
-Assert-Formula $roleFormula $true 'An exact Entra ID and one setting allow the pilot editor'
+Assert-Formula $adminFormula $true 'An exact Entra ID and one setting allow the administration navigation'
 $engine.UpdateVariable('gblUser', $engine.Eval('{EntraObjectId: GUID("' + $otherId + '")}', $null, $options))
-Assert-Formula $roleFormula $false 'A different Entra ID remains read-only'
+Assert-Formula $adminFormula $false 'A different Entra ID remains read-only'
 $engine.UpdateVariable('gblUser', $engine.Eval('{EntraObjectId: GUID("' + $editorId + '")}', $null, $options))
 $engine.UpdateVariable('colAppSettings', $engine.Eval("FirstN(Table($editorRow), 0)", $null, $options))
-Assert-Formula $roleFormula $false 'A missing setting leaves the pilot read-only'
+Assert-Formula $adminFormula $false 'A missing setting leaves administration unavailable'
 $engine.UpdateVariable('colAppSettings', $engine.Eval("Table($editorRow, $editorRow)", $null, $options))
-Assert-Formula $roleFormula $false 'Duplicate settings leave the pilot read-only'
+Assert-Formula $adminFormula $false 'Duplicate settings leave administration unavailable'
 $engine.UpdateVariable('colAppSettings', $editorRows)
 $engine.UpdateVariable('gblDataError', $true)
-Assert-Formula $roleFormula $false 'Runtime read errors leave the pilot read-only'
+Assert-Formula $adminFormula $false 'Runtime read errors leave administration unavailable'
 $engine.UpdateVariable('gblDataError', $false)
 $engine.UpdateVariable('gblAssetPilotEnabled', $false)
 
@@ -106,6 +122,7 @@ $engine.UpdateVariable('colAppSettings', $engine.Eval("Table($editorRow, $access
 Assert-Formula $accessFormula $true 'An explicitly assigned editor sees the extended pilot'
 $engine.UpdateVariable('gblUser', $engine.Eval('{EntraObjectId: GUID("' + $otherId + '")}', $null, $options))
 Assert-Formula $accessFormula $true 'An explicitly assigned reader sees the extended pilot'
+$engine.UpdateVariable('PortalEditorAccess', $engine.Eval('FirstN(Table({Title: "GovernanceEditor", ID: 12}), 0)', $null, $options))
 $engine.UpdateVariable('gblAssetPilotEnabled', $true)
 Assert-Formula $roleFormula $false 'Extended navigation never grants the editor role'
 $engine.UpdateVariable('gblAssetPilotEnabled', $false)

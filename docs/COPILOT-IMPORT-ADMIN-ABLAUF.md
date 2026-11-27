@@ -1,6 +1,6 @@
 # Admin-Ablauf für den ersten Copilot-Import
 
-**Gilt für Governance Portal Beta 7 · Canvas 231 · Solution 30526 in IT-Steinicke.** Ziel ist ein realer Geschäftsprozess mit einem eindeutig zugeordneten Asset und System. Wenn fachlich belegt, gehören Risiko, BIA, Kontrollen, Dokumente und Nachweise in denselben Vorschlagsblock.
+**Gilt für Governance Portal Beta 7 ab Solution 30529 in IT-Steinicke.** Ziel ist ein realer Geschäftsprozess mit einem eindeutig zugeordneten Asset und System. Wenn fachlich belegt, gehören Risiko, BIA, Kontrollen, Dokumente und Nachweise in denselben Vorschlagsblock.
 
 In Beta 7 bedeutet Import die **kuratierte Übernahme einzelner Einträge über die vorhandenen Formulare**. Copilot recherchiert und erzeugt den Block im Chat. Der Admin prüft ihn als Ganzes und speichert die freigegebenen Teile in Abhängigkeitsreihenfolge. Jeder Speichervorgang wirkt sofort auf seinen Eintrag. Der Block bleibt das gemeinsame Protokoll.
 
@@ -24,13 +24,15 @@ In Beta 7 bedeutet Import die **kuratierte Übernahme einzelner Einträge über 
 
 ## 4. Freigegebene Einträge in dieser Reihenfolge übernehmen
 
-1. **Asset.** Öffne **Governance → Assets in der App öffnen**. Öffne das bestätigte Bestandsasset oder wähle **Neu**. Übernimm den eindeutigen Titel, Owner, Stellvertretung, Status und vereinbarten nächsten Reviewtermin. Speichere und lies die native Listen-ID zurück. Für den BIA-Pfad prüfe am bestätigten Eintrag in der SharePoint-Liste **Assets** das Feld **Geschäftskritisch**. Pflege dieses Feld bei Bedarf in SharePoint am exakten Datensatz im bestätigten Umfang.
+1. **Asset.** Öffne **Governance → Assets in der App öffnen**. Öffne das bestätigte Bestandsasset oder wähle **Neu**. Übernimm den eindeutigen Titel, Owner, Stellvertretung, Status und vereinbarten nächsten Reviewtermin. Trage freigegebenen Zweck, Einsatzbereich und Zusatzinfos bei Bedarf mehrzeilig in **Asset-Beschreibung** ein. Verlasse das Feld vor dem Speichern, damit die App die Eingabe übernimmt. Öffne das Asset danach erneut und gleiche den Beschreibungstext ab. Lies die native Listen-ID zurück. Für den BIA-Pfad prüfe am bestätigten Eintrag in der SharePoint-Liste **Assets** das Feld **Geschäftskritisch**. Pflege dieses Feld bei Bedarf in SharePoint am exakten Datensatz im bestätigten Umfang.
 2. **System.** Öffne **Governance → Systeme in der App öffnen**. Nutze das bestätigte Bestandssystem oder lege über **Neu** den aktiven Systemdatensatz mit Name, Beschreibung, Umgebung und Owner an. Setze **Verknüpftes Asset** auf die bestätigte Asset-ID. Speichere und lies System-ID und Lookup zurück.
 3. **Risiko, falls bestätigt.** Öffne **Risiko & Compliance → Risiken in der App öffnen** und wähle den Bestandseintrag oder **Neu**. Erfasse Szenario, Risk Owner, betroffene Asset-ID und die fachlich bestätigten Bewertungen und Behandlung. Halte offene Bewertungen offen. Den Akzeptanzschritt führt der vorgesehene Risk Owner im dafür vorgesehenen Ablauf aus.
 4. **Geschäftsprozess und BIA.** Öffne **Betrieb → Geschäftsprozesse und BCM in der App öffnen → Neu**. Erfasse Titel, Ausfallfolgen mit Zeitbezug, Mindestniveau im Notbetrieb und Verantwortliche. Wähle das bestätigte Asset und System per Titel und ID, trage die bestätigten Minutenwerte ein und wähle **Als Entwurf speichern**. Öffne den gespeicherten Eintrag erneut. Die eingetragene verantwortliche Person wählt **BIA bearbeiten → Bewertung bestätigen**, wenn alle Werte stimmen.
 5. **Nachweise und optionale Ergänzungen.** Am Asset führt **Nachweise → Datei hinzufügen → Datei ablegen und zuordnen** zur freigegebenen Datei. Prüfe vorher, ob dieselbe Zuordnung bereits besteht. Kontrollen führen unter **Risiko & Compliance → Kontrollen** die Zuordnung zum Risiko. Unter **Maßnahmen** kannst du eine Kontrolle und einen vorhandenen Nachweis zuordnen. Dokumententwürfe legst du im genehmigten Umfang in **Policies**, **Procedures** oder **Runbooks** ab und reichst sie über **Freigabe · ID** ein. Eine BCM-Übung wird erst nach der Durchführung über **Übung dokumentieren** mit Datum, Ergebnis und der ausgewählten Evidence-Version erfasst.
 
 Trage nach jedem Speichern Liste, ID, Version und Zielbezug in das Übernahmeprotokoll ein. Bei Fehler oder unklarer Antwort lade den Datensatz neu und prüfe zuerst SharePoint und die protokollierte ID. Halte den Block auf **Teilweise übernommen**, wenn noch freigegebene Zeilen fehlen. Kläre Berechtigungs- und Datenkonflikte mit der zuständigen Person, bevor du fortsetzt.
+
+**Asset-Kontext.** Halte den geprüften Vorschlag und die native Asset-ID in derselben Blockzeile fest. Ist **Asset-Beschreibung** im Player noch nicht sichtbar, aktualisiere die App. Die SharePoint-Spalte `Assets.Description` ist schreibgeschützt. Die Beschreibung des zugehörigen Systems steht separat im Systemformular.
 
 ## 5. Abnahme und Abschluss
 
