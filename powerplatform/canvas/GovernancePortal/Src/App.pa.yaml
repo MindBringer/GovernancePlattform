@@ -770,18 +770,27 @@ App:
       );
       Set(
           gblAssetPilotCanWrite,
-          gblAssetPilotEnabled &&
-              With(
-                  {
-                      editorSettings: Filter(colAppSettings, SettingKey = gblAssetPilotEditorSettingKey),
-                      actorId: Lower(Text(gblUser.EntraObjectId))
-                  },
-                  !gblDataError && !IsBlank(actorId) && CountRows(editorSettings) = 1
-                      && Lower(Trim(First(editorSettings).SettingValue)) = actorId
+          gblAssetPilotEnabled && !gblDataError
+              && IfError(
+                  Coalesce(LookUp(PortalEditorAccess, Title = "GovernanceEditor", ID), 0) > 0,
+                  false
               )
       );
 
-      If(gblWorkspaceEnabled && !gblAssetPilotCanWrite,
+      Set(
+          gblPortalCanAdmin,
+          gblAssetPilotEnabled &&
+              With(
+                  {
+                      adminSettings: Filter(colAppSettings, SettingKey = gblAssetPilotEditorSettingKey),
+                      actorId: Lower(Text(gblUser.EntraObjectId))
+                  },
+                  !gblDataError && !IsBlank(actorId) && CountRows(adminSettings) = 1
+                      && Lower(Trim(First(adminSettings).SettingValue)) = actorId
+              )
+      );
+
+      If(gblWorkspaceEnabled && !gblPortalCanAdmin,
           RemoveIf(colNavigation, NavKey = "NavAdmin")
       );
 

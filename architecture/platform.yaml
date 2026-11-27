@@ -50,6 +50,9 @@
         "IsActive"
       ]
     },
+    "PermissionList": {
+      "fields": []
+    },
     "ConfigurationObject": {
       "fields": [
         "Description",
@@ -681,6 +684,11 @@
       "key": "AppRoles",
       "title": "AppRoles",
       "baseClass": "ConfigurationObject"
+    },
+    {
+      "key": "PortalEditorAccess",
+      "title": "PortalEditorAccess",
+      "baseClass": "PermissionList"
     },
     {
       "key": "ViewDefinitions",

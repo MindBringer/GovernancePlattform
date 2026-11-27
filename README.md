@@ -9,7 +9,7 @@ Metadatengetriebene Governance-Plattform auf Basis von SharePoint Online, Power 
 | Teilprodukt | Version | Status |
 |---|---:|---|
 | SharePoint-Provisioning und Architekturmodell | `6.2.5` | stabile Git-Baseline |
-| Canvas App | `1.0.0-beta.7` | Canvas 231 und Solution `1.0.0.30526` in IT-Steinicke live |
+| Canvas App | `1.0.0-beta.7` | Canvas 234 und Solution `1.0.0.30529` in IT-Steinicke live |
 | Developer Workflow | `Stage 3.7` | Companion-, Audit- und Git-Pull-Zwischenstufe |
 
 Die Versionsreihen bleiben getrennt. `VERSION` beschreibt das Provisioning-Paket, `powerplatform/VERSION` die Canvas-Version. Die [Roadmap](docs/ROADMAP.md) und der [Lieferplan](docs/GOV-PORTAL-LIEFERPLAN.md) dokumentieren Veröffentlichung und nächste Schritte.

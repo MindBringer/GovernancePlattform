@@ -68,7 +68,7 @@ foreach ($pair in @(@('Asset','Assets'),@('System','Systems'))) {
     $payload = Get-Balanced $save $payloadStart '{' '}'
     $loadedNames = @([regex]::Matches($projection, 'FieldInternalName: "([^"]+)"') | ForEach-Object { $_.Groups[1].Value })
     $writtenNames = @([regex]::Matches($payload, '(?m)^\s*(\w+): ') | Where-Object { $_.Groups[1].Value -notin @('Claims','DisplayName','Email','Department','JobTitle','Picture','Id','Value') } | ForEach-Object { $_.Groups[1].Value })
-    $expectedCount = if ($key -eq 'Asset') {17} else {16}
+    $expectedCount = if ($key -eq 'Asset') {18} else {16}
     if ($loadedNames.Count -ne $expectedCount -or ($loadedNames | Sort-Object -Unique).Count -ne $expectedCount -or ($writtenNames.Count -ne $expectedCount) -or (Compare-Object ($loadedNames | Sort-Object) ($writtenNames | Sort-Object))) { throw "$key native load/write sets differ; existing fields could be erased." }
     if ($save -notmatch "(?s)Patch\(\s*${ds},\s*If\([^,]+,\s*gbl${key}Record,\s*Defaults\(${ds}\)") { throw "$key Edit must patch the original loaded native record, preserving connector identity." }
     if ($load -notmatch "Refresh\(${ds}\);\s*Set\(gbl${key}Record, LookUp\(${ds}, ID = gblSelectedRecordId\)\)") { throw "$key must refresh and load by delegable ID equality." }
@@ -85,8 +85,10 @@ foreach ($pair in @(@('Asset','Assets'),@('System','Systems'))) {
     }
     $records[$key] = @{Projection=$projection; Payload=$payload; Fields=$loadedNames; Schema=$native}
 }
-if ('SystemDescription' -notin $records.System.Fields -or 'Description' -in $records.System.Fields) {
-    throw 'System business description must round-trip through its own Note column; the native sealed Description column must not be patched.'
+foreach ($key in 'Asset','System') {
+    if ("${key}Description" -notin $records[$key].Fields -or 'Description' -in $records[$key].Fields) {
+        throw "$key business description must round-trip through its own Note column. The inherited Description field must stay outside the editor."
+    }
 }
 $errorLabel = [regex]::Match($source, '(?ms)- lblEditorSaveError:\r?\n(?<control>.*?)(?=^ {0,36}- \w+:|\z)').Groups['control'].Value
 if ($errorLabel -notmatch 'AutoHeight: =true' -or $errorLabel -notmatch 'Live: =Live.Assertive') {
@@ -117,7 +119,7 @@ foreach ($token in @('!ThisItem.IsRequired','!IsBlank(ThisItem.ValueDate)','Valu
 if ((Get-Property 'datEditorDate' 'OnChange') -notmatch 'ValueDate: If\(IsBlank\(Self.SelectedDate\), If\(false, Now\(\), Blank\(\)\), Self.SelectedDate \+ Time\(0, 0, 0\)\)') {
     throw 'Date picker must explicitly update the DateTime editor contract and retain typed blank.'
 }
-Write-Host 'Record core source/compiler passed: Asset 17 / System 16 fields; native lists, original Patch bases, capability and conflict contracts.'
+Write-Host 'Record core source/compiler passed: Asset 18 / System 16 fields; native lists, original Patch bases, capability and conflict contracts.'
 if (-not $PowerFxDirectory) { return }
 foreach ($dll in 'Microsoft.PowerFx.Core.dll','Microsoft.PowerFx.Interpreter.dll') { [void][Reflection.Assembly]::LoadFrom((Join-Path $PowerFxDirectory $dll)) }
 $engine = [Microsoft.PowerFx.RecalcEngine]::new()
@@ -406,13 +408,15 @@ foreach ($key in @('Asset','System')) {
         $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "LinkedAsset", Patch(v, {ValueLookupId: 0, ValueLookupText: ""}), v))'))
         $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
         Assert-Fx 'IsBlank(testSaved.LinkedAsset)' $true 'System payload rejects a stale zero lookup ID'
-        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "SystemDescription", Patch(v, {ValueText: "Zeile 1" & Char(10) & "Zeile 2 äöü", IsDirty: true}), v))'))
-        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
-        Assert-Fx 'testSaved.SystemDescription' "Zeile 1`nZeile 2 äöü" 'System description preserves multiline text in the actual payload'
-        $engine.UpdateVariable('colEditorValues',(Eval 'ForAll(colEditorValues As v, If(v.FieldInternalName = "SystemDescription", Patch(v, {ValueText: "", IsDirty: true}), v))'))
-        $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
-        Assert-Fx 'IsBlank(testSaved.SystemDescription)' $true 'System description can be explicitly cleared'
     }
+    $descriptionField = "${key}Description"
+    $editDescription = 'ForAll(colEditorValues As v, If(v.FieldInternalName = {0}, Patch(v, {{ValueText: {1}, IsDirty: true}}), v))'
+    $engine.UpdateVariable('colEditorValues',(Eval ($editDescription -f (FxString $descriptionField), '"Zeile 1" & Char(10) & "Zeile 2 äöü"')))
+    $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+    Assert-Fx "testSaved.$descriptionField" "Zeile 1`nZeile 2 äöü" "$key description preserves multiline text in the actual payload"
+    $engine.UpdateVariable('colEditorValues',(Eval ($editDescription -f (FxString $descriptionField), '""')))
+    $engine.UpdateVariable('testSaved',(Eval $contract.Payload))
+    Assert-Fx "IsBlank(testSaved.$descriptionField)" $true "$key description can be explicitly cleared"
     $engine.UpdateVariable("gbl${key}Record",$nonemptyFixture)
     $engine.UpdateVariable('colRecordValues',(Eval $contract.Projection))
     $engine.UpdateVariable('colEditorValues',(Eval ('ForAll(colRecordValues As loadedValue, Patch(LookUp(colEditorValues, FieldInternalName = loadedValue.FieldInternalName), '+$hydrate+'))')))

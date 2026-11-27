@@ -1,8 +1,8 @@
 # Governance Portal Roadmap
 
-Stand 26. November 2026
+Stand 27. November 2026
 
-Die Betriebs-App läuft in IT-Steinicke auf **Beta 7** (`1.0.0-beta.7`, Canvas 231, Solution `1.0.0.30526`). P14 ergänzt das Prozessregister, die Business-Impact-Analyse und dokumentierte BCM-Übungen. Die technische Abnahme mit beiden Rollen ist im [Lieferplan](GOV-PORTAL-LIEFERPLAN.md#p14--kritische-geschäftsprozesse-und-bcm) dokumentiert.
+Die Betriebs-App läuft in IT-Steinicke auf **Beta 7** (`1.0.0-beta.7`, Canvas 234, Solution `1.0.0.30529`). P14 ergänzt das Prozessregister, die Business-Impact-Analyse und dokumentierte BCM-Übungen. Für den ersten Copilot-Import stehen die Fachbearbeitung über die Entra-Gruppe IT und das mehrzeilige Feld **Asset-Beschreibung** bereit. [Rollout und Rollenabnahme](GOV-PORTAL-LIEFERPLAN.md#it-zugriff-und-asset-beschreibung)
 
 **Nächster Schritt ist der kuratierte Import einer realen Asset-/Prozesskette mit Copilot.** Eine fachkundige Person erstellt mit dem [veröffentlichten Prompt](COPILOT-ERSTBEFUELLUNG.md) genau einen zusammenhängenden Vorschlagsblock. Die verantwortliche Person bestätigt dessen Umfang und Inhalte. Ein Admin übernimmt die bestätigten Einträge und Beziehungen in Beta 7 und prüft sie mit der vorgesehenen Leserrolle. Die [Durchführung für Admins](COPILOT-IMPORT-ADMIN-ABLAUF.md) beschreibt den Weg bis zur Betriebsfreigabe für P7b.
 
